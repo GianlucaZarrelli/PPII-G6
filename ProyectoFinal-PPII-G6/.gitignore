@@ -1,0 +1,19 @@
+## Visual Studio y carpetas temporales
+.vs/
+*.user
+*.userosscache
+*.suo
+*.docstates
+
+## Archivos de compilación (Build)
+[Bb]in/
+[Oo]bj/
+[Dd]ebug/
+[Rr]elease/
+
+## Archivos generados por Android / MAUI
+*.apk
+*.aab
+
+## Mac / DS_Store
+.DS_Store
