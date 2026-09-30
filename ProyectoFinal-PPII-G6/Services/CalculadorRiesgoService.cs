@@ -11,12 +11,15 @@ namespace ProyectoFinal_PPII_G6.Services
         Alto
     }
 
+    /// <summary>
+    /// Clase que calcula el nivel de riesgo de un estudiante basado en sus asistencias.
+    /// - 25% o más de inasistencias = Riesgo Alto
+    /// - Entre 15% y 24.9% = Riesgo Medio
+    /// - Menos de 15% = Riesgo Bajo
+    /// </summary>
     public class CalculadorRiesgoService
     {
-        // Regla de negocio para la alerta temprana (H6):
-        // - 25% o más de inasistencias = Riesgo Alto
-        // - Entre 15% y 24.9% = Riesgo Medio
-        // - Menos de 15% = Riesgo Bajo
+
         public NivelRiesgo CalcularRiesgo(List<Asistencia> asistenciasEstudiante)
         {
             if (asistenciasEstudiante == null || asistenciasEstudiante.Count == 0)
