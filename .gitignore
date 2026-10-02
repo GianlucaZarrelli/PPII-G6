@@ -17,3 +17,9 @@
 
 ## Mac / DS_Store
 .DS_Store
+
+# Ignorar carpetas de compilación en cualquier proyecto
+**/bin/
+**/obj/
+[Bb]in/
+[Oo]bj/
