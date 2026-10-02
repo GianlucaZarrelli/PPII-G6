@@ -47,7 +47,7 @@ El código está organizado siguiendo la separación de responsabilidades propia
 3. Clonar el repositorio mediante la terminal o tu cliente Git favorito:
 
    ```bash
-   git clone [https://github.com/GianlucaZarrelli/PPII-G6.git](https://github.com/GianlucaZarrelli/PPII-G6.git)
+   git clone https://github.com/GianlucaZarrelli/PPII-G6.git
 4. Abrir la solución ProyectoFinal-PPII-G6.sln en Visual Studio.
 5. Seleccionar el destino de ejecución (recomendado: Windows Machine) y presionar F5.
 
