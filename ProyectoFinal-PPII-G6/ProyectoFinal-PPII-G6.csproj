@@ -63,8 +63,15 @@
 
 	<ItemGroup>
 		<Folder Include="Services\" />
-		<Folder Include="Views\" />
-		<Folder Include="ViewModels\" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <MauiXaml Update="views\DetalleEstudiantePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
+	  <MauiXaml Update="views\EstudiantePage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	</ItemGroup>
 
 </Project>

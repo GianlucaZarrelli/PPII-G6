@@ -1,4 +1,7 @@
 ﻿using Microsoft.Extensions.Logging;
+using ProyectoFinal_PPII_G6.ViewModels;
+using ProyectoFinal_PPII_G6.Views;
+
 
 namespace ProyectoFinal_PPII_G6
 {
@@ -18,6 +21,13 @@ namespace ProyectoFinal_PPII_G6
 #if DEBUG
     		builder.Logging.AddDebug();
 #endif
+            // ViewModels
+            builder.Services.AddTransient<EstudianteViewModel>();
+            builder.Services.AddTransient<DetalleEstudianteViewModel>();
+
+            //Views
+            builder.Services.AddTransient<EstudiantePage>();
+            builder.Services.AddTransient<DetalleEstudiantePage>();
 
             return builder.Build();
         }

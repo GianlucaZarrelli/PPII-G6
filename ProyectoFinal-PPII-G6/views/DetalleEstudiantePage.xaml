@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             xmlns:vm="clr-namespace:ProyectoFinal_PPII_G6.ViewModels"
+             x:Class="ProyectoFinal_PPII_G6.Views.DetalleEstudiantePage"
+             Title="Historial Individual (H4)">
+
+    <ScrollView Padding="15">
+        <VerticalStackLayout Spacing="15">
+
+            <!-- Card de Resumen del Estudiante -->
+            <Border StrokeShape="RoundRectangle 10" Stroke="#FF3B30" Padding="15" BackgroundColor="#FFF5F5">
+                <VerticalStackLayout Spacing="6">
+                    <Label Text="{Binding Estudiante.NombreCompleto}" FontSize="20" FontAttributes="Bold" TextColor="#222222" />
+                    <Label Text="{Binding Estudiante.Email, StringFormat='Email: {0}'}" FontSize="13" TextColor="Gray" />
+
+                    <BoxView HeightRequest="1" Color="#FFCDD2" Margin="0,5" />
+
+                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" RowSpacing="5">
+                        <Label Grid.Row="0" Grid.Column="0" Text="% Ausencias:" FontAttributes="Bold" FontSize="14" />
+                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding PorcentajeAusencias, StringFormat='{0:F1}%'}" TextColor="#D32F2F" FontAttributes="Bold" FontSize="14" HorizontalOptions="End" />
+
+                        <Label Grid.Row="1" Grid.Column="0" Text="Estado de Alerta:" FontAttributes="Bold" FontSize="14" />
+                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding NivelRiesgoTexto}" TextColor="#D32F2F" FontAttributes="Bold" FontSize="14" HorizontalOptions="End" />
+                    </Grid>
+                </VerticalStackLayout>
+            </Border>
+
+            <!-- Historial de Clases -->
+            <Label Text="Asistencias por Clase" FontAttributes="Bold" FontSize="18" Margin="5,10,0,0" />
+
+            <CollectionView ItemsSource="{Binding HistorialAsistencias}">
+                <CollectionView.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeShape="RoundRectangle 8" Stroke="#E0E0E0" Padding="12" Margin="0,3">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0" Text="{Binding ClaseId, StringFormat='Clase N° {0}'}" VerticalOptions="Center" FontAttributes="Bold" />
+                                <Label Grid.Column="1" 
+                                       Text="{Binding Presente}" 
+                                       FontAttributes="Bold" 
+                                       VerticalOptions="Center" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </CollectionView.ItemTemplate>
+            </CollectionView>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>
