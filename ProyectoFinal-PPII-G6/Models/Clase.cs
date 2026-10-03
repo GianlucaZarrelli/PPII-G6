@@ -17,22 +17,8 @@ namespace ProyectoFinal_PPII_G6.Models
             this.Descripcion = descripcion;
         }
 
-        public int Id
-        {
-            get;
-            set;
-        }
-
-        public DateTime Fecha
-        {
-            get;
-            set;
-        }
-
-        public string Descripcion
-        {
-            get;
-            set;
-        }
+        public int Id { get; set; }
+        public DateTime Fecha { get; set; }
+        public string Descripcion { get; set; }
     }
 }

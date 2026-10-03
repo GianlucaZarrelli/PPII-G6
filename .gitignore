@@ -23,3 +23,7 @@
 **/obj/
 [Bb]in/
 [Oo]bj/
+
+#Ignorar carptetas Claude
+.claude/
+.mcp.json

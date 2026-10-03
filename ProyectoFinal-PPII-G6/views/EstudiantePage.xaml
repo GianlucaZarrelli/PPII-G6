@@ -1,53 +1,93 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:ProyectoFinal_PPII_G6.ViewModels"
              x:Class="ProyectoFinal_PPII_G6.Views.EstudiantePage"
              Title="Gestión de Alumnos (H2)">
 
     <ScrollView Padding="15">
-        <VerticalStackLayout Spacing="15">
+        <VerticalStackLayout Spacing="20">
 
-            <!-- Formulario para agregar estudiante -->
-            <Border StrokeShape="RoundRectangle 10" Stroke="#E0E0E0" Padding="15" BackgroundColor="White">
-                <VerticalStackLayout Spacing="10">
-                    <Label Text="Alta de Estudiante" FontAttributes="Bold" FontSize="18" TextColor="#512BD4" />
+            <!-- Formulario de Alta -->
+            <Border StrokeShape="RoundRectangle 10" 
+                    Stroke="#E0E0E0" 
+                    Padding="15" 
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
+                <VerticalStackLayout Spacing="12">
+                    <Label Text="Alta de Estudiante" 
+                           FontSize="18" 
+                           FontAttributes="Bold" 
+                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
 
-                    <Entry Placeholder="DNI" Text="{Binding Dni}" Keyboard="Numeric" ClearButtonVisibility="WhileEditing" />
-                    <Entry Placeholder="Nombre" Text="{Binding Nombre}" ClearButtonVisibility="WhileEditing" />
-                    <Entry Placeholder="Apellido" Text="{Binding Apellido}" ClearButtonVisibility="WhileEditing" />
+                    <Entry Placeholder="Nombre" 
+                           Text="{Binding Nombre}" 
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Entry Placeholder="Apellido" 
+                           Text="{Binding Apellido}" 
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Entry Placeholder="Email" 
+                           Text="{Binding Email}" 
+                           Keyboard="Email"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                           ClearButtonVisibility="WhileEditing" />
 
                     <Button Text="Guardar Estudiante" 
-                            Command="{Binding GuardarEstudianteCommand}" 
+                            Command="{Binding GuardarEstudianteCommand}"
                             BackgroundColor="#512BD4" 
                             TextColor="White" 
-                            CornerRadius="8"
-                            Margin="0,5,0,0" />
+                            HeightRequest="45"
+                            CornerRadius="8" 
+                            Margin="0,10,0,0" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Listado de Nómina -->
-            <Label Text="Nómina Registrada" FontAttributes="Bold" FontSize="18" Margin="5,10,0,0" />
+            <!-- Lista de Estudiantes Registrados -->
+            <Label Text="Nómina Registrada" 
+                   FontSize="18" 
+                   FontAttributes="Bold" 
+                   TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
 
-            <CollectionView ItemsSource="{Binding Estudiantes}" EmptyView="No hay estudiantes registrados.">
+            <CollectionView ItemsSource="{Binding Estudiantes}">
+                <CollectionView.EmptyView>
+                    <Label Text="No hay estudiantes registrados." 
+                           HorizontalOptions="Center" 
+                           TextColor="Gray" 
+                           Margin="0,20" />
+                </CollectionView.EmptyView>
+
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border StrokeShape="RoundRectangle 8" Stroke="#CCCCCC" Padding="12" Margin="0,4" BackgroundColor="#F9F9F9">
-                            <Grid ColumnDefinitions="*, Auto" VerticalOptions="Center">
+                        <Border StrokeShape="RoundRectangle 8" 
+                                Stroke="#33FFFFFF" 
+                                Padding="12" 
+                                Margin="0,4"
+                                BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#1E1E1E}">
+                            <Grid ColumnDefinitions="*, Auto">
                                 <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                    <Label Text="{Binding NombreCompleto}" FontAttributes="Bold" FontSize="15" />
-                                    <Label Text="{Binding Dni, StringFormat='DNI: {0}'}" FontSize="12" TextColor="Gray" />
+                                    <Label Text="{Binding NombreCompleto}" 
+                                           FontAttributes="Bold" 
+                                           FontSize="15" 
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                    <Label Text="{Binding Email, StringFormat='Email: {0}'}" 
+                                           FontSize="12" 
+                                           TextColor="Gray" />
                                 </VerticalStackLayout>
 
                                 <Button Grid.Column="1" 
                                         Text="Eliminar" 
-                                        Command="{Binding Source={RelativeSource AncestorType={x:Type vm:EstudianteViewModel}}, Path=EliminarEstudianteCommand}"
+                                        Command="{Binding BindingContext.EliminarEstudianteCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
                                         CommandParameter="{Binding .}"
-                                        BackgroundColor="#FF3B30" 
+                                        BackgroundColor="#D32F2F" 
                                         TextColor="White" 
-                                        HeightRequest="36"
-                                        Padding="12,0" 
-                                        CornerRadius="6" />
+                                        FontSize="12" 
+                                        HeightRequest="36" 
+                                        Padding="10,0" />
                             </Grid>
                         </Border>
                     </DataTemplate>

@@ -18,27 +18,9 @@ namespace ProyectoFinal_PPII_G6.Models
             this.Presente = presente;
         }
 
-        public int Id
-        {
-            get;
-            set;
-        }
-        public int EstudianteId
-        {
-            get;
-            set;
-        }
-
-        public int ClaseId
-        {
-            get;
-            set;
-        }
-
-        public bool Presente
-        {
-            get;
-            set;
-        }
+        public int Id { get; set; }
+        public int EstudianteId { get; set; }
+        public int ClaseId { get; set; }
+        public bool Presente { get; set; }
     }
 }
