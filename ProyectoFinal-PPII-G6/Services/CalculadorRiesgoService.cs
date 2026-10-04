@@ -1,74 +1,47 @@
-﻿using ProyectoFinal_PPII_G6.Models;
-using System.Collections.Generic;
-using System.Linq;
-
 namespace ProyectoFinal_PPII_G6.Services
 {
+    /// <summary>
+    /// Niveles de riesgo de un estudiante según sus inasistencias.
+    /// </summary>
     public enum NivelRiesgo
     {
+        /// <summary>Sin inasistencias.</summary>
         Bajo,
-        Medio,
+
+        /// <summary>1 o 2 inasistencias.</summary>
+        Moderado,
+
+        /// <summary>3 o más inasistencias.</summary>
         Alto
     }
 
     /// <summary>
-    /// Clase que calcula el nivel de riesgo de un estudiante basado en sus asistencias.
-    /// - 25% o más de inasistencias = Riesgo Alto
-    /// - Entre 15% y 24.9% = Riesgo Medio
-    /// - Menos de 15% = Riesgo Bajo
+    /// Define el cálculo del nivel de riesgo de un estudiante.
     /// </summary>
-    public class CalculadorRiesgoService
+    public interface ICalculadorRiesgoService
     {
+        /// <summary>
+        /// Devuelve el nivel de riesgo según la cantidad de inasistencias.
+        /// </summary>
+        NivelRiesgo CalcularNivelRiesgo(int inasistencias);
+    }
 
-        public NivelRiesgo CalcularRiesgo(List<Asistencia> asistenciasEstudiante)
+    /// <summary>
+    /// Calcula el nivel de riesgo: 3 o más inasistencias es Alto, 1 o 2 es Moderado y 0 es Bajo.
+    /// </summary>
+    public class CalculadorRiesgoService : ICalculadorRiesgoService
+    {
+        /// <summary>
+        /// Devuelve el nivel de riesgo según la cantidad de inasistencias.
+        /// </summary>
+        public NivelRiesgo CalcularNivelRiesgo(int inasistencias)
         {
-            if (asistenciasEstudiante == null || asistenciasEstudiante.Count == 0)
-            {
-                return NivelRiesgo.Bajo;
-            }
-
-            int totalClases = asistenciasEstudiante.Count;
-            int ausencias = 0;
-
-            foreach (var asistencia in asistenciasEstudiante)
-            {
-                if (!asistencia.Presente)
-                {
-                    ausencias++;
-                }
-            }
-
-            double porcentaje = ((double)ausencias / totalClases) * 100;
-
-            if (porcentaje >= 25)
-            {
+            if (inasistencias >= 3)
                 return NivelRiesgo.Alto;
-            }
-            if (porcentaje >= 15)
-            {
-                return NivelRiesgo.Medio;
-            }
+            if (inasistencias >= 1)
+                return NivelRiesgo.Moderado;
 
             return NivelRiesgo.Bajo;
-        }
-
-        public double CalcularPorcentajeAusencias(List<Asistencia> asistenciasEstudiante)
-        {
-            if (asistenciasEstudiante == null || asistenciasEstudiante.Count == 0)
-            {
-                return 0;
-            }
-
-            int ausencias = 0;
-            foreach (var asistencia in asistenciasEstudiante)
-            {
-                if (!asistencia.Presente)
-                {
-                    ausencias++;
-                }
-            }
-
-            return ((double)ausencias / asistenciasEstudiante.Count) * 100;
         }
     }
 }

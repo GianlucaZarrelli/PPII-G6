@@ -1,44 +1,88 @@
 <?xml version="1.0" encoding="utf-8" ?>
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-             xmlns:vm="clr-namespace:ProyectoFinal_PPII_G6.ViewModels"
              x:Class="ProyectoFinal_PPII_G6.Views.DetalleEstudiantePage"
-             Title="Historial Individual (H4)">
+             Title="Indicador de Alerta Temprana (H4/H6)">
 
     <ScrollView Padding="15">
-        <VerticalStackLayout Spacing="15">
+        <VerticalStackLayout Spacing="20">
 
-            <!-- Card de Resumen del Estudiante -->
-            <Border StrokeShape="RoundRectangle 10" Stroke="#FF3B30" Padding="15" BackgroundColor="#FFF5F5">
-                <VerticalStackLayout Spacing="6">
-                    <Label Text="{Binding Estudiante.NombreCompleto}" FontSize="20" FontAttributes="Bold" TextColor="#222222" />
-                    <Label Text="{Binding Estudiante.Email, StringFormat='Email: {0}'}" FontSize="13" TextColor="Gray" />
+            <!-- Selector de Alumno -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Seleccionar Estudiante:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding ListaEstudiantes}"
+                        ItemDisplayBinding="{Binding NombreCompleto}"
+                        SelectedItem="{Binding EstudianteSeleccionado}"
+                        Title="-- Seleccione un alumno --" 
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+            </VerticalStackLayout>
 
-                    <BoxView HeightRequest="1" Color="#FFCDD2" Margin="0,5" />
+            <!-- Ficha del Estudiante Seleccionado -->
+            <Border StrokeShape="RoundRectangle 10" 
+                    Padding="15" 
+                    BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#2A2A2A}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="{Binding EstudianteSeleccionado.NombreCompleto, FallbackValue='Sin alumno seleccionado'}" 
+                           FontSize="20" 
+                           FontAttributes="Bold" 
+                           TextColor="{AppThemeBinding Light=#1A237E, Dark=#FFFFFF}" />
 
-                    <Grid ColumnDefinitions="*, *" RowDefinitions="Auto, Auto" RowSpacing="5">
-                        <Label Grid.Row="0" Grid.Column="0" Text="% Ausencias:" FontAttributes="Bold" FontSize="14" />
-                        <Label Grid.Row="0" Grid.Column="1" Text="{Binding PorcentajeAusencias, StringFormat='{0:F1}%'}" TextColor="#D32F2F" FontAttributes="Bold" FontSize="14" HorizontalOptions="End" />
+                    <Label Text="{Binding EstudianteSeleccionado.Dni, StringFormat='DNI: {0}'}" 
+                           FontSize="14" 
+                           TextColor="Gray" />
 
-                        <Label Grid.Row="1" Grid.Column="0" Text="Estado de Alerta:" FontAttributes="Bold" FontSize="14" />
-                        <Label Grid.Row="1" Grid.Column="1" Text="{Binding NivelRiesgoTexto}" TextColor="#D32F2F" FontAttributes="Bold" FontSize="14" HorizontalOptions="End" />
-                    </Grid>
+                    <Label Text="{Binding EstudianteSeleccionado.Email, StringFormat='Email: {0}'}" 
+                           FontSize="14" 
+                           TextColor="Gray" />
+
+                    <!-- Badge Estado de Riesgo -->
+                    <Border StrokeShape="RoundRectangle 6" 
+                            BackgroundColor="{Binding ColorRiesgo}" 
+                            Padding="10,6" 
+                            HorizontalOptions="Start" 
+                            Margin="0,6,0,0">
+                        <Label Text="{Binding NivelRiesgoTexto}" 
+                               TextColor="White" 
+                               FontAttributes="Bold" 
+                               FontSize="13" />
+                    </Border>
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Historial de Clases -->
-            <Label Text="Asistencias por Clase" FontAttributes="Bold" FontSize="18" Margin="5,10,0,0" />
+            <!-- Acciones de Registro de Asistencia -->
+            <Label Text="Registrar Asistencia del Día" FontSize="16" FontAttributes="Bold" />
+
+            <Grid ColumnDefinitions="*, *" ColumnSpacing="10">
+                <Button Grid.Column="0" 
+                        Text="✔ Presente" 
+                        Command="{Binding RegistrarAsistenciaCommand}" 
+                        BackgroundColor="#388E3C" 
+                        TextColor="White" />
+
+                <Button Grid.Column="1" 
+                        Text="❌ Inasistencia" 
+                        Command="{Binding RegistrarInasistenciaCommand}" 
+                        BackgroundColor="#D32F2F" 
+                        TextColor="White" />
+            </Grid>
+
+            <!-- Historial de Presentismo -->
+            <Label Text="Historial de Clases" FontSize="16" FontAttributes="Bold" Margin="0,10,0,0" />
 
             <CollectionView ItemsSource="{Binding HistorialAsistencias}">
+                <CollectionView.EmptyView>
+                    <Label Text="Sin asistencias registradas para este alumno." HorizontalOptions="Center" TextColor="Gray" Margin="0,15" />
+                </CollectionView.EmptyView>
+
                 <CollectionView.ItemTemplate>
                     <DataTemplate>
-                        <Border StrokeShape="RoundRectangle 8" Stroke="#E0E0E0" Padding="12" Margin="0,3">
+                        <Border StrokeShape="RoundRectangle 6" Padding="10" Margin="0,3" BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
                             <Grid ColumnDefinitions="*, Auto">
-                                <Label Grid.Column="0" Text="{Binding ClaseId, StringFormat='Clase N° {0}'}" VerticalOptions="Center" FontAttributes="Bold" />
+                                <Label Grid.Column="0" Text="{Binding ClaseId, StringFormat='Registro de Clase #{0}'}" VerticalOptions="Center" />
                                 <Label Grid.Column="1" 
                                        Text="{Binding Presente}" 
-                                       FontAttributes="Bold" 
-                                       VerticalOptions="Center" />
+                                       FontAttributes="Bold"
+                                       TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
                             </Grid>
                         </Border>
                     </DataTemplate>

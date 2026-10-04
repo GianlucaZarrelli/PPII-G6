@@ -3,16 +3,18 @@
     x:Class="ProyectoFinal_PPII_G6.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:views="clr-namespace:ProyectoFinal_PPII_G6.Views"
-    Title="Sistema Alerta Temprana">
+    xmlns:local="clr-namespace:ProyectoFinal_PPII_G6.Views"
+    Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
-        <Tab Title="Gestión (H2)">
-            <ShellContent ContentTemplate="{DataTemplate views:EstudiantePage}" />
+        <Tab Title="Inicio">
+            <ShellContent Title="Menú" ContentTemplate="{DataTemplate local:HomePage}" Route="HomePage" />
         </Tab>
-
-        <Tab Title="Historial (H4)">
-            <ShellContent ContentTemplate="{DataTemplate views:DetalleEstudiantePage}" />
+        <Tab Title="Alumnos">
+            <ShellContent Title="Gestión" ContentTemplate="{DataTemplate local:EstudiantePage}" Route="GestorEstudiantes" />
+        </Tab>
+        <Tab Title="Asistencia">
+            <ShellContent Title="Historial" ContentTemplate="{DataTemplate local:DetalleEstudiantePage}" Route="HistorialEstudiantes" />
         </Tab>
     </TabBar>
 

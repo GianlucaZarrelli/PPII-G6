@@ -1,28 +1,25 @@
-﻿using ProyectoFinal_PPII_G6.Models;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
-using System.Windows.Input;
+using System.Threading.Tasks;
+using Microsoft.Maui.Controls;
+using ProyectoFinal_PPII_G6.Models;
+using ProyectoFinal_PPII_G6.Services;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
     /// <summary>
-    /// ViewModel encargado de coordinar la lógica de presentación para la gestión
-    /// y alta de estudiantes (Historia de Usuario H2).
+    /// ViewModel de la pantalla de gestión de alumnos: alta, listado y baja de estudiantes.
     /// </summary>
-    public class EstudianteViewModel : INotifyPropertyChanged
+    public class EstudianteViewModel : BindableObject
     {
-        private string _dni;
-        private string _nombre;
-        private string _apellido;
-
         /// <summary>
-        /// Colección observable de estudiantes enlazada directamente con la vista para reflejar cambios en tiempo real.
+        /// Servicio de acceso a datos.
         /// </summary>
-        public ObservableCollection<Estudiante> Estudiantes { get; set; }
+        private readonly IDataService _dataService;
+
+        private string _dni = string.Empty;
 
         /// <summary>
-        /// Obtiene o establece el DNI ingresado en el formulario de alta.
+        /// DNI ingresado en el formulario.
         /// </summary>
         public string Dni
         {
@@ -30,8 +27,10 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _dni = value; OnPropertyChanged(); }
         }
 
+        private string _nombre = string.Empty;
+
         /// <summary>
-        /// Obtiene o establece el Nombre ingresado en el formulario de alta.
+        /// Nombre ingresado en el formulario.
         /// </summary>
         public string Nombre
         {
@@ -39,8 +38,10 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _nombre = value; OnPropertyChanged(); }
         }
 
+        private string _apellido = string.Empty;
+
         /// <summary>
-        /// Obtiene o establece el Apellido ingresado en el formulario de alta.
+        /// Apellido ingresado en el formulario.
         /// </summary>
         public string Apellido
         {
@@ -48,70 +49,104 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _apellido = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Comando para procesar y guardar un nuevo estudiante desde el formulario.
-        /// </summary>
-        public ICommand GuardarEstudianteCommand { get; }
+        private string _email = string.Empty;
 
         /// <summary>
-        /// Comando para eliminar un estudiante seleccionado de la lista.
+        /// Email ingresado en el formulario.
         /// </summary>
-        public ICommand EliminarEstudianteCommand { get; }
-
-        /// <summary>
-        /// Inicializa una nueva instancia de la clase <see cref="EstudianteViewModel"/>,
-        /// preparando la colección y asignando los comandos.
-        /// </summary>
-        public EstudianteViewModel()
+        public string Email
         {
+            get => _email;
+            set { _email = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Lista de estudiantes que se muestra en pantalla.
+        /// </summary>
+        public ObservableCollection<Estudiante> Estudiantes { get; set; }
+
+        /// <summary>
+        /// Comando para guardar un estudiante nuevo.
+        /// </summary>
+        public Command GuardarEstudianteCommand { get; }
+
+        /// <summary>
+        /// Comando para recargar la lista de estudiantes.
+        /// </summary>
+        public Command CargarEstudianteCommand { get; }
+
+        /// <summary>
+        /// Comando para eliminar un estudiante.
+        /// </summary>
+        public Command<Estudiante> EliminarEstudianteCommand { get; }
+
+        /// <summary>
+        /// Crea el ViewModel, inicializa los comandos y carga la lista de estudiantes.
+        /// </summary>
+        public EstudianteViewModel(IDataService dataService)
+        {
+            _dataService = dataService;
             Estudiantes = new ObservableCollection<Estudiante>();
 
-            GuardarEstudianteCommand = new Command(GuardarEstudiante);
-            EliminarEstudianteCommand = new Command<Estudiante>(EliminarEstudiante);
+            GuardarEstudianteCommand = new Command(async () => await GuardarEstudianteAsync());
+            CargarEstudianteCommand = new Command(async () => await CargarEstudianteAsync());
+            EliminarEstudianteCommand = new Command<Estudiante>(async (est) => await EliminarEstudianteAsync(est));
+
+            CargarEstudianteCommand.Execute(null);
         }
 
         /// <summary>
-        /// Valida los datos ingresados, crea la nueva entidad <see cref="Estudiante"/>,
-        /// la agrega a la colección y limpia las entradas del formulario.
+        /// Carga los estudiantes desde la base de datos.
         /// </summary>
-        private void GuardarEstudiante()
+        private async Task CargarEstudianteAsync()
         {
-            if (string.IsNullOrWhiteSpace(Dni) || string.IsNullOrWhiteSpace(Nombre) || string.IsNullOrWhiteSpace(Apellido))
-                return;
-
-            var nuevo = new Estudiante(Estudiantes.Count + 1, Dni, Nombre, Apellido);
-            Estudiantes.Add(nuevo);
-
-            // Limpiar campos del formulario tras agregar el registro
-            Dni = string.Empty;
-            Nombre = string.Empty;
-            Apellido = string.Empty;
-        }
-
-        /// <summary>
-        /// Remueve de la nómina al estudiante pasado como parámetro.
-        /// </summary>
-        /// <param name="estudiante">Instancia del estudiante a eliminar.</param>
-        private void EliminarEstudiante(Estudiante estudiante)
-        {
-            if (estudiante != null && Estudiantes.Contains(estudiante))
+            var lista = await _dataService.GetEstudiantesAsync();
+            Estudiantes.Clear();
+            foreach (var est in lista)
             {
-                Estudiantes.Remove(estudiante);
+                Estudiantes.Add(est);
             }
         }
 
         /// <summary>
-        /// Ocurre cuando cambia el valor de una propiedad.
+        /// Valida el formulario, guarda el estudiante, limpia los campos y recarga la lista.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        private async Task GuardarEstudianteAsync()
+        {
+            if (string.IsNullOrWhiteSpace(Dni) || string.IsNullOrWhiteSpace(Nombre) || string.IsNullOrWhiteSpace(Apellido))
+            {
+                if (Application.Current?.MainPage != null)
+                    await Application.Current.MainPage.DisplayAlert("Error", "DNI, Nombre y Apellido son obligatorios.", "OK");
+                return;
+            }
+
+            var nuevo = new Estudiante(0, Dni, Nombre, Apellido, Email);
+            await _dataService.SaveEstudianteAsync(nuevo);
+
+            Dni = string.Empty;
+            Nombre = string.Empty;
+            Apellido = string.Empty;
+            Email = string.Empty;
+
+            await CargarEstudianteAsync();
+
+            if (Application.Current?.MainPage != null)
+                await Application.Current.MainPage.DisplayAlert("Éxito", "Estudiante registrado en SQL Server.", "OK");
+        }
 
         /// <summary>
-        /// Notifica a la interfaz de usuario (XAML) que el valor de una propiedad ha cambiado.
+        /// Pide confirmación y elimina el estudiante.
         /// </summary>
-        /// <param name="propertyName">Nombre de la propiedad modificada (detectado automáticamente).</param>
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private async Task EliminarEstudianteAsync(Estudiante estudiante)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (estudiante == null || Application.Current?.MainPage == null) return;
+
+            bool confirmar = await Application.Current.MainPage.DisplayAlert("Confirmar", $"¿Desea eliminar a {estudiante.NombreCompleto}?", "Sí", "No");
+            if (confirmar)
+            {
+                await _dataService.DeleteEstudianteAsync(estudiante.Id);
+                await CargarEstudianteAsync();
+            }
         }
     }
 }

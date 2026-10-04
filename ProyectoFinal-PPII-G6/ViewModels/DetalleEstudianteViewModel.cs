@@ -1,40 +1,61 @@
-﻿using ProyectoFinal_PPII_G6.Models;
+using System;
 using System.Collections.ObjectModel;
-using System.ComponentModel;
-using System.Runtime.CompilerServices;
+using System.Threading.Tasks;
+using Microsoft.Maui.Controls;
+using ProyectoFinal_PPII_G6.Models;
+using ProyectoFinal_PPII_G6.Services;
+using System.Linq;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
     /// <summary>
-    /// ViewModel que gestiona la lógica de presentación para la consulta detallada
-    /// del historial de asistencias e indicador de riesgo de un estudiante (Historia H4).
+    /// ViewModel de la pantalla de asistencia: registra asistencias y muestra el historial y el nivel de riesgo.
     /// </summary>
-    public class DetalleEstudianteViewModel : INotifyPropertyChanged
+    public class DetalleEstudianteViewModel : BindableObject
     {
-        private Estudiante _estudiante;
-        private double _porcentajeAusencias;
-        private string _nivelRiesgoTexto;
+        /// <summary>
+        /// Servicio de acceso a datos.
+        /// </summary>
+        private readonly IDataService _dataService;
 
         /// <summary>
-        /// Obtiene o establece la entidad <see cref="Estudiante"/> seleccionada para la consulta.
+        /// Servicio que calcula el nivel de riesgo.
         /// </summary>
-        public Estudiante Estudiante
+        private readonly ICalculadorRiesgoService _calculadorRiesgoService;
+
+        /// <summary>
+        /// Estudiantes disponibles para seleccionar.
+        /// </summary>
+        public ObservableCollection<Estudiante> ListaEstudiantes { get; set; }
+
+        /// <summary>
+        /// Historial de asistencias del estudiante seleccionado.
+        /// </summary>
+        public ObservableCollection<Asistencia> HistorialAsistencias { get; set; }
+
+        private Estudiante? _estudianteSeleccionado;
+
+        /// <summary>
+        /// Estudiante seleccionado. Al cambiarlo se carga su historial y su nivel de riesgo.
+        /// </summary>
+        public Estudiante? EstudianteSeleccionado
         {
-            get => _estudiante;
-            set { _estudiante = value; OnPropertyChanged(); }
+            get => _estudianteSeleccionado;
+            set
+            {
+                _estudianteSeleccionado = value;
+                OnPropertyChanged();
+                if (value != null)
+                {
+                    _ = CargarDetalleAsync(value.Id);
+                }
+            }
         }
 
-        /// <summary>
-        /// Obtiene o establece el porcentaje acumulado de ausencias calculadas.
-        /// </summary>
-        public double PorcentajeAusencias
-        {
-            get => _porcentajeAusencias;
-            set { _porcentajeAusencias = value; OnPropertyChanged(); }
-        }
+        private string _nivelRiesgoTexto = "Seleccione un alumno";
 
         /// <summary>
-        /// Obtiene o establece el texto descriptivo del nivel de alerta o riesgo académico.
+        /// Texto del nivel de riesgo que se muestra en pantalla.
         /// </summary>
         public string NivelRiesgoTexto
         {
@@ -42,50 +63,146 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _nivelRiesgoTexto = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Colección observable con el desglose del historial de asistencias por clase del estudiante.
-        /// </summary>
-        public ObservableCollection<Asistencia> HistorialAsistencias { get; set; }
+        private string _colorRiesgo = "#757575";
 
         /// <summary>
-        /// Inicializa una nueva instancia de <see cref="DetalleEstudianteViewModel"/>
-        /// y carga los datos de prueba iniciales.
+        /// Color del indicador de riesgo.
         /// </summary>
-        public DetalleEstudianteViewModel()
+        public string ColorRiesgo
         {
+            get => _colorRiesgo;
+            set { _colorRiesgo = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Comando para registrar al estudiante como presente.
+        /// </summary>
+        public Command RegistrarAsistenciaCommand { get; }
+
+        /// <summary>
+        /// Comando para registrar al estudiante como ausente.
+        /// </summary>
+        public Command RegistrarInasistenciaCommand { get; }
+
+        /// <summary>
+        /// Crea el ViewModel con los servicios que necesita e inicializa los comandos.
+        /// </summary>
+        public DetalleEstudianteViewModel(IDataService dataService, ICalculadorRiesgoService calculadorRiesgoService)
+        {
+            _dataService = dataService;
+            _calculadorRiesgoService = calculadorRiesgoService;
+            ListaEstudiantes = new ObservableCollection<Estudiante>();
             HistorialAsistencias = new ObservableCollection<Asistencia>();
-            CargarDatosSimulados();
+
+            RegistrarAsistenciaCommand = new Command(async () => await RegistrarAsistenciaAsync(true));
+            RegistrarInasistenciaCommand = new Command(async () => await RegistrarAsistenciaAsync(false));
         }
 
         /// <summary>
-        /// Carga registros de prueba en la colección para permitir la previsualización
-        /// e integración visual con la interfaz (Mock Data).
+        /// Carga la lista de estudiantes para el selector.
         /// </summary>
-        private void CargarDatosSimulados()
+        public async Task CargarListaEstudiantesAsync()
         {
-            Estudiante = new Estudiante(1, "Juan", "Pérez", "juan.perez@email.com");
-
-            HistorialAsistencias.Add(new Asistencia(1, 1, 1, true));
-            HistorialAsistencias.Add(new Asistencia(2, 1, 2, false));
-            HistorialAsistencias.Add(new Asistencia(3, 1, 3, true));
-            HistorialAsistencias.Add(new Asistencia(4, 1, 4, false));
-
-            PorcentajeAusencias = 50.0;
-            NivelRiesgoTexto = "Alto (Alerta Temprana)";
+            var estudiantes = await _dataService.GetEstudiantesAsync();
+            ListaEstudiantes.Clear();
+            foreach (var est in estudiantes)
+            {
+                ListaEstudiantes.Add(est);
+            }
         }
 
         /// <summary>
-        /// Evento que se dispara cuando cambia el valor de una propiedad.
+        /// Carga el historial de asistencias de un estudiante y actualiza su nivel de riesgo.
         /// </summary>
-        public event PropertyChangedEventHandler PropertyChanged;
+        public async Task CargarDetalleAsync(int estudianteId)
+        {
+            var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(estudianteId);
+            HistorialAsistencias.Clear();
+
+            int inasistencias = 0;
+            foreach (var asis in asistencias)
+            {
+                HistorialAsistencias.Add(asis);
+                if (!asis.Presente) inasistencias++;
+            }
+
+            CalcularNivelRiesgo(asistencias.Count, inasistencias);
+        }
 
         /// <summary>
-        /// Notifica a la interfaz gráfica que una propiedad ha actualizado su valor.
+        /// Registra la asistencia del día del estudiante seleccionado. Si ya estaba registrada, la actualiza.
         /// </summary>
-        /// <param name="propertyName">Nombre de la propiedad (infección automática).</param>
-        protected void OnPropertyChanged([CallerMemberName] string propertyName = null)
+        private async Task RegistrarAsistenciaAsync(bool presente)
         {
-            PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
+            if (EstudianteSeleccionado == null)
+            {
+                if (Application.Current?.MainPage != null)
+                    await Application.Current.MainPage.DisplayAlert("Atención", "Seleccione un estudiante antes de registrar asistencia.", "OK");
+                return;
+            }
+
+            var fechaHoy = DateTime.Today;
+            var clases = await _dataService.GetClasesAsync();
+            var claseHoy = clases.FirstOrDefault(c => c.Fecha.Date == fechaHoy);
+
+            int claseId;
+            if (claseHoy != null)
+            {
+                claseId = claseHoy.Id;
+            }
+            else
+            {
+                var nuevaClase = new Clase(0, fechaHoy, $"Clase {fechaHoy:dd/MM/yyyy}");
+                claseId = await _dataService.SaveClaseAsync(nuevaClase);
+            }
+
+            // Buscar si ya existe una asistencia registrada para este alumno en la clase de hoy
+            var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(EstudianteSeleccionado.Id);
+            var asistenciaExistente = asistencias.FirstOrDefault(a => a.ClaseId == claseId);
+
+            if (asistenciaExistente != null)
+            {
+                // Actualizar el registro existente (Evita duplicados)
+                asistenciaExistente.Presente = presente;
+                await _dataService.SaveAsistenciaAsync(asistenciaExistente);
+            }
+            else
+            {
+                // Crear un nuevo registro si es la primera marca del día
+                var nuevaAsistencia = new Asistencia(0, EstudianteSeleccionado.Id, claseId, presente);
+                await _dataService.SaveAsistenciaAsync(nuevaAsistencia);
+            }
+
+            await CargarDetalleAsync(EstudianteSeleccionado.Id);
+        }
+
+        /// <summary>
+        /// Actualiza el texto y el color del indicador según el nivel de riesgo.
+        /// </summary>
+        private void CalcularNivelRiesgo(int totalClases, int inasistencias)
+        {
+            if (totalClases == 0)
+            {
+                NivelRiesgoTexto = "Sin registros de asistencia";
+                ColorRiesgo = "#757575";
+                return;
+            }
+
+            switch (_calculadorRiesgoService.CalcularNivelRiesgo(inasistencias))
+            {
+                case NivelRiesgo.Alto:
+                    NivelRiesgoTexto = "ALTO RIESGO (3+ Inasistencias)";
+                    ColorRiesgo = "#D32F2F";
+                    break;
+                case NivelRiesgo.Moderado:
+                    NivelRiesgoTexto = "RIESGO MODERADO";
+                    ColorRiesgo = "#F57C00";
+                    break;
+                default:
+                    NivelRiesgoTexto = "BAJO RIESGO / AL DÍA";
+                    ColorRiesgo = "#388E3C";
+                    break;
+            }
         }
     }
 }
