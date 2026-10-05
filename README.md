@@ -55,7 +55,7 @@ El código está organizado siguiendo la separación de responsabilidades propia
 
 ```text
 Integrantes/
-├── Gianluca Zarrelli     (G.zarrelli96@gmail.com)
-├── Maia Celeste Mazza    (Maiacmazza@gmail.com)
-├── Facundo Araujo        (Somonte.facundo2010@gmail.com)
-└── Gabriel Bergamini     (Gabrieleze90@gmail.com)
+├── Gianluca Zarrelli     
+├── Maia Celeste Mazza    
+├── Facundo Araujo        
+└── Gabriel Bergamini     
