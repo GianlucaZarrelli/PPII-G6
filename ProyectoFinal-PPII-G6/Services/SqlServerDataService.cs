@@ -51,21 +51,6 @@ namespace ProyectoFinal_PPII_G6.Services
         }
 
         /// <summary>
-        /// Elimina un estudiante por su Id.
-        /// </summary>
-        public async Task<int> DeleteEstudianteAsync(int id)
-        {
-            using var context = CreateContext();
-            var estudiante = await context.Estudiantes.FindAsync(id);
-            if (estudiante != null)
-            {
-                context.Estudiantes.Remove(estudiante);
-                return await context.SaveChangesAsync();
-            }
-            return 0;
-        }
-
-        /// <summary>
         /// Obtiene todas las clases ordenadas por fecha descendente.
         /// </summary>
         public async Task<List<Clase>> GetClasesAsync()
@@ -125,6 +110,102 @@ namespace ProyectoFinal_PPII_G6.Services
 
             await context.SaveChangesAsync();
             return asistencia.Id;
+        }
+
+        public async Task<List<Comision>> GetComisionesAsync()
+        {
+            using var context = CreateContext();
+            return await context.Comisiones.AsNoTracking().ToListAsync();
+        }
+
+        public async Task<Comision?> GetComisionByIdAsync(int id)
+        {
+            using var context = CreateContext();
+            return await context.Comisiones.FindAsync(id);
+
+        }
+
+        public async Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId)
+        {
+            using var context = CreateContext();
+            return await context.Estudiantes
+                .AsNoTracking()
+                .Where(e => e.ComisionId == comisionId)
+                .ToListAsync();
+        }
+
+        public async Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes)
+        {
+            using var context = CreateContext();
+            await context.Estudiantes.AddRangeAsync(estudiantes);
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId)
+        {
+            using var context = CreateContext();
+            return await context.Clases
+                .AsNoTracking()
+                .Where(c => c.ComisionId == comisionId)
+                .OrderByDescending(c => c.Fecha)
+                .ToListAsync();
+        }
+
+        public async Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias)
+        {
+            using var context = CreateContext();
+            foreach (var asistencia in asistencias)
+            {
+                if (asistencia.Id == 0)
+                    await context.Asistencias.AddAsync(asistencia);
+                else
+                    context.Asistencias.Update(asistencia);
+            }
+            await context.SaveChangesAsync();
+            return asistencias.Count;
+        }
+
+        public async Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId)
+        {
+            using var context = CreateContext();
+            return await context.TrabajosPracticos
+                .AsNoTracking()
+                .Where(tp => tp.ComisionId == comisionId)
+                .ToListAsync();
+        }
+
+        public async Task<TrabajoPractico> SaveTrabajoPracticoAsync(TrabajoPractico tp)
+        {
+            using var context = CreateContext();
+            if (tp.Id == 0)
+                await context.TrabajosPracticos.AddAsync(tp);
+            else
+                context.TrabajosPracticos.Update(tp);
+            await context.SaveChangesAsync();
+            return tp;
+        }
+
+        public async Task SaveEntregasAsync(List<Entrega> entregas)
+        {
+            using var context = CreateContext();
+            foreach (var entrega in entregas)
+            {
+                if (entrega.Id == 0)
+                    await context.Entregas.AddAsync(entrega);
+                else
+                    context.Entregas.Update(entrega);
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        public async Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId)
+        {
+            using var context = CreateContext();
+            return await context.Entregas
+                .AsNoTracking()
+                .Where(e => e.EstudianteId == estudianteId)
+                .ToListAsync();
         }
     }
 }
