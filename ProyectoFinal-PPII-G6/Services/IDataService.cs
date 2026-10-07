@@ -21,15 +21,14 @@ namespace ProyectoFinal_PPII_G6.Services
         /// </summary>
         Task<Estudiante?> GetEstudianteByIdAsync(int id);
 
+        Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId);
+
         /// <summary>
         /// Guarda un estudiante (lo crea si el Id es 0, si no lo actualiza) y devuelve su Id.
         /// </summary>
         Task<int> SaveEstudianteAsync(Estudiante estudiante);
 
-        /// <summary>
-        /// Elimina un estudiante por su Id y devuelve la cantidad de filas eliminadas.
-        /// </summary>
-        Task<int> DeleteEstudianteAsync(int id);
+        Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes);
 
         // Clases
 
@@ -42,6 +41,10 @@ namespace ProyectoFinal_PPII_G6.Services
         /// Guarda una clase (la crea si el Id es 0, si no la actualiza) y devuelve su Id.
         /// </summary>
         Task<int> SaveClaseAsync(Clase clase);
+
+        Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId);
+
+        Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias);
 
         // Asistencias
 
@@ -59,5 +62,18 @@ namespace ProyectoFinal_PPII_G6.Services
         /// Guarda una asistencia (la crea si el Id es 0, si no la actualiza) y devuelve su Id.
         /// </summary>
         Task<int> SaveAsistenciaAsync(Asistencia asistencia);
+
+        Task<List<Comision>> GetComisionesAsync();
+        Task<Comision?> GetComisionByIdAsync(int id);
+
+        // Trabajos Practicos
+
+        Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId);
+
+        Task<TrabajoPractico> SaveTrabajoPracticoAsync(TrabajoPractico tp);
+
+        Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId);
+
+        Task SaveEntregasAsync(List<Entrega> entregas);
     }
 }

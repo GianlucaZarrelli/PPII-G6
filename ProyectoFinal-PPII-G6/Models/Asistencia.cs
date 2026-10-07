@@ -19,12 +19,13 @@ namespace ProyectoFinal_PPII_G6.Models
         /// <summary>
         /// Crea un registro de asistencia con todos sus datos.
         /// </summary>
-        public Asistencia(int id, int estudianteId, int claseId, bool presente)
+        public Asistencia(int id, int estudianteId, int claseId, bool presente, bool justificada)
         {
             this.Id = id;
             this.EstudianteId = estudianteId;
             this.ClaseId = claseId;
             this.Presente = presente;
+            this.Justificada = justificada;
         }
 
         /// <summary>
@@ -46,5 +47,7 @@ namespace ProyectoFinal_PPII_G6.Models
         /// Indica si el estudiante estuvo presente.
         /// </summary>
         public bool Presente { get; set; }
+
+        public bool Justificada { get; set; }
     }
 }

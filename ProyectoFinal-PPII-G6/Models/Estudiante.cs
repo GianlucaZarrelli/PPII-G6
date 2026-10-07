@@ -17,12 +17,13 @@ namespace ProyectoFinal_PPII_G6.Models
         /// <summary>
         /// Crea un estudiante con sus datos personales.
         /// </summary>
-        public Estudiante(int id, string dni, string nombre, string apellido, string email = "")
+        public Estudiante(int id, string dni, string nombre, string apellido, string email = "", int comisionId = 0)
         {
             this.Id = id;
             this.Dni = dni;
             this.Nombre = nombre;
             this.Apellido = apellido;
+            this.ComisionId = comisionId;
             this.Email = email;
         }
 
@@ -50,6 +51,8 @@ namespace ProyectoFinal_PPII_G6.Models
         /// Email del estudiante.
         /// </summary>
         public string Email { get; set; }
+
+        public int ComisionId { get; set; }
 
         /// <summary>
         /// Nombre y apellido juntos, para mostrar en pantalla.

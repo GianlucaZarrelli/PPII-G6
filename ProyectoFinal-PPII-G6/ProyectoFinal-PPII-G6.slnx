@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/Elementos de la solución/">
     <File Path="../.gitignore" />
+    <File Path="../script_bd.sql" />
   </Folder>
   <Project Path="../ProyectoFinal-PPII-G6.Tests/ProyectoFinal-PPII-G6.Tests.csproj" Id="c5fba449-7039-4102-b4a8-c7989aaeac1f" />
   <Project Path="ProyectoFinal-PPII-G6.csproj" />
