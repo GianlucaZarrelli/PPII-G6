@@ -1,6 +1,8 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using ProyectoFinal_PPII_G6.Models;
 using ProyectoFinal_PPII_G6.Services;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
@@ -10,21 +12,11 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class HomeViewModel : BindableObject
     {
-        /// <summary>
-        /// Servicio de acceso a datos.
-        /// </summary>
         private readonly IDataService _dataService;
-
-        /// <summary>
-        /// Servicio que calcula el nivel de riesgo.
-        /// </summary>
-        private readonly ICalculadorRiesgoService _calculadorRiesgoService;
+        private readonly RiesgoService _calculadorRiesgoService;
 
         private int _totalEstudiantes;
 
-        /// <summary>
-        /// Cantidad total de estudiantes.
-        /// </summary>
         public int TotalEstudiantes
         {
             get => _totalEstudiantes;
@@ -33,19 +25,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private int _estudiantesEnRiesgo;
 
-        /// <summary>
-        /// Cantidad de estudiantes en riesgo alto.
-        /// </summary>
         public int EstudiantesEnRiesgo
         {
             get => _estudiantesEnRiesgo;
             set { _estudiantesEnRiesgo = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Crea el ViewModel con los servicios que necesita.
-        /// </summary>
-        public HomeViewModel(IDataService dataService, ICalculadorRiesgoService calculadorRiesgoService)
+        public HomeViewModel(IDataService dataService, RiesgoService calculadorRiesgoService)
         {
             _dataService = dataService;
             _calculadorRiesgoService = calculadorRiesgoService;
@@ -58,17 +44,28 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         {
             var estudiantes = await _dataService.GetEstudiantesAsync();
             var todasLasAsistencias = await _dataService.GetTodasLasAsistenciasAsync();
+            var clases = await _dataService.GetClasesAsync();
 
             TotalEstudiantes = estudiantes.Count;
 
             int enRiesgoCount = 0;
+            int totalClases = clases.Count;
+
             foreach (var est in estudiantes)
             {
-                int ausencias = todasLasAsistencias
-                    .Where(a => a.EstudianteId == est.Id && !a.Presente)
-                    .Count();
+                var asistenciasEstudiante = todasLasAsistencias
+                    .Where(a => a.EstudianteId == est.Id)
+                    .ToList();
 
-                if (_calculadorRiesgoService.CalcularNivelRiesgo(ausencias) == NivelRiesgo.Alto)
+                // Evaluamos el riesgo pasando la lista de asistencias y el total de clases
+                var resultado = _calculadorRiesgoService.CalcularRiesgo(
+                    asistenciasEstudiante,
+                    totalClases,
+                    new List<Entrega>(),
+                    0
+                );
+
+                if (resultado.Nivel == NivelRiesgoEnum.Rojo)
                 {
                     enRiesgoCount++;
                 }

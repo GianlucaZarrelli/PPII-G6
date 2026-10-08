@@ -30,7 +30,7 @@ namespace ProyectoFinal_PPII_G6
 
             // Servicios de Persistencia y Lógica de Negocio
             builder.Services.AddSingleton<IDataService, SqlServerDataService>();
-            builder.Services.AddSingleton<ICalculadorRiesgoService, CalculadorRiesgoService>();
+            builder.Services.AddSingleton<RiesgoService>();
 
             // ViewModels
             builder.Services.AddTransient<HomeViewModel>();

@@ -1,10 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using ProyectoFinal_PPII_G6.Models;
 using ProyectoFinal_PPII_G6.Services;
-using System.Linq;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
@@ -13,31 +14,14 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class DetalleEstudianteViewModel : BindableObject
     {
-        /// <summary>
-        /// Servicio de acceso a datos.
-        /// </summary>
         private readonly IDataService _dataService;
+        private readonly RiesgoService _calculadorRiesgoService;
 
-        /// <summary>
-        /// Servicio que calcula el nivel de riesgo.
-        /// </summary>
-        private readonly ICalculadorRiesgoService _calculadorRiesgoService;
-
-        /// <summary>
-        /// Estudiantes disponibles para seleccionar.
-        /// </summary>
         public ObservableCollection<Estudiante> ListaEstudiantes { get; set; }
-
-        /// <summary>
-        /// Historial de asistencias del estudiante seleccionado.
-        /// </summary>
         public ObservableCollection<Asistencia> HistorialAsistencias { get; set; }
 
         private Estudiante? _estudianteSeleccionado;
 
-        /// <summary>
-        /// Estudiante seleccionado. Al cambiarlo se carga su historial y su nivel de riesgo.
-        /// </summary>
         public Estudiante? EstudianteSeleccionado
         {
             get => _estudianteSeleccionado;
@@ -54,9 +38,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _nivelRiesgoTexto = "Seleccione un alumno";
 
-        /// <summary>
-        /// Texto del nivel de riesgo que se muestra en pantalla.
-        /// </summary>
         public string NivelRiesgoTexto
         {
             get => _nivelRiesgoTexto;
@@ -65,29 +46,16 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _colorRiesgo = "#757575";
 
-        /// <summary>
-        /// Color del indicador de riesgo.
-        /// </summary>
         public string ColorRiesgo
         {
             get => _colorRiesgo;
             set { _colorRiesgo = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Comando para registrar al estudiante como presente.
-        /// </summary>
         public Command RegistrarAsistenciaCommand { get; }
-
-        /// <summary>
-        /// Comando para registrar al estudiante como ausente.
-        /// </summary>
         public Command RegistrarInasistenciaCommand { get; }
 
-        /// <summary>
-        /// Crea el ViewModel con los servicios que necesita e inicializa los comandos.
-        /// </summary>
-        public DetalleEstudianteViewModel(IDataService dataService, ICalculadorRiesgoService calculadorRiesgoService)
+        public DetalleEstudianteViewModel(IDataService dataService, RiesgoService calculadorRiesgoService)
         {
             _dataService = dataService;
             _calculadorRiesgoService = calculadorRiesgoService;
@@ -98,9 +66,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             RegistrarInasistenciaCommand = new Command(async () => await RegistrarAsistenciaAsync(false));
         }
 
-        /// <summary>
-        /// Carga la lista de estudiantes para el selector.
-        /// </summary>
         public async Task CargarListaEstudiantesAsync()
         {
             var estudiantes = await _dataService.GetEstudiantesAsync();
@@ -111,27 +76,20 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
-        /// <summary>
-        /// Carga el historial de asistencias de un estudiante y actualiza su nivel de riesgo.
-        /// </summary>
         public async Task CargarDetalleAsync(int estudianteId)
         {
             var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(estudianteId);
-            HistorialAsistencias.Clear();
+            var clases = await _dataService.GetClasesAsync();
 
-            int inasistencias = 0;
+            HistorialAsistencias.Clear();
             foreach (var asis in asistencias)
             {
                 HistorialAsistencias.Add(asis);
-                if (!asis.Presente) inasistencias++;
             }
 
-            CalcularNivelRiesgo(asistencias.Count, inasistencias);
+            CalcularNivelRiesgo(asistencias, clases.Count);
         }
 
-        /// <summary>
-        /// Registra la asistencia del día del estudiante seleccionado. Si ya estaba registrada, la actualiza.
-        /// </summary>
         private async Task RegistrarAsistenciaAsync(bool presente)
         {
             if (EstudianteSeleccionado == null)
@@ -156,30 +114,24 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 claseId = await _dataService.SaveClaseAsync(nuevaClase);
             }
 
-            // Buscar si ya existe una asistencia registrada para este alumno en la clase de hoy
             var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(EstudianteSeleccionado.Id);
             var asistenciaExistente = asistencias.FirstOrDefault(a => a.ClaseId == claseId);
 
             if (asistenciaExistente != null)
             {
-                // Actualizar el registro existente (Evita duplicados)
                 asistenciaExistente.Presente = presente;
                 await _dataService.SaveAsistenciaAsync(asistenciaExistente);
             }
             else
             {
-                // Crear un nuevo registro si es la primera marca del día
-                var nuevaAsistencia = new Asistencia(0, EstudianteSeleccionado.Id, claseId, presente);
+                var nuevaAsistencia = new Asistencia(0, EstudianteSeleccionado.Id, claseId, presente, false);
                 await _dataService.SaveAsistenciaAsync(nuevaAsistencia);
             }
 
             await CargarDetalleAsync(EstudianteSeleccionado.Id);
         }
 
-        /// <summary>
-        /// Actualiza el texto y el color del indicador según el nivel de riesgo.
-        /// </summary>
-        private void CalcularNivelRiesgo(int totalClases, int inasistencias)
+        private void CalcularNivelRiesgo(List<Asistencia> asistencias, int totalClases)
         {
             if (totalClases == 0)
             {
@@ -188,14 +140,21 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 return;
             }
 
-            switch (_calculadorRiesgoService.CalcularNivelRiesgo(inasistencias))
+            var resultado = _calculadorRiesgoService.CalcularRiesgo(
+                asistencias,
+                totalClases,
+                new List<Entrega>(),
+                0
+            );
+
+            switch (resultado.Nivel)
             {
-                case NivelRiesgo.Alto:
-                    NivelRiesgoTexto = "ALTO RIESGO (3+ Inasistencias)";
+                case NivelRiesgoEnum.Rojo:
+                    NivelRiesgoTexto = $"ALTO RIESGO ({resultado.PorcentajeAsistencia:F0}% Asist.)";
                     ColorRiesgo = "#D32F2F";
                     break;
-                case NivelRiesgo.Moderado:
-                    NivelRiesgoTexto = "RIESGO MODERADO";
+                case NivelRiesgoEnum.Amarillo:
+                    NivelRiesgoTexto = $"RIESGO MODERADO ({resultado.PorcentajeAsistencia:F0}% Asist.)";
                     ColorRiesgo = "#F57C00";
                     break;
                 default:

@@ -90,7 +90,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
             GuardarEstudianteCommand = new Command(async () => await GuardarEstudianteAsync());
             CargarEstudianteCommand = new Command(async () => await CargarEstudianteAsync());
-            EliminarEstudianteCommand = new Command<Estudiante>(async (est) => await EliminarEstudianteAsync(est));
 
             CargarEstudianteCommand.Execute(null);
         }
@@ -132,21 +131,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
             if (Application.Current?.MainPage != null)
                 await Application.Current.MainPage.DisplayAlert("Éxito", "Estudiante registrado en SQL Server.", "OK");
-        }
-
-        /// <summary>
-        /// Pide confirmación y elimina el estudiante.
-        /// </summary>
-        private async Task EliminarEstudianteAsync(Estudiante estudiante)
-        {
-            if (estudiante == null || Application.Current?.MainPage == null) return;
-
-            bool confirmar = await Application.Current.MainPage.DisplayAlert("Confirmar", $"¿Desea eliminar a {estudiante.NombreCompleto}?", "Sí", "No");
-            if (confirmar)
-            {
-                await _dataService.DeleteEstudianteAsync(estudiante.Id);
-                await CargarEstudianteAsync();
-            }
         }
     }
 }
