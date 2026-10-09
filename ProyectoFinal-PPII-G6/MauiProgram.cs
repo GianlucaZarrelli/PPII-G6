@@ -5,14 +5,8 @@ using ProyectoFinal_PPII_G6.Views;
 
 namespace ProyectoFinal_PPII_G6
 {
-    /// <summary>
-    /// Configuración inicial de la aplicación.
-    /// </summary>
     public static class MauiProgram
     {
-        /// <summary>
-        /// Crea la aplicación y registra fuentes, servicios, ViewModels y vistas.
-        /// </summary>
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();
@@ -24,23 +18,27 @@ namespace ProyectoFinal_PPII_G6
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-#if DEBUG
-            builder.Logging.AddDebug();
-#endif
-
-            // Servicios de Persistencia y Lógica de Negocio
+            // 1. Persistencia y servicios de dominio
+            // SqlServerDataService abre un AppDbContext por operación, por eso no se registra el contexto.
             builder.Services.AddSingleton<IDataService, SqlServerDataService>();
+            builder.Services.AddSingleton<CsvImporterService>();
             builder.Services.AddSingleton<RiesgoService>();
 
-            // ViewModels
+            // 2. ViewModels
             builder.Services.AddTransient<HomeViewModel>();
             builder.Services.AddTransient<EstudianteViewModel>();
             builder.Services.AddTransient<DetalleEstudianteViewModel>();
+            builder.Services.AddTransient<CargaMasivaViewModel>();
 
-            // Vistas
+            // 3. Vistas (las que usa AppShell.xaml)
             builder.Services.AddTransient<HomePage>();
             builder.Services.AddTransient<EstudiantePage>();
             builder.Services.AddTransient<DetalleEstudiantePage>();
+            builder.Services.AddTransient<CargaMasivaPage>();
+
+#if DEBUG
+            builder.Logging.AddDebug();
+#endif
 
             return builder.Build();
         }

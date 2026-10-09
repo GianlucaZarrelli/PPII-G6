@@ -1,16 +1,17 @@
+using ProyectoFinal_PPII_G6.Views;
+
 namespace ProyectoFinal_PPII_G6
 {
-    /// <summary>
-    /// Navegación de la aplicación con tres pestañas: Inicio, Alumnos y Asistencia.
-    /// </summary>
     public partial class AppShell : Shell
     {
-        /// <summary>
-        /// Inicializa la navegación definida en el XAML.
-        /// </summary>
         public AppShell()
         {
             InitializeComponent();
+
+            // Registro de rutas internas para navegación con Shell.Current.GoToAsync(...)
+            Routing.RegisterRoute(nameof(DetalleEstudiantePage), typeof(DetalleEstudiantePage));
+            Routing.RegisterRoute(nameof(CargaMasivaPage), typeof(CargaMasivaPage));
+            Routing.RegisterRoute(nameof(EstudiantesPage), typeof(EstudiantesPage));
         }
     }
 }
