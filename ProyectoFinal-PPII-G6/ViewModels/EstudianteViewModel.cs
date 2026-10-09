@@ -7,7 +7,7 @@ using ProyectoFinal_PPII_G6.Services;
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
     /// <summary>
-    /// ViewModel de la pantalla de gestión de alumnos: alta, listado y baja de estudiantes.
+    /// ViewModel de la pantalla de gestión de alumnos: alta y listado de estudiantes.
     /// </summary>
     public class EstudianteViewModel : BindableObject
     {
@@ -60,6 +60,18 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _email = value; OnPropertyChanged(); }
         }
 
+        private string _comision = string.Empty;
+
+        /// <summary>
+        /// Nombre de la comisión ingresado en el formulario.
+        /// </summary>
+        
+        public string Comision
+        {
+            get => _comision;
+            set { _comision = value; OnPropertyChanged(); }
+        }
+
         /// <summary>
         /// Lista de estudiantes que se muestra en pantalla.
         /// </summary>
@@ -75,10 +87,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// </summary>
         public Command CargarEstudianteCommand { get; }
 
-        /// <summary>
-        /// Comando para eliminar un estudiante.
-        /// </summary>
-        public Command<Estudiante> EliminarEstudianteCommand { get; }
 
         /// <summary>
         /// Crea el ViewModel, inicializa los comandos y carga la lista de estudiantes.
@@ -112,20 +120,33 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// </summary>
         private async Task GuardarEstudianteAsync()
         {
-            if (string.IsNullOrWhiteSpace(Dni) || string.IsNullOrWhiteSpace(Nombre) || string.IsNullOrWhiteSpace(Apellido))
+            if (string.IsNullOrWhiteSpace(Dni) || string.IsNullOrWhiteSpace(Nombre)
+                || string.IsNullOrWhiteSpace(Apellido)
+                || string.IsNullOrWhiteSpace(Comision)) // NUEVO: comisión obligatoria
             {
                 if (Application.Current?.MainPage != null)
-                    await Application.Current.MainPage.DisplayAlert("Error", "DNI, Nombre y Apellido son obligatorios.", "OK");
+                    await Application.Current.MainPage.DisplayAlert("Error", "DNI, Nombre, Apellido y Comisión son obligatorios.", "OK");
                 return;
             }
 
-            var nuevo = new Estudiante(0, Dni, Nombre, Apellido, Email);
-            await _dataService.SaveEstudianteAsync(nuevo);
+            try
+            {
+                var comision = await _dataService.GetOrCreateComisionAsync(Comision);
+                var nuevo = new Estudiante(0, Dni, Nombre, Apellido, Email, comision.Id);
+                await _dataService.SaveEstudianteAsync(nuevo);
+            }
+            catch (Exception)
+            {
+                if (Application.Current?.MainPage != null)
+                    await Application.Current.MainPage.DisplayAlert("Error", "No se pudo guardar el estudiante. Revisá que el DNI no esté repetido en la comisión.", "OK");
+                return;
+            }
 
             Dni = string.Empty;
             Nombre = string.Empty;
             Apellido = string.Empty;
             Email = string.Empty;
+            Comision = string.Empty;
 
             await CargarEstudianteAsync();
 

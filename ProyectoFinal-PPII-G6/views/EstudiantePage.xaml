@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ProyectoFinal_PPII_G6.Views.EstudiantePage"
-             Title="Gestión de Alumnos (H2)">
+             Title="Gestión de Alumnos (H1)">
 
     <ScrollView Padding="15">
         <VerticalStackLayout Spacing="20">
@@ -48,6 +48,13 @@
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
 
+                    <!-- Campo Comisión -->
+                    <Entry Placeholder="Comisión (ej: Comisión A)" 
+                           Text="{Binding Comision}" 
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                           ClearButtonVisibility="WhileEditing" />
+
                     <!-- Botón de Guardado -->
                     <Button Text="Guardar Estudiante" 
                             Command="{Binding GuardarEstudianteCommand}"
@@ -80,32 +87,20 @@
                                 Padding="12" 
                                 Margin="0,4"
                                 BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#1E1E1E}">
-                            <Grid ColumnDefinitions="*, Auto">
-                                <VerticalStackLayout Grid.Column="0" Spacing="2">
-                                    <Label Text="{Binding NombreCompleto}" 
-                                           FontAttributes="Bold" 
-                                           FontSize="15" 
-                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
-                                    <HorizontalStackLayout Spacing="10">
-                                        <Label Text="{Binding Dni, StringFormat='DNI: {0}'}" 
-                                               FontSize="12" 
-                                               TextColor="Gray" />
-                                        <Label Text="{Binding Email, StringFormat='| {0}'}" 
-                                               FontSize="12" 
-                                               TextColor="Gray" />
-                                    </HorizontalStackLayout>
-                                </VerticalStackLayout>
-
-                                <Button Grid.Column="1" 
-                                        Text="Eliminar" 
-                                        Command="{Binding BindingContext.EliminarEstudianteCommand, Source={RelativeSource AncestorType={x:Type ContentPage}}}"
-                                        CommandParameter="{Binding .}"
-                                        BackgroundColor="#D32F2F" 
-                                        TextColor="White" 
-                                        FontSize="12" 
-                                        HeightRequest="36" 
-                                        Padding="10,0" />
-                            </Grid>
+                            <VerticalStackLayout Spacing="2">
+                                <Label Text="{Binding NombreCompleto}" 
+                                       FontAttributes="Bold" 
+                                       FontSize="15" 
+                                       TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                <HorizontalStackLayout Spacing="10">
+                                    <Label Text="{Binding Dni, StringFormat='DNI: {0}'}" 
+                                           FontSize="12" 
+                                           TextColor="Gray" />
+                                    <Label Text="{Binding Email, StringFormat='| {0}'}" 
+                                           FontSize="12" 
+                                           TextColor="Gray" />
+                                </HorizontalStackLayout>
+                            </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
                 </CollectionView.ItemTemplate>

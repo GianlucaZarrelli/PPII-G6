@@ -151,6 +151,27 @@ namespace ProyectoFinal_PPII_G6.Services
                 .ToListAsync();
         }
 
+        public async Task<Comision> GetOrCreateComisionAsync(string nombre)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(nombre);
+
+            var nombreLimpio = nombre.Trim();
+
+            using var context = CreateContext();
+
+            var comision = await context.Comisiones
+                .FirstOrDefaultAsync(c => c.Nombre == nombreLimpio);
+
+            if (comision == null)
+            {
+                comision = new Comision { Nombre = nombreLimpio };
+                await context.Comisiones.AddAsync(comision);
+                await context.SaveChangesAsync();
+            }
+
+            return comision;
+        }
+
         public async Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias)
         {
             using var context = CreateContext();

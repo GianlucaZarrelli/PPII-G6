@@ -66,6 +66,8 @@ namespace ProyectoFinal_PPII_G6.Services
         Task<List<Comision>> GetComisionesAsync();
         Task<Comision?> GetComisionByIdAsync(int id);
 
+        Task<Comision> GetOrCreateComisionAsync(string nombre);
+
         // Trabajos Practicos
 
         Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId);
@@ -75,5 +77,7 @@ namespace ProyectoFinal_PPII_G6.Services
         Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId);
 
         Task SaveEntregasAsync(List<Entrega> entregas);
+
+
     }
 }
