@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoFinal_PPII_G6.Views.AsistenciaFechaPage"
+             Title="Asistencia por fecha">
+
+    <Grid RowDefinitions="Auto,Auto,*,Auto" Padding="15" RowSpacing="12">
+
+        <!-- Selectores -->
+        <VerticalStackLayout Grid.Row="0" Spacing="8">
+            <Label Text="Comisión:" FontAttributes="Bold" FontSize="14" />
+            <Picker ItemsSource="{Binding Comisiones}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding ComisionSeleccionada}"
+                    Title="-- Seleccione una comisión --"
+                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+            <Label Text="Fecha:" FontAttributes="Bold" FontSize="14" />
+            <DatePicker Date="{Binding Fecha}"
+                        Format="dd/MM/yyyy"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+        </VerticalStackLayout>
+
+        <!-- Estado de la carga -->
+        <Label Grid.Row="1" Text="{Binding Estado}" FontSize="12" TextColor="Gray" />
+
+        <!-- Lista de alumnos -->
+        <CollectionView Grid.Row="2" ItemsSource="{Binding Filas}">
+            <CollectionView.EmptyView>
+                <Label Text="No hay alumnos para mostrar."
+                       HorizontalOptions="Center"
+                       TextColor="Gray"
+                       Margin="0,20" />
+            </CollectionView.EmptyView>
+
+            <CollectionView.ItemTemplate>
+                <DataTemplate>
+                    <Border StrokeShape="RoundRectangle 8"
+                            Stroke="#33FFFFFF"
+                            Padding="12"
+                            Margin="0,4"
+                            BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#1E1E1E}">
+                        <VerticalStackLayout Spacing="8">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <Label Grid.Column="0"
+                                       Text="{Binding NombreCompleto}"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
+                                       VerticalOptions="Center"
+                                       TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                    <Label Text="Presente" VerticalOptions="Center" TextColor="Gray" />
+                                    <Switch IsToggled="{Binding Presente}" />
+                                </HorizontalStackLayout>
+                            </Grid>
+
+                            <!-- Solo se ve si el alumno está ausente -->
+                            <HorizontalStackLayout Spacing="8" IsVisible="{Binding Ausente}">
+                                <Label Text="Ausencia justificada" VerticalOptions="Center" TextColor="Gray" />
+                                <Switch IsToggled="{Binding Justificada}" />
+                            </HorizontalStackLayout>
+                        </VerticalStackLayout>
+                    </Border>
+                </DataTemplate>
+            </CollectionView.ItemTemplate>
+        </CollectionView>
+
+        <!-- Guardar -->
+        <Button Grid.Row="3"
+                Text="Guardar asistencia"
+                Command="{Binding GuardarCommand}"
+                BackgroundColor="#512BD4"
+                TextColor="White"
+                HeightRequest="45"
+                CornerRadius="8" />
+    </Grid>
+</ContentPage>

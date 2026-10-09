@@ -19,7 +19,6 @@ namespace ProyectoFinal_PPII_G6
                 });
 
             // 1. Persistencia y servicios de dominio
-            // SqlServerDataService abre un AppDbContext por operación, por eso no se registra el contexto.
             builder.Services.AddSingleton<IDataService, SqlServerDataService>();
             builder.Services.AddSingleton<CsvImporterService>();
             builder.Services.AddSingleton<RiesgoService>();
@@ -29,12 +28,14 @@ namespace ProyectoFinal_PPII_G6
             builder.Services.AddTransient<EstudianteViewModel>();
             builder.Services.AddTransient<DetalleEstudianteViewModel>();
             builder.Services.AddTransient<CargaMasivaViewModel>();
+            builder.Services.AddTransient<AsistenciaFechaViewModel>();
 
             // 3. Vistas (las que usa AppShell.xaml)
             builder.Services.AddTransient<HomePage>();
             builder.Services.AddTransient<EstudiantePage>();
             builder.Services.AddTransient<DetalleEstudiantePage>();
             builder.Services.AddTransient<CargaMasivaPage>();
+            builder.Services.AddTransient<AsistenciaFechaPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

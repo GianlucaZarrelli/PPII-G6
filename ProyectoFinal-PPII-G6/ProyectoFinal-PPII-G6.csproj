@@ -63,6 +63,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <MauiXaml Update="Views\AsistenciaFechaPage.xaml">
+	    <Generator>MSBuild:Compile</Generator>
+	  </MauiXaml>
 	  <MauiXaml Update="Views\CargaMasivaPage.xaml">
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>

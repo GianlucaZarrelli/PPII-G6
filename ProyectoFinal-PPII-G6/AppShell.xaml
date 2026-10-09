@@ -7,7 +7,6 @@
     Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
-        <!-- Tab 1: Dashboard principal -->
         <Tab Title="Inicio">
             <ShellContent
                 Title="Menú"
@@ -15,7 +14,6 @@
                 Route="HomePage" />
         </Tab>
 
-        <!-- Tab 2: Gestión de estudiantes (alta y listado) -->
         <Tab Title="Alumnos">
             <ShellContent
                 Title="Gestión"
@@ -23,16 +21,21 @@
                 Route="GestorEstudiantes" />
         </Tab>
 
-        <!-- Tab 3: Asistencia y riesgo -->
-        <Tab Title="Asistencia">
+        <Tab Title="Historial">
             <ShellContent
-                Title="Historial"
+                Title="Historial del alumno"
                 ContentTemplate="{DataTemplate views:DetalleEstudiantePage}"
                 Route="HistorialEstudiantes" />
         </Tab>
 
-        <!-- Tab 4: Carga masiva CSV -->
-        <Tab Title="Carga Masiva">
+        <Tab Title="Asistencia">
+            <ShellContent
+                Title="Asistencia por fecha"
+                ContentTemplate="{DataTemplate views:AsistenciaFechaPage}"
+                Route="AsistenciaFecha" />
+        </Tab>
+
+        <Tab Title="Carga Masiva de Estudiantes">
             <ShellContent
                 Title="Importar CSV"
                 ContentTemplate="{DataTemplate views:CargaMasivaPage}"
@@ -40,4 +43,4 @@
         </Tab>
     </TabBar>
 
-</Shell>    
+</Shell>
