@@ -38,9 +38,30 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private readonly IDataService _dataService;
         private readonly RiesgoService _riesgoService;
 
+        /// <summary>
+        /// Mientras es true, los setters de las selecciones no disparan cargas (se usa al repoblar las listas).
+        /// </summary>
+        private bool _actualizando;
+
+        public ObservableCollection<Comision> Comisiones { get; } = new();
         public ObservableCollection<Estudiante> ListaEstudiantes { get; } = new();
         public ObservableCollection<HistorialAsistenciaItem> HistorialAsistencias { get; } = new();
         public ObservableCollection<HistorialEntregaItem> HistorialEntregas { get; } = new();
+
+        private Comision? _comisionSeleccionada;
+
+        public Comision? ComisionSeleccionada
+        {
+            get => _comisionSeleccionada;
+            set
+            {
+                _comisionSeleccionada = value;
+                OnPropertyChanged();
+
+                if (_actualizando) return;
+                _ = CargarEstudiantesAsync();
+            }
+        }
 
         private Estudiante? _estudianteSeleccionado;
 
@@ -51,6 +72,8 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             {
                 _estudianteSeleccionado = value;
                 OnPropertyChanged();
+
+                if (_actualizando) return;
 
                 if (value != null)
                     _ = CargarDetalleAsync(value);
@@ -106,22 +129,98 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Recarga la lista de alumnos y conserva el seleccionado (para que se refresque al volver a la pestaña).
+        /// Recarga las comisiones y los alumnos, y conserva la comisión y el alumno elegidos
+        /// (para que la ficha se refresque al volver a la pestaña).
         /// </summary>
         public async Task CargarListaEstudiantesAsync()
         {
             try
             {
-                var idPrevio = EstudianteSeleccionado?.Id;
-                var estudiantes = await _dataService.GetEstudiantesAsync();
+                var idComision = ComisionSeleccionada?.Id;
+                var idEstudiante = EstudianteSeleccionado?.Id;
 
-                ListaEstudiantes.Clear();
-                foreach (var est in estudiantes.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
+                var comisiones = await _dataService.GetComisionesAsync();
+
+                _actualizando = true;
+                try
                 {
-                    ListaEstudiantes.Add(est);
+                    Comisiones.Clear();
+                    foreach (var c in comisiones.OrderBy(c => c.Nombre))
+                    {
+                        Comisiones.Add(c);
+                    }
+
+                    ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idComision)
+                                           ?? Comisiones.FirstOrDefault();
+                }
+                finally
+                {
+                    _actualizando = false;
                 }
 
-                EstudianteSeleccionado = ListaEstudiantes.FirstOrDefault(e => e.Id == idPrevio);
+                await CargarEstudiantesAsync(idEstudiante);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                NivelRiesgoTexto = "No se pudieron cargar las comisiones";
+            }
+        }
+
+        /// <summary>
+        /// Carga los alumnos de la comisión elegida. Si se pasa un Id y sigue en la lista, lo deja seleccionado.
+        /// </summary>
+        private async Task CargarEstudiantesAsync(int? seleccionarId = null)
+        {
+            var comision = ComisionSeleccionada;
+
+            _actualizando = true;
+            try
+            {
+                ListaEstudiantes.Clear();
+                EstudianteSeleccionado = null;
+            }
+            finally
+            {
+                _actualizando = false;
+            }
+
+            LimpiarDetalle();
+
+            if (comision == null) return;
+
+            try
+            {
+                var estudiantes = await _dataService.GetEstudiantesByComisionIdAsync(comision.Id);
+
+                // Si mientras consultaba cambió la comisión, este resultado ya no sirve
+                if (comision != ComisionSeleccionada) return;
+
+                _actualizando = true;
+                try
+                {
+                    foreach (var est in estudiantes.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
+                    {
+                        ListaEstudiantes.Add(est);
+                    }
+
+                    EstudianteSeleccionado = ListaEstudiantes.FirstOrDefault(e => e.Id == seleccionarId);
+                }
+                finally
+                {
+                    _actualizando = false;
+                }
+
+                if (ListaEstudiantes.Count == 0)
+                {
+                    NivelRiesgoTexto = "La comisión no tiene alumnos cargados";
+                    return;
+                }
+
+                if (EstudianteSeleccionado != null)
+                {
+                    await CargarDetalleAsync(EstudianteSeleccionado);
+                }
             }
             catch (Exception ex)
             {
@@ -242,9 +341,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
             DetalleAsistencia = totalClases > 0
                 ? (justificadas > 0
-                    ? $"Asistencia: {presentes} presentes + {justificadas} justificadas (valen la mitad) de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)" 
+                    ? $"Asistencia: {presentes} presentes + {justificadas} justificadas (valen la mitad) de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)"
                     : $"Asistencia: {presentes} de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)")
-                    : "Asistencia: sin clases registradas";
+                : "Asistencia: sin clases registradas";
 
             DetalleEntregas = totalTps > 0
                 ? $"Entregas: {entregados} de {totalTps} trabajos ({resultado.PorcentajeEntregas:F0}%)"
