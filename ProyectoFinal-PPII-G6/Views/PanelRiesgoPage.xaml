@@ -2,7 +2,7 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ProyectoFinal_PPII_G6.Views.PanelRiesgoPage"
-             Title="Alumnos ordenados por riesgo">
+             Title="Alumnos por prioridad">
 
     <ScrollView Padding="20">
         <VerticalStackLayout Spacing="15">
@@ -12,9 +12,17 @@
                    FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
 
+            <!-- Selector de comisión -->
+            <Label Text="Comisión:" FontAttributes="Bold" FontSize="14" />
+            <Picker ItemsSource="{Binding Comisiones}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding ComisionSeleccionada}"
+                    Title="-- Seleccione una comisión --"
+                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
             <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Alumnos}">
                 <BindableLayout.EmptyView>
-                    <Label Text="No hay alumnos cargados."
+                    <Label Text="No hay alumnos para mostrar en esta comisión."
                            HorizontalOptions="Center" TextColor="Gray" Margin="0,20" />
                 </BindableLayout.EmptyView>
 
@@ -33,8 +41,6 @@
                                            FontAttributes="Bold"
                                            FontSize="15"
                                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
-                                    <Label Text="{Binding Comision, StringFormat='Comisión: {0}'}"
-                                           FontSize="12" TextColor="Gray" />
                                     <Label Text="{Binding Detalle}"
                                            FontSize="12"
                                            TextColor="{AppThemeBinding Light=#444444, Dark=#CCCCCC}" />

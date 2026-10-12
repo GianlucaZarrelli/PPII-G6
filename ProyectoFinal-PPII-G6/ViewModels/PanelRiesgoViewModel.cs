@@ -33,14 +33,28 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     }
 
     /// <summary>
-    /// ViewModel del panel de seguimiento: lista a los alumnos ordenados por riesgo.
+    /// ViewModel del panel de seguimiento: lista a los alumnos de una comisión ordenados por riesgo.
     /// </summary>
     public class PanelRiesgoViewModel : BindableObject
     {
         private readonly IDataService _dataService;
         private readonly RiesgoService _riesgoService;
 
+        public ObservableCollection<Comision> Comisiones { get; } = new();
         public ObservableCollection<AlumnoRiesgoItem> Alumnos { get; } = new();
+
+        private Comision? _comisionSeleccionada;
+
+        public Comision? ComisionSeleccionada
+        {
+            get => _comisionSeleccionada;
+            set
+            {
+                _comisionSeleccionada = value;
+                OnPropertyChanged();
+                _ = CargarAlumnosAsync();
+            }
+        }
 
         public PanelRiesgoViewModel(IDataService dataService, RiesgoService riesgoService)
         {
@@ -49,33 +63,54 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Calcula el riesgo de cada alumno (asistencia + entregas, por comisión) y arma el panel ordenado.
+        /// Recarga las comisiones, conserva la selección anterior (o elige la primera) y recalcula el panel.
         /// </summary>
         public async Task CargarAsync()
         {
             try
             {
-                var estudiantes = await _dataService.GetEstudiantesAsync();
-                var todasLasAsistencias = await _dataService.GetTodasLasAsistenciasAsync();
-                var clases = await _dataService.GetClasesAsync();
-                var comisiones = await _dataService.GetComisionesAsync();
+                var idPrevio = ComisionSeleccionada?.Id;
+                var lista = await _dataService.GetComisionesAsync();
 
-                var nombresComision = comisiones.ToDictionary(c => c.Id, c => c.Nombre);
-
-                var tpsPorComision = new Dictionary<int, List<TrabajoPractico>>();
-                foreach (var c in comisiones)
+                Comisiones.Clear();
+                foreach (var c in lista.OrderBy(c => c.Nombre))
                 {
-                    tpsPorComision[c.Id] = await _dataService.GetTrabajosPracticosByComisionIdAsync(c.Id);
+                    Comisiones.Add(c);
                 }
+
+                ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idPrevio)
+                                       ?? Comisiones.FirstOrDefault();
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+            }
+        }
+
+        /// <summary>
+        /// Calcula el riesgo de cada alumno de la comisión elegida (asistencia + entregas) y arma el panel ordenado.
+        /// </summary>
+        private async Task CargarAlumnosAsync()
+        {
+            var comision = ComisionSeleccionada;
+
+            Alumnos.Clear();
+            if (comision == null) return;
+
+            try
+            {
+                var estudiantes = await _dataService.GetEstudiantesByComisionIdAsync(comision.Id);
+                var clases = await _dataService.GetClasesByComisionIdAsync(comision.Id);
+                var tps = await _dataService.GetTrabajosPracticosByComisionIdAsync(comision.Id);
+                var todasLasAsistencias = await _dataService.GetTodasLasAsistenciasAsync();
+
+                var idsClases = clases.Select(c => c.Id).ToHashSet();
+                var idsTps = tps.Select(t => t.Id).ToHashSet();
 
                 var items = new List<AlumnoRiesgoItem>();
 
                 foreach (var est in estudiantes)
                 {
-                    var idsClases = clases.Where(c => c.ComisionId == est.ComisionId).Select(c => c.Id).ToHashSet();
-                    var tps = tpsPorComision.GetValueOrDefault(est.ComisionId) ?? new List<TrabajoPractico>();
-                    var idsTps = tps.Select(t => t.Id).ToHashSet();
-
                     var asistencias = todasLasAsistencias
                         .Where(a => a.EstudianteId == est.Id && idsClases.Contains(a.ClaseId))
                         .ToList();
@@ -87,13 +122,16 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
                     items.Add(CrearItem(
                         est,
-                        nombresComision.GetValueOrDefault(est.ComisionId) ?? "-",
+                        comision.Nombre,
                         resultado,
                         asistencias.Count(a => a.Presente),
                         asistencias.Count(a => !a.Presente && a.Justificada),
                         idsClases.Count,
                         entregas.Count(e => e.Entregado), tps.Count));
                 }
+
+                // Si mientras consultaba el usuario eligió otra comisión, este resultado ya no sirve
+                if (comision != ComisionSeleccionada) return;
 
                 var ordenados = items
                     .OrderBy(i => i.Orden)
@@ -113,7 +151,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
-        private static AlumnoRiesgoItem CrearItem(Estudiante est, string comision, ResultadoRiesgo resultado, int presentes, int justificadas, int totalClases, int entregados, int totalTps)
+        private static AlumnoRiesgoItem CrearItem(
+            Estudiante est, string comision, ResultadoRiesgo resultado,
+            int presentes, int justificadas, int totalClases, int entregados, int totalTps)
         {
             var asistenciaTexto = totalClases > 0
                 ? (justificadas > 0
