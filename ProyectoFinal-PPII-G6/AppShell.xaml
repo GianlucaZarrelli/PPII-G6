@@ -42,6 +42,13 @@
                 Route="AsistenciaFecha" />
         </Tab>
 
+        <Tab Title="Entregas">
+            <ShellContent
+                Title="Entrega de trabajos"
+                ContentTemplate="{DataTemplate views:EntregasPage}"
+                Route="Entregas" />
+        </Tab>
+
         <Tab Title="Carga Masiva de Estudiantes">
             <ShellContent
                 Title="Importar CSV"

@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoFinal_PPII_G6.Views.EntregasPage"
+             Title="Entrega de trabajos prácticos">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0" Padding="15">
+            <VerticalStackLayout Spacing="12">
+
+                <Label Text="Comisión:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding Comisiones}"
+                        ItemDisplayBinding="{Binding Nombre}"
+                        SelectedItem="{Binding ComisionSeleccionada}"
+                        Title="-- Seleccione una comisión --"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                <!-- Alta de un trabajo práctico -->
+                <Border StrokeShape="RoundRectangle 10"
+                        Stroke="#E0E0E0"
+                        Padding="12"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Nuevo trabajo práctico"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+
+                        <Entry Placeholder="Título (ej: TP4)"
+                               Text="{Binding TituloNuevo}"
+                               TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                               PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                               ClearButtonVisibility="WhileEditing" />
+
+                        <Label Text="Fecha de entrega:" FontSize="12" TextColor="Gray" />
+                        <DatePicker Date="{Binding FechaNueva}"
+                                    Format="dd/MM/yyyy"
+                                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                        <Button Text="Crear trabajo"
+                                Command="{Binding CrearTrabajoCommand}"
+                                BackgroundColor="#512BD4"
+                                TextColor="White"
+                                CornerRadius="8" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="Trabajo práctico:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding Trabajos}"
+                        ItemDisplayBinding="{Binding Titulo}"
+                        SelectedItem="{Binding TrabajoSeleccionado}"
+                        Title="-- Seleccione un trabajo --"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                <Label Text="{Binding Estado}" FontSize="12" TextColor="Gray" />
+
+                <!-- Lista de alumnos -->
+                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Filas}">
+                    <BindableLayout.EmptyView>
+                        <Label Text="No hay alumnos para mostrar."
+                               HorizontalOptions="Center"
+                               TextColor="Gray"
+                               Margin="0,20" />
+                    </BindableLayout.EmptyView>
+
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Border StrokeShape="RoundRectangle 8"
+                                    Stroke="#33FFFFFF"
+                                    Padding="12"
+                                    BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#1E1E1E}">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <Label Grid.Column="0"
+                                           Text="{Binding NombreCompleto}"
+                                           FontAttributes="Bold"
+                                           FontSize="15"
+                                           VerticalOptions="Center"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                    <HorizontalStackLayout Grid.Column="1" Spacing="8">
+                                        <Label Text="Entregado" VerticalOptions="Center" TextColor="Gray" />
+                                        <Switch IsToggled="{Binding Entregado}" />
+                                    </HorizontalStackLayout>
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Fuera del scroll para que siempre esté a mano -->
+        <Button Grid.Row="1"
+                Text="Guardar entregas"
+                Command="{Binding GuardarCommand}"
+                BackgroundColor="#512BD4"
+                TextColor="White"
+                HeightRequest="45"
+                CornerRadius="8"
+                Margin="15" />
+    </Grid>
+</ContentPage>
