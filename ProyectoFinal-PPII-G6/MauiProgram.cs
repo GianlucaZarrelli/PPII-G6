@@ -29,6 +29,7 @@ namespace ProyectoFinal_PPII_G6
             builder.Services.AddTransient<DetalleEstudianteViewModel>();
             builder.Services.AddTransient<CargaMasivaViewModel>();
             builder.Services.AddTransient<AsistenciaFechaViewModel>();
+            builder.Services.AddTransient<PanelRiesgoViewModel>();
 
             // 3. Vistas (las que usa AppShell.xaml)
             builder.Services.AddTransient<HomePage>();
@@ -36,6 +37,7 @@ namespace ProyectoFinal_PPII_G6
             builder.Services.AddTransient<DetalleEstudiantePage>();
             builder.Services.AddTransient<CargaMasivaPage>();
             builder.Services.AddTransient<AsistenciaFechaPage>();
+            builder.Services.AddTransient<PanelRiesgoPage>();
 
 #if DEBUG
             builder.Logging.AddDebug();

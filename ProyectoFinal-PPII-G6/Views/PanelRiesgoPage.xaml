@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoFinal_PPII_G6.Views.PanelRiesgoPage"
+             Title="Alumnos ordenados por riesgo">
+
+    <ScrollView Padding="20">
+        <VerticalStackLayout Spacing="15">
+
+            <Label Text="¿A quién llamo esta semana?"
+                   FontSize="18"
+                   FontAttributes="Bold"
+                   TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+
+            <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Alumnos}">
+                <BindableLayout.EmptyView>
+                    <Label Text="No hay alumnos cargados."
+                           HorizontalOptions="Center" TextColor="Gray" Margin="0,20" />
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="#33FFFFFF"
+                                Padding="0"
+                                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+                            <Grid ColumnDefinitions="6, *, Auto">
+                                <!-- Barra de color del nivel -->
+                                <BoxView Grid.Column="0" Color="{Binding ColorNivel}" />
+
+                                <VerticalStackLayout Grid.Column="1" Padding="12,10" Spacing="3">
+                                    <Label Text="{Binding NombreCompleto}"
+                                           FontAttributes="Bold"
+                                           FontSize="15"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                    <Label Text="{Binding Comision, StringFormat='Comisión: {0}'}"
+                                           FontSize="12" TextColor="Gray" />
+                                    <Label Text="{Binding Detalle}"
+                                           FontSize="12"
+                                           TextColor="{AppThemeBinding Light=#444444, Dark=#CCCCCC}" />
+                                </VerticalStackLayout>
+
+                                <Label Grid.Column="2"
+                                       Text="{Binding Nivel}"
+                                       TextColor="{Binding ColorNivel}"
+                                       FontAttributes="Bold"
+                                       FontSize="12"
+                                       VerticalOptions="Center"
+                                       Margin="0,0,12,0" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

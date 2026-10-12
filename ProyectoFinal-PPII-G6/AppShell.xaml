@@ -14,21 +14,28 @@
                 Route="HomePage" />
         </Tab>
 
-        <Tab Title="Alumnos">
+        <Tab Title="Panel de riesgo">
+            <ShellContent
+                Title="Alumnos por prioridad"
+                ContentTemplate="{DataTemplate views:PanelRiesgoPage}"
+                Route="PanelRiesgo" />
+        </Tab>
+
+        <Tab Title="Carga de alumnos">
             <ShellContent
                 Title="Gestión"
                 ContentTemplate="{DataTemplate views:EstudiantePage}"
                 Route="GestorEstudiantes" />
         </Tab>
 
-        <Tab Title="Historial">
+        <Tab Title="Historial de asistencia">
             <ShellContent
                 Title="Historial del alumno"
                 ContentTemplate="{DataTemplate views:DetalleEstudiantePage}"
                 Route="HistorialEstudiantes" />
         </Tab>
 
-        <Tab Title="Asistencia">
+        <Tab Title="Registro de asistencia">
             <ShellContent
                 Title="Asistencia por fecha"
                 ContentTemplate="{DataTemplate views:AsistenciaFechaPage}"
