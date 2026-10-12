@@ -64,7 +64,7 @@ namespace ProyectoFinal_PPII_G6.Tests
         [Fact]
         public void CalcularRiesgo_SinClasesNiTpsRegistrados_RetornaVerdeY100PorCiento()
         {
-            // Arrange & Act (Borde: inicio de cuatrimestre sin datos)
+            // Arrange & Act (Inicio de cuatrimestre sin datos)
             var resultado = _service.CalcularRiesgo(new List<Asistencia>(), 0, new List<Entrega>(), 0);
 
             // Assert
