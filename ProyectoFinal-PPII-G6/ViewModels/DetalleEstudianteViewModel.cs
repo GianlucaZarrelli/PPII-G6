@@ -237,11 +237,14 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             var resultado = _riesgoService.CalcularRiesgo(asistencias, totalClases, entregas, totalTps);
 
             int presentes = asistencias.Count(a => a.Presente);
+            int justificadas = asistencias.Count(a => !a.Presente && a.Justificada);
             int entregados = entregas.Count(e => e.Entregado);
 
             DetalleAsistencia = totalClases > 0
-                ? $"Asistencia: {presentes} de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)"
-                : "Asistencia: sin clases registradas";
+                ? (justificadas > 0
+                    ? $"Asistencia: {presentes} presentes + {justificadas} justificadas (valen la mitad) de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)" 
+                    : $"Asistencia: {presentes} de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)")
+                    : "Asistencia: sin clases registradas";
 
             DetalleEntregas = totalTps > 0
                 ? $"Entregas: {entregados} de {totalTps} trabajos ({resultado.PorcentajeEntregas:F0}%)"

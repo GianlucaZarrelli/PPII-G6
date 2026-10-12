@@ -89,7 +89,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                         est,
                         nombresComision.GetValueOrDefault(est.ComisionId) ?? "-",
                         resultado,
-                        asistencias.Count(a => a.Presente), idsClases.Count,
+                        asistencias.Count(a => a.Presente),
+                        asistencias.Count(a => !a.Presente && a.Justificada),
+                        idsClases.Count,
                         entregas.Count(e => e.Entregado), tps.Count));
                 }
 
@@ -111,12 +113,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
-        private static AlumnoRiesgoItem CrearItem(
-            Estudiante est, string comision, ResultadoRiesgo resultado,
-            int presentes, int totalClases, int entregados, int totalTps)
+        private static AlumnoRiesgoItem CrearItem(Estudiante est, string comision, ResultadoRiesgo resultado, int presentes, int justificadas, int totalClases, int entregados, int totalTps)
         {
             var asistenciaTexto = totalClases > 0
-                ? $"Asistencia {presentes}/{totalClases} ({resultado.PorcentajeAsistencia:F0}%)"
+                ? (justificadas > 0
+                    ? $"Asistencia {presentes} + {justificadas} just. de {totalClases} ({resultado.PorcentajeAsistencia:F0}%)"
+                    : $"Asistencia {presentes}/{totalClases} ({resultado.PorcentajeAsistencia:F0}%)")
                 : "Asistencia: sin clases";
 
             var entregasTexto = totalTps > 0

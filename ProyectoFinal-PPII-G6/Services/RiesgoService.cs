@@ -21,6 +21,7 @@ namespace ProyectoFinal_PPII_G6.Services
 
     public class RiesgoService
     {
+        private const double ValorAusenciaJustificada = 0.5;
         public ResultadoRiesgo CalcularRiesgo(
             List<Asistencia> asistenciasEstudiante,
             int totalClasesComision,
@@ -32,7 +33,9 @@ namespace ProyectoFinal_PPII_G6.Services
             if (totalClasesComision > 0)
             {
                 int presentes = asistenciasEstudiante.Count(a => a.Presente == true);
-                resultado.PorcentajeAsistencia = ((double)presentes / totalClasesComision) * 100;
+                int justificadas = asistenciasEstudiante.Count(a => !a.Presente && a.Justificada);
+                double asistenciaEfectiva = presentes + justificadas * ValorAusenciaJustificada;
+                resultado.PorcentajeAsistencia = (asistenciaEfectiva / totalClasesComision) * 100;
             }
             else
             {

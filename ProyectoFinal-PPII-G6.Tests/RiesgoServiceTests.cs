@@ -150,12 +150,99 @@ namespace ProyectoFinal_PPII_G6.Tests
             Assert.Equal(NivelRiesgoEnum.Amarillo, resultado.Nivel);
         }
 
+        [Fact]
+        public void CalcularRiesgo_AusenciaJustificadaVaLaMitadDeUnaInjustificada()
+        {
+            // Arrange: 5 presentes y 1 ausencia en 6 clases; en un caso justificada y en el otro no
+            var entregas = CrearEntregas(entregados: 5);
+
+            var conJustificada = CrearAsistencias(presentes: 5);
+            conJustificada.AddRange(CrearAusencias(injustificadas: 0, justificadas: 1));
+
+            var conInjustificada = CrearAsistencias(presentes: 5);
+            conInjustificada.AddRange(CrearAusencias(injustificadas: 1, justificadas: 0));
+
+            // Act
+            var resultadoJustificada = _service.CalcularRiesgo(conJustificada, 6, entregas, 5);
+            var resultadoInjustificada = _service.CalcularRiesgo(conInjustificada, 6, entregas, 5);
+
+            // Assert: (5 + 0,5) / 6 = 91,67% contra 5 / 6 = 83,33%
+            Assert.Equal(91.67, resultadoJustificada.PorcentajeAsistencia, 2);
+            Assert.Equal(NivelRiesgoEnum.Verde, resultadoJustificada.Nivel);
+            Assert.Equal(83.33, resultadoInjustificada.PorcentajeAsistencia, 2);
+            Assert.Equal(NivelRiesgoEnum.Amarillo, resultadoInjustificada.Nivel);
+        }
+
+        [Fact]
+        public void CalcularRiesgo_DosJustificadasEquivalenAUnaPresente()
+        {
+            // Arrange: 7 presentes + 2 justificadas en 10 clases (7 + 1 = 8 asistencias efectivas)
+            var asistencias = CrearAsistencias(presentes: 7);
+            asistencias.AddRange(CrearAusencias(injustificadas: 0, justificadas: 2));
+            var entregas = CrearEntregas(entregados: 5);
+
+            // Act
+            var resultado = _service.CalcularRiesgo(asistencias, 10, entregas, 5);
+
+            // Assert: igual que 8 presentes
+            Assert.Equal(80, resultado.PorcentajeAsistencia);
+            Assert.Equal(NivelRiesgoEnum.Amarillo, resultado.Nivel);
+        }
+
+        [Fact]
+        public void CalcularRiesgo_UnaJustificadaPuedeSacarDelRojo()
+        {
+            // Arrange: 7 presentes en 10 clases (70%) contra 7 presentes + 1 justificada (75%)
+            var entregas = CrearEntregas(entregados: 5);
+
+            var sinJustificar = CrearAsistencias(presentes: 7);
+
+            var conJustificada = CrearAsistencias(presentes: 7);
+            conJustificada.AddRange(CrearAusencias(injustificadas: 0, justificadas: 1));
+
+            // Act
+            var resultadoSin = _service.CalcularRiesgo(sinJustificar, 10, entregas, 5);
+            var resultadoCon = _service.CalcularRiesgo(conJustificada, 10, entregas, 5);
+
+            // Assert: 70% es rojo, pero 75% justo ya es amarillo
+            Assert.Equal(NivelRiesgoEnum.Rojo, resultadoSin.Nivel);
+            Assert.Equal(75, resultadoCon.PorcentajeAsistencia);
+            Assert.Equal(NivelRiesgoEnum.Amarillo, resultadoCon.Nivel);
+        }
+
+        [Fact]
+        public void CalcularRiesgo_PresenteMarcadoComoJustificada_NoSumaDeMas()
+        {
+            // Arrange: 10 registros presentes que además traen Justificada = true (dato inconsistente)
+            var asistencias = new List<Asistencia>();
+            for (int i = 0; i < 10; i++)
+                asistencias.Add(new Asistencia { Presente = true, Justificada = true });
+            var entregas = CrearEntregas(entregados: 5);
+
+            // Act
+            var resultado = _service.CalcularRiesgo(asistencias, 10, entregas, 5);
+
+            // Assert: la justificación solo cuenta si estuvo ausente, así que no pasa del 100%
+            Assert.Equal(100, resultado.PorcentajeAsistencia);
+            Assert.Equal(NivelRiesgoEnum.Verde, resultado.Nivel);
+        }
+
         // Helpers auxiliares para generar datos de prueba
         private List<Asistencia> CrearAsistencias(int presentes)
         {
             var lista = new List<Asistencia>();
             for (int i = 0; i < presentes; i++)
                 lista.Add(new Asistencia { Presente = true });
+            return lista;
+        }
+
+        private List<Asistencia> CrearAusencias(int injustificadas, int justificadas)
+        {
+            var lista = new List<Asistencia>();
+            for (int i = 0; i < injustificadas; i++)
+                lista.Add(new Asistencia { Presente = false, Justificada = false });
+            for (int i = 0; i < justificadas; i++)
+                lista.Add(new Asistencia { Presente = false, Justificada = true });
             return lista;
         }
 
