@@ -13,7 +13,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class AsistenciaFila : BindableObject
     {
+        /// <summary>
+        /// Id del alumno de la fila.
+        /// </summary>
         public int EstudianteId { get; set; }
+        /// <summary>
+        /// Nombre del alumno con formato "Apellido, Nombre".
+        /// </summary>
         public string NombreCompleto { get; set; } = string.Empty;
 
         /// <summary>
@@ -23,6 +29,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private bool _presente = true;
 
+        /// <summary>
+        /// Indica si el alumno estuvo presente (por defecto, sí). Al marcarlo presente se quita la justificación.
+        /// </summary>
         public bool Presente
         {
             get => _presente;
@@ -42,12 +51,18 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private bool _justificada;
 
+        /// <summary>
+        /// Indica si la ausencia del alumno está justificada.
+        /// </summary>
         public bool Justificada
         {
             get => _justificada;
             set { _justificada = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// Inverso de <see cref="Presente"/>; útil para habilitar la opción de justificar en la vista.
+        /// </summary>
         public bool Ausente => !Presente;
     }
 
@@ -58,11 +73,20 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     {
         private readonly IDataService _dataService;
 
+        /// <summary>
+        /// Comisiones disponibles para elegir.
+        /// </summary>
         public ObservableCollection<Comision> Comisiones { get; } = new();
+        /// <summary>
+        /// Alumnos de la comisión con su asistencia en la fecha elegida.
+        /// </summary>
         public ObservableCollection<AsistenciaFila> Filas { get; } = new();
 
         private Comision? _comisionSeleccionada;
 
+        /// <summary>
+        /// Comisión elegida; al cambiar recarga las filas de asistencia.
+        /// </summary>
         public Comision? ComisionSeleccionada
         {
             get => _comisionSeleccionada;
@@ -76,6 +100,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private DateTime _fecha = DateTime.Today;
 
+        /// <summary>
+        /// Fecha de la clase (por defecto, hoy); al cambiar recarga las filas de asistencia.
+        /// </summary>
         public DateTime Fecha
         {
             get => _fecha;
@@ -89,14 +116,23 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _estado = "Seleccione una comisión.";
 
+        /// <summary>
+        /// Mensaje informativo que se muestra al usuario (estado de la clase o errores).
+        /// </summary>
         public string Estado
         {
             get => _estado;
             set { _estado = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// Comando que guarda la asistencia de todos los alumnos en la fecha elegida.
+        /// </summary>
         public Command GuardarCommand { get; }
 
+        /// <summary>
+        /// Crea el ViewModel con el servicio de datos e inicializa el comando de guardado.
+        /// </summary>
         public AsistenciaFechaViewModel(IDataService dataService)
         {
             _dataService = dataService;
@@ -129,6 +165,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Arma la lista de alumnos con la asistencia ya registrada en la fecha elegida (presente si no hay registro).
+        /// </summary>
         private async Task CargarFilasAsync()
         {
             Filas.Clear();
@@ -187,6 +226,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Guarda la asistencia de la fecha elegida (no permite fechas futuras), creando la clase si no existe, y recarga la lista.
+        /// </summary>
         private async Task GuardarAsync()
         {
             if (ComisionSeleccionada == null || Filas.Count == 0)

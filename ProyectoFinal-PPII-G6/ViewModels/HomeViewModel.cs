@@ -18,6 +18,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private int _totalEstudiantes;
 
+        /// <summary>
+        /// Cantidad total de estudiantes registrados.
+        /// </summary>
         public int TotalEstudiantes
         {
             get => _totalEstudiantes;
@@ -26,12 +29,18 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private int _estudiantesEnRiesgo;
 
+        /// <summary>
+        /// Cantidad de estudiantes en riesgo alto.
+        /// </summary>
         public int EstudiantesEnRiesgo
         {
             get => _estudiantesEnRiesgo;
             set { _estudiantesEnRiesgo = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// Crea el ViewModel con sus servicios.
+        /// </summary>
         public HomeViewModel(IDataService dataService, RiesgoService riesgoService)
         {
             _dataService = dataService;

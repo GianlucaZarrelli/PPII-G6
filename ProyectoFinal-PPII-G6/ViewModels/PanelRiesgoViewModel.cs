@@ -14,11 +14,29 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class AlumnoRiesgoItem
     {
+        /// <summary>
+        /// Identificador del estudiante.
+        /// </summary>
         public int EstudianteId { get; set; }
+        /// <summary>
+        /// Nombre y apellido del estudiante.
+        /// </summary>
         public string NombreCompleto { get; set; } = string.Empty;
+        /// <summary>
+        /// Nombre de la comisión del estudiante.
+        /// </summary>
         public string Comision { get; set; } = string.Empty;
+        /// <summary>
+        /// Texto del nivel de riesgo que se muestra (por ejemplo "ALTO RIESGO").
+        /// </summary>
         public string Nivel { get; set; } = string.Empty;
+        /// <summary>
+        /// Color hexadecimal asociado al nivel de riesgo.
+        /// </summary>
         public string ColorNivel { get; set; } = "#757575";
+        /// <summary>
+        /// Resumen de asistencia y entregas que justifica el nivel.
+        /// </summary>
         public string Detalle { get; set; } = string.Empty;
 
         /// <summary>
@@ -40,11 +58,20 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private readonly IDataService _dataService;
         private readonly RiesgoService _riesgoService;
 
+        /// <summary>
+        /// Comisiones disponibles en el selector, ordenadas por nombre.
+        /// </summary>
         public ObservableCollection<Comision> Comisiones { get; } = new();
+        /// <summary>
+        /// Alumnos de la comisión elegida, ordenados por riesgo.
+        /// </summary>
         public ObservableCollection<AlumnoRiesgoItem> Alumnos { get; } = new();
 
         private Comision? _comisionSeleccionada;
 
+        /// <summary>
+        /// Comisión elegida; al cambiarla se recalcula el panel.
+        /// </summary>
         public Comision? ComisionSeleccionada
         {
             get => _comisionSeleccionada;
@@ -56,6 +83,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Crea el ViewModel con sus servicios.
+        /// </summary>
         public PanelRiesgoViewModel(IDataService dataService, RiesgoService riesgoService)
         {
             _dataService = dataService;
@@ -151,6 +181,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Arma la fila del panel con el texto de detalle, el nivel, su color y el orden de prioridad.
+        /// </summary>
         private static AlumnoRiesgoItem CrearItem(
             Estudiante est, string comision, ResultadoRiesgo resultado,
             int presentes, int justificadas, int totalClases, int entregados, int totalTps)

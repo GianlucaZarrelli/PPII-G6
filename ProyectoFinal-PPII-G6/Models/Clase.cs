@@ -22,6 +22,9 @@ namespace ProyectoFinal_PPII_G6.Models
         /// </summary>
         public string? Descripcion { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Identificador de la comisión a la que pertenece la clase.
+        /// </summary>
         public int ComisionId { get; set; }
 
         /// <summary>

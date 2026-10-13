@@ -8,12 +8,18 @@ using ProyectoFinal_PPII_G6.Services;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
+    /// <summary>
+    /// ViewModel de la carga masiva: importa alumnos desde un archivo CSV elegido por el usuario.
+    /// </summary>
     public class CargaMasivaViewModel : BindableObject
     {
         private readonly CsvImporterService _csvImporterService;
         private readonly IDataService _dataService;
 
         private string _mensajeEstado = "Seleccione un archivo CSV para importar alumnos.";
+        /// <summary>
+        /// Mensaje que informa el estado de la importación.
+        /// </summary>
         public string MensajeEstado
         {
             get => _mensajeEstado;
@@ -21,14 +27,23 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         private bool _isBusy;
+        /// <summary>
+        /// Indica si se está procesando un archivo.
+        /// </summary>
         public bool IsBusy
         {
             get => _isBusy;
             set { _isBusy = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// Comando para elegir un CSV e importar sus alumnos.
+        /// </summary>
         public Command SeleccionarArchivoCommand { get; }
 
+        /// <summary>
+        /// Crea el ViewModel con sus servicios e inicializa el comando.
+        /// </summary>
         public CargaMasivaViewModel(CsvImporterService csvImporterService, IDataService dataService)
         {
             _csvImporterService = csvImporterService;
@@ -36,6 +51,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             SeleccionarArchivoCommand = new Command(async () => await SeleccionarYProcesarArchivoAsync());
         }
 
+        /// <summary>
+        /// Abre el selector de archivos, lee el CSV, guarda cada alumno y avisa el resultado o el error.
+        /// </summary>
         private async Task SeleccionarYProcesarArchivoAsync()
         {
             try

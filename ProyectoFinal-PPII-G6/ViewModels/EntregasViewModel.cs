@@ -14,7 +14,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class EntregaFila : BindableObject
     {
+        /// <summary>
+        /// Id del alumno de la fila.
+        /// </summary>
         public int EstudianteId { get; set; }
+        /// <summary>
+        /// Nombre del alumno con formato "Apellido, Nombre".
+        /// </summary>
         public string NombreCompleto { get; set; } = string.Empty;
 
         /// <summary>
@@ -24,6 +30,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private bool _entregado;
 
+        /// <summary>
+        /// Indica si el alumno entregó el trabajo; notifica el cambio a la vista.
+        /// </summary>
         public bool Entregado
         {
             get => _entregado;
@@ -39,12 +48,24 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private readonly IDataService _dataService;
         private bool _guardando;
 
+        /// <summary>
+        /// Comisiones disponibles para elegir.
+        /// </summary>
         public ObservableCollection<Comision> Comisiones { get; } = new();
+        /// <summary>
+        /// Trabajos prácticos de la comisión elegida, ordenados por fecha de entrega.
+        /// </summary>
         public ObservableCollection<TrabajoPractico> Trabajos { get; } = new();
+        /// <summary>
+        /// Alumnos de la comisión con su estado de entrega para el trabajo elegido.
+        /// </summary>
         public ObservableCollection<EntregaFila> Filas { get; } = new();
 
         private Comision? _comisionSeleccionada;
 
+        /// <summary>
+        /// Comisión elegida; al cambiar recarga sus trabajos.
+        /// </summary>
         public Comision? ComisionSeleccionada
         {
             get => _comisionSeleccionada;
@@ -58,6 +79,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private TrabajoPractico? _trabajoSeleccionado;
 
+        /// <summary>
+        /// Trabajo práctico elegido; al cambiar recarga las filas de alumnos.
+        /// </summary>
         public TrabajoPractico? TrabajoSeleccionado
         {
             get => _trabajoSeleccionado;
@@ -71,6 +95,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _tituloNuevo = string.Empty;
 
+        /// <summary>
+        /// Título ingresado para el trabajo práctico a crear.
+        /// </summary>
         public string TituloNuevo
         {
             get => _tituloNuevo;
@@ -79,6 +106,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private DateTime _fechaNueva = DateTime.Today;
 
+        /// <summary>
+        /// Fecha de entrega del trabajo práctico a crear (por defecto, hoy).
+        /// </summary>
         public DateTime FechaNueva
         {
             get => _fechaNueva;
@@ -87,15 +117,27 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _estado = "Seleccione una comisión.";
 
+        /// <summary>
+        /// Mensaje informativo que se muestra al usuario (resumen de entregas o errores).
+        /// </summary>
         public string Estado
         {
             get => _estado;
             set { _estado = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// Comando que crea un trabajo práctico nuevo en la comisión elegida.
+        /// </summary>
         public Command CrearTrabajoCommand { get; }
+        /// <summary>
+        /// Comando que guarda el estado de entrega de todos los alumnos para el trabajo elegido.
+        /// </summary>
         public Command GuardarCommand { get; }
 
+        /// <summary>
+        /// Crea el ViewModel con el servicio de datos e inicializa los comandos.
+        /// </summary>
         public EntregasViewModel(IDataService dataService)
         {
             _dataService = dataService;
@@ -103,6 +145,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             GuardarCommand = new Command(async () => await GuardarAsync());
         }
 
+        /// <summary>
+        /// Muestra una alerta con título y mensaje si hay una página principal disponible.
+        /// </summary>
         private static async Task AvisarAsync(string titulo, string mensaje)
         {
             if (Application.Current?.MainPage != null)
@@ -244,6 +289,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Valida el título (obligatorio y sin repetir en la comisión), crea el trabajo y lo deja seleccionado.
+        /// </summary>
         private async Task CrearTrabajoAsync()
         {
             if (ComisionSeleccionada == null)
@@ -282,6 +330,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Guarda las entregas de todas las filas para el trabajo elegido y recarga la lista; evita guardados simultáneos.
+        /// </summary>
         private async Task GuardarAsync()
         {
             if (ComisionSeleccionada == null || TrabajoSeleccionado == null || Filas.Count == 0)

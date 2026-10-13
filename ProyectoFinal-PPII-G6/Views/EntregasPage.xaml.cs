@@ -10,6 +10,9 @@ namespace ProyectoFinal_PPII_G6.Views
     {
         private readonly EntregasViewModel _viewModel;
 
+        /// <summary>
+        /// Crea la página y le asigna su ViewModel.
+        /// </summary>
         public EntregasPage(EntregasViewModel viewModel)
         {
             InitializeComponent();

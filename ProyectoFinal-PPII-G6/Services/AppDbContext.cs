@@ -9,6 +9,9 @@ namespace ProyectoFinal_PPII_G6.Services
     public class AppDbContext : DbContext
     {
 
+        /// <summary>
+        /// Tabla de comisiones.
+        /// </summary>
         public DbSet<Comision> Comisiones { get; set; }
 
         /// <summary>
@@ -26,8 +29,14 @@ namespace ProyectoFinal_PPII_G6.Services
         /// </summary>
         public DbSet<Asistencia> Asistencias { get; set; }
 
+        /// <summary>
+        /// Tabla de trabajos prácticos.
+        /// </summary>
         public DbSet<TrabajoPractico> TrabajosPracticos { get; set; }
 
+        /// <summary>
+        /// Tabla de entregas de trabajos prácticos.
+        /// </summary>
         public DbSet<Entrega> Entregas { get; set; }
 
         /// <summary>

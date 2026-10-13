@@ -5,8 +5,14 @@ using ProyectoFinal_PPII_G6.Views;
 
 namespace ProyectoFinal_PPII_G6
 {
+    /// <summary>
+    /// Punto de configuración de la aplicación MAUI.
+    /// </summary>
     public static class MauiProgram
     {
+        /// <summary>
+        /// Construye la aplicación: registra fuentes, servicios, ViewModels y vistas en el contenedor de dependencias.
+        /// </summary>
         public static MauiApp CreateMauiApp()
         {
             var builder = MauiApp.CreateBuilder();

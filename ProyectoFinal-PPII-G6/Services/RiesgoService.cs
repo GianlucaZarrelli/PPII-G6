@@ -5,23 +5,57 @@ using ProyectoFinal_PPII_G6.Models;
 
 namespace ProyectoFinal_PPII_G6.Services
 {
+    /// <summary>
+    /// Nivel de riesgo académico de un estudiante.
+    /// </summary>
     public enum NivelRiesgoEnum
     {
+        /// <summary>
+        /// Riesgo alto.
+        /// </summary>
         Rojo,
+        /// <summary>
+        /// Riesgo medio.
+        /// </summary>
         Amarillo,
+        /// <summary>
+        /// Sin riesgo.
+        /// </summary>
         Verde
     }
 
+    /// <summary>
+    /// Resultado del cálculo de riesgo de un estudiante.
+    /// </summary>
     public class ResultadoRiesgo
     {
+        /// <summary>
+        /// Porcentaje de asistencia efectiva (0 a 100).
+        /// </summary>
         public double PorcentajeAsistencia;
+        /// <summary>
+        /// Porcentaje de trabajos prácticos entregados (0 a 100).
+        /// </summary>
         public double PorcentajeEntregas;
+        /// <summary>
+        /// Nivel de riesgo resultante.
+        /// </summary>
         public NivelRiesgoEnum Nivel { get; set; }
     }
 
+    /// <summary>
+    /// Calcula el nivel de riesgo de un estudiante según su asistencia y sus entregas.
+    /// </summary>
     public class RiesgoService
     {
+        /// <summary>
+        /// Peso de una ausencia justificada en el cálculo de asistencia.
+        /// </summary>
         private const double ValorAusenciaJustificada = 0.5;
+        /// <summary>
+        /// Calcula los porcentajes de asistencia y entregas y el nivel de riesgo: Rojo si la asistencia es menor a 75% o las entregas a 60%;
+        /// Amarillo si la asistencia es menor a 85% o las entregas a 80%; Verde en otro caso. Sin clases o TPs, el porcentaje es 100%.
+        /// </summary>
         public ResultadoRiesgo CalcularRiesgo(
             List<Asistencia> asistenciasEstudiante,
             int totalClasesComision,

@@ -112,12 +112,18 @@ namespace ProyectoFinal_PPII_G6.Services
             return asistencia.Id;
         }
 
+        /// <summary>
+        /// Obtiene todas las comisiones.
+        /// </summary>
         public async Task<List<Comision>> GetComisionesAsync()
         {
             using var context = CreateContext();
             return await context.Comisiones.AsNoTracking().ToListAsync();
         }
 
+        /// <summary>
+        /// Busca una comisión por su Id.
+        /// </summary>
         public async Task<Comision?> GetComisionByIdAsync(int id)
         {
             using var context = CreateContext();
@@ -125,6 +131,9 @@ namespace ProyectoFinal_PPII_G6.Services
 
         }
 
+        /// <summary>
+        /// Obtiene los estudiantes de una comisión.
+        /// </summary>
         public async Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId)
         {
             using var context = CreateContext();
@@ -134,6 +143,9 @@ namespace ProyectoFinal_PPII_G6.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Agrega una lista de estudiantes nuevos en una sola operación.
+        /// </summary>
         public async Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes)
         {
             using var context = CreateContext();
@@ -141,6 +153,9 @@ namespace ProyectoFinal_PPII_G6.Services
             await context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Obtiene las clases de una comisión ordenadas por fecha descendente.
+        /// </summary>
         public async Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId)
         {
             using var context = CreateContext();
@@ -151,6 +166,9 @@ namespace ProyectoFinal_PPII_G6.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Busca una comisión por nombre (sin espacios extremos) y la crea si no existe. Lanza excepción si el nombre está vacío.
+        /// </summary>
         public async Task<Comision> GetOrCreateComisionAsync(string nombre)
         {
             ArgumentException.ThrowIfNullOrWhiteSpace(nombre);
@@ -172,6 +190,9 @@ namespace ProyectoFinal_PPII_G6.Services
             return comision;
         }
 
+        /// <summary>
+        /// Crea o actualiza varias asistencias y devuelve la cantidad procesada.
+        /// </summary>
         public async Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias)
         {
             using var context = CreateContext();
@@ -186,6 +207,9 @@ namespace ProyectoFinal_PPII_G6.Services
             return asistencias.Count;
         }
 
+        /// <summary>
+        /// Obtiene los trabajos prácticos de una comisión.
+        /// </summary>
         public async Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId)
         {
             using var context = CreateContext();
@@ -195,6 +219,9 @@ namespace ProyectoFinal_PPII_G6.Services
                 .ToListAsync();
         }
 
+        /// <summary>
+        /// Crea o actualiza un trabajo práctico y lo devuelve.
+        /// </summary>
         public async Task<TrabajoPractico> SaveTrabajoPracticoAsync(TrabajoPractico tp)
         {
             using var context = CreateContext();
@@ -206,6 +233,9 @@ namespace ProyectoFinal_PPII_G6.Services
             return tp;
         }
 
+        /// <summary>
+        /// Crea o actualiza varias entregas.
+        /// </summary>
         public async Task SaveEntregasAsync(List<Entrega> entregas)
         {
             using var context = CreateContext();
@@ -220,6 +250,9 @@ namespace ProyectoFinal_PPII_G6.Services
             await context.SaveChangesAsync();
         }
 
+        /// <summary>
+        /// Obtiene las entregas de un estudiante.
+        /// </summary>
         public async Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId)
         {
             using var context = CreateContext();
