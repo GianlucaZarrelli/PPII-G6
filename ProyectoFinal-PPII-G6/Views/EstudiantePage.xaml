@@ -7,104 +7,97 @@
     <ScrollView Padding="15">
         <VerticalStackLayout Spacing="20">
 
-            <!-- Formulario de Alta -->
-            <Border StrokeShape="RoundRectangle 10" 
-                    Stroke="#E0E0E0" 
-                    Padding="15" 
+            <!-- Selector de comisión: gobierna el alta y la nómina -->
+            <VerticalStackLayout Spacing="5">
+                <Label Text="Comisión:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding Comisiones}"
+                        ItemDisplayBinding="{Binding Nombre}"
+                        SelectedItem="{Binding ComisionSeleccionada}"
+                        Title="-- Seleccione una comisión --"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                <Label Text="{Binding AvisoComisiones}" FontSize="12" TextColor="#D32F2F" />
+            </VerticalStackLayout>
+
+            <!-- Formulario de alta -->
+            <Border StrokeShape="RoundRectangle 10"
+                    Stroke="#E0E0E0"
+                    Padding="15"
                     BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
                 <VerticalStackLayout Spacing="12">
-                    <Label Text="Alta de Estudiante" 
-                           FontSize="18" 
-                           FontAttributes="Bold" 
+                    <Label Text="{Binding TituloAlta}"
+                           FontSize="18"
+                           FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
 
-                    <!-- Campo DNI -->
-                    <Entry Placeholder="DNI" 
-                           Text="{Binding Dni}" 
+                    <Entry Placeholder="DNI"
+                           Text="{Binding Dni}"
                            Keyboard="Numeric"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
 
-                    <!-- Campo Nombre -->
-                    <Entry Placeholder="Nombre" 
-                           Text="{Binding Nombre}" 
+                    <Entry Placeholder="Nombre"
+                           Text="{Binding Nombre}"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
 
-                    <!-- Campo Apellido -->
-                    <Entry Placeholder="Apellido" 
-                           Text="{Binding Apellido}" 
+                    <Entry Placeholder="Apellido"
+                           Text="{Binding Apellido}"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
 
-                    <!-- Campo Email -->
-                    <Entry Placeholder="Email" 
-                           Text="{Binding Email}" 
+                    <Entry Placeholder="Email"
+                           Text="{Binding Email}"
                            Keyboard="Email"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
 
-                    <!-- Campo Comisión -->
-                    <Entry Placeholder="Comisión (ej: Comisión A)" 
-                           Text="{Binding Comision}" 
-                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
-                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
-                           ClearButtonVisibility="WhileEditing" />
-
-                    <!-- Botón de Guardado -->
-                    <Button Text="Guardar Estudiante" 
+                    <Button Text="Guardar Estudiante"
                             Command="{Binding GuardarEstudianteCommand}"
-                            BackgroundColor="#512BD4" 
-                            TextColor="White" 
+                            BackgroundColor="#512BD4"
+                            TextColor="White"
                             HeightRequest="45"
-                            CornerRadius="8" 
+                            CornerRadius="8"
                             Margin="0,10,0,0" />
                 </VerticalStackLayout>
             </Border>
 
-            <!-- Lista de Estudiantes Registrados -->
-            <Label Text="Nómina Registrada" 
-                   FontSize="18" 
-                   FontAttributes="Bold" 
+            <!-- Nómina de la comisión elegida -->
+            <Label Text="{Binding TituloNomina}"
+                   FontSize="18"
+                   FontAttributes="Bold"
                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
 
-            <CollectionView ItemsSource="{Binding Estudiantes}">
-                <CollectionView.EmptyView>
-                    <Label Text="No hay estudiantes registrados." 
-                           HorizontalOptions="Center" 
-                           TextColor="Gray" 
-                           Margin="0,20" />
-                </CollectionView.EmptyView>
+            <Label Text="{Binding EstadoLista}" FontSize="12" TextColor="Gray" />
 
-                <CollectionView.ItemTemplate>
+            <VerticalStackLayout Spacing="4" BindableLayout.ItemsSource="{Binding Estudiantes}">
+                <BindableLayout.ItemTemplate>
                     <DataTemplate>
-                        <Border StrokeShape="RoundRectangle 8" 
-                                Stroke="#33FFFFFF" 
-                                Padding="12" 
-                                Margin="0,4"
+                        <Border StrokeShape="RoundRectangle 8"
+                                Stroke="#33FFFFFF"
+                                Padding="12"
                                 BackgroundColor="{AppThemeBinding Light=#F8F9FA, Dark=#1E1E1E}">
                             <VerticalStackLayout Spacing="2">
-                                <Label Text="{Binding NombreCompleto}" 
-                                       FontAttributes="Bold" 
-                                       FontSize="15" 
+                                <Label Text="{Binding NombreCompleto}"
+                                       FontAttributes="Bold"
+                                       FontSize="15"
                                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
                                 <HorizontalStackLayout Spacing="10">
-                                    <Label Text="{Binding Dni, StringFormat='DNI: {0}'}" 
-                                           FontSize="12" 
+                                    <Label Text="{Binding Dni, StringFormat='DNI: {0}'}"
+                                           FontSize="12"
                                            TextColor="Gray" />
-                                    <Label Text="{Binding Email, StringFormat='| {0}'}" 
-                                           FontSize="12" 
+                                    <Label Text="{Binding Email, StringFormat='| {0}'}"
+                                           FontSize="12"
                                            TextColor="Gray" />
                                 </HorizontalStackLayout>
                             </VerticalStackLayout>
                         </Border>
                     </DataTemplate>
-                </CollectionView.ItemTemplate>
-            </CollectionView>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
 
         </VerticalStackLayout>
     </ScrollView>
