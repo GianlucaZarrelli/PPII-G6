@@ -1,55 +1,66 @@
 # Sistema de Seguimiento de Cursada y Alerta Temprana — Grupo 6 (PPII)
 
-Aplicación desarrollada en **.NET MAUI** bajo el patrón de arquitectura **MVVM**. El proyecto tiene como objetivo brindar a los docentes una herramienta ágil para el seguimiento de la cursada y la detección temprana de alumnos en riesgo pedagógico, respondiendo a la pregunta central del sistema: **"¿A quién llamo esta semana?"**.
+Aplicación **.NET MAUI** (patrón **MVVM**) para el seguimiento de la cursada y la detección temprana de alumnos en riesgo. Responde a una pregunta: **"¿A quién llamo esta semana?"**.
 
----
+## Qué hace
 
-## 🚀 Características Principales
+- **Alumnos:** alta manual con su comisión (la comisión se crea si no existe) y listado.
+- **Asistencia por fecha:** se elige comisión y fecha, y se marca a cada alumno como presente o ausente (justificada o no). Sirve para tomar la asistencia y para corregirla.
+- **Entregas:** se crean los trabajos prácticos de una comisión y se marca quién entregó cada uno.
+- **Panel de riesgo:** los alumnos de una comisión ordenados de mayor a menor riesgo, con el dato que lo justifica (por ejemplo, "Asistencia 4/6 (67%) | Entregas 1/3 (33%)").
+- **Historial del alumno:** ficha con su semáforo, el detalle de asistencia clase por clase y el estado de cada trabajo.
+- **Inicio:** resumen con el total de alumnos y los que están en riesgo.
 
-El sistema centraliza la gestión académica enfocándose en la prevención del abandono escolar a través de los siguientes módulos funcionales:
+## Cómo se calcula el riesgo
 
-* **Gestión de Estudiantes:** Registro, visualización y administración de la nómina de alumnos vinculados a la cursada.
-* **Control de Asistencias:** Interfaz rápida para la carga de registros de clases, presentes e inasistencias.
-* **Motor de Indicador de Riesgo:** Lógica de negocio automatizada que evalúa en tiempo real el porcentaje acumulado de inasistencias de cada estudiante.
-* **Panel de Alerta Temprana (Dashboard):** Vista centralizada que prioriza y resalta de forma visual a los alumnos con ausentismo crítico, facilitando la intervención y el contacto oportuno por parte del docente.
+Se combinan dos señales, siempre contra las clases y los trabajos **de la comisión del alumno**:
 
----
+| Nivel | Condición |
+|---|---|
+| Rojo | asistencia menor al 75 % **o** entregas menores al 60 % |
+| Amarillo | asistencia menor al 85 % **o** entregas menores al 80 % |
+| Verde | el resto |
 
-## 📂 Estructura del Proyecto
+- Una ausencia **justificada** vale la mitad de una injustificada.
+- Una clase sin registro de asistencia cuenta como ausencia.
+- Los umbrales están fijos en `Services/RiesgoService.cs`.
 
-El código está organizado siguiendo la separación de responsabilidades propia del patrón **MVVM** y la inyección de dependencias para el acceso a datos:
+## Alcance de la demo
 
-    ProyectoFinal-PPII-G6/
-    ├── Models/              # Entidades del dominio puras (Estudiante, Clase, Asistencia)
-    ├── ViewModels/          # Lógica de presentación, notificaciones y comandos
-    ├── Views/               # Vistas e interfaces de usuario en XAML
-    └── Services/            # Servicios de negocio (CalculadorRiesgo) y capa de persistencia (IDataService)
+| Historia | Estado |
+|---|---|
+| H1 Nómina | Alta manual y listado |
+| H2 Calendario | Parcial: las clases se crean al registrar asistencia y los trabajos desde la pantalla de entregas |
+| H3 / H4 Asistencia | Registro y corrección por fecha |
+| H5 Entregas | Crear trabajos y marcar entregas |
+| H6 Riesgo | Semáforo con dos señales |
+| H7 Umbrales configurables | No incluida |
+| H8 Panel por riesgo | Lista por comisión con el detalle |
+| H9 Ficha del alumno | Historial de asistencia y entregas |
+| H10 / H11 Intervenciones | No incluidas |
 
----
+## Estructura
 
-## 🛠️ Tecnologías y Base de Datos
+    ProyectoFinal-PPII-G6/        Aplicación MAUI
+    ├── Models/                   Entidades (Estudiante, Comision, Clase, Asistencia, TrabajoPractico, Entrega)
+    ├── ViewModels/               Lógica de presentación (MVVM)
+    ├── Views/                    Pantallas en XAML
+    └── Services/                 Acceso a datos (IDataService, EF Core) y cálculo de riesgo (RiesgoService)
+    ProyectoFinal-PPII-G6.Tests/  Pruebas unitarias xUnit del cálculo de riesgo
+    scripts/                      Scripts de la base de datos (ver scripts/README.md)
 
-* **Framework:** .NET MAUI
-* **Lenguaje:** C# 10+
-* **Arquitectura:** MVVM (Model-View-ViewModel)
-* **Motor de Base de Datos:** Microsoft SQL Server
-* **Lógica de Persistencia:** Esquema relacional desacoplado mediante `IDataService`
-* **Paquetes clave:**
-  * `CommunityToolkit.Mvvm`: Implementación de notificaciones de cambios de propiedades y comandos.
-  * `Microsoft.Data.SqlClient`: Conector oficial para comunicación con SQL Server.
+## Tecnologías
 
----
+.NET MAUI · C# · MVVM · Entity Framework Core · SQL Server · xUnit
 
-## 📋 Requisitos para Ejecutar el Proyecto
+## Cómo ejecutarlo
 
-1. **Visual Studio 2022** con la carga de trabajo de **Desarrollo de .NET MAUI** instalada.
-2. **Microsoft SQL Server** (LocalDB, Express o la instancia definida en la cadena de conexión) con el script de base de datos `SistemaAlertaTemprana` ejecutado.
-3. Clonar el repositorio mediante la terminal o tu cliente Git favorito:
+1. Tener **Visual Studio** con la carga de trabajo **.NET Multi-platform App UI**, el SDK de **.NET 10** y **SQL Server Express** (instancia `SQLEXPRESS`) o LocalDB.
+2. Clonar el repositorio y abrir `ProyectoFinal-PPII-G6/ProyectoFinal-PPII-G6.sln`.
+3. Crear la base: ejecutar en SSMS los scripts de `scripts/` en orden (`crear_base.sql`, `comisiones.sql` y opcionalmente `datos_demo.sql`).
+4. Elegir `ProyectoFinal-PPII-G6` como proyecto de inicio, **Windows Machine** como destino y ejecutar con F5.
 
-   ```bash
-   git clone https://github.com/GianlucaZarrelli/PPII-G6.git
-4. Abrir la solución ProyectoFinal-PPII-G6.sln en Visual Studio.
-5. Seleccionar el destino de ejecución (recomendado: Windows Machine) y presionar F5.
+Las pruebas se corren desde **Test → Run All Tests**.
 
 ## 👥 Equipo de Desarrollo — Práctica Profesional II (Grupo 6)
 
