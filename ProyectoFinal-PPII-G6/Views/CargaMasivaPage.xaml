@@ -2,11 +2,90 @@
 <ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
              xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
              x:Class="ProyectoFinal_PPII_G6.Views.CargaMasivaPage"
-             Title="CargaMasivaPage">
-    <VerticalStackLayout>
-        <Label 
-            Text="Welcome to .NET MAUI!"
-            VerticalOptions="Center" 
-            HorizontalOptions="Center" />
-    </VerticalStackLayout>
+             Title="Carga masiva de alumnos">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0" Padding="15">
+            <VerticalStackLayout Spacing="12">
+
+                <Label Text="Comisión de destino:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding Comisiones}"
+                        ItemDisplayBinding="{Binding Nombre}"
+                        SelectedItem="{Binding ComisionSeleccionada}"
+                        Title="-- Seleccione una comisión --"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                <!-- Formato esperado del archivo -->
+                <Border StrokeShape="RoundRectangle 10"
+                        Stroke="#E0E0E0"
+                        Padding="12"
+                        BackgroundColor="{AppThemeBinding Light=#F5F5F5, Dark=#2A2A2A}">
+                    <VerticalStackLayout Spacing="4">
+                        <Label Text="Formato del archivo CSV"
+                               FontAttributes="Bold"
+                               FontSize="14"
+                               TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+                        <Label Text="Una fila por alumno, con encabezado: Dni;Nombre;Apellido;Email"
+                               FontSize="12"
+                               TextColor="{AppThemeBinding Light=#444444, Dark=#CCCCCC}" />
+                        <Label Text="Separador punto y coma o coma. Guardalo como CSV UTF-8 para que los acentos se lean bien."
+                               FontSize="12"
+                               TextColor="Gray" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Button Text="Elegir archivo CSV"
+                        Command="{Binding ElegirArchivoCommand}"
+                        BackgroundColor="#512BD4"
+                        TextColor="White"
+                        CornerRadius="8" />
+
+                <Label Text="{Binding Estado}" FontSize="12" TextColor="Gray" />
+
+                <!-- Vista previa -->
+                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Filas}">
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Border StrokeShape="RoundRectangle 8"
+                                    Stroke="#33FFFFFF"
+                                    Padding="0"
+                                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+                                <Grid ColumnDefinitions="6, *, Auto">
+                                    <BoxView Grid.Column="0" Color="{Binding Color}" />
+
+                                    <VerticalStackLayout Grid.Column="1" Padding="12,8" Spacing="2">
+                                        <Label Text="{Binding NombreCompleto}"
+                                               FontAttributes="Bold"
+                                               FontSize="14"
+                                               TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                        <Label Text="{Binding Detalle}" FontSize="12" TextColor="Gray" />
+                                    </VerticalStackLayout>
+
+                                    <Label Grid.Column="2"
+                                           Text="{Binding Estado}"
+                                           TextColor="{Binding Color}"
+                                           FontAttributes="Bold"
+                                           FontSize="12"
+                                           VerticalOptions="Center"
+                                           Margin="0,0,12,0" />
+                                </Grid>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Fuera del scroll para que siempre esté a mano -->
+        <Button Grid.Row="1"
+                Text="Importar alumnos"
+                Command="{Binding ImportarCommand}"
+                BackgroundColor="#512BD4"
+                TextColor="White"
+                HeightRequest="45"
+                CornerRadius="8"
+                Margin="15" />
+    </Grid>
 </ContentPage>

@@ -28,6 +28,7 @@ namespace ProyectoFinal_PPII_G6
             builder.Services.AddSingleton<IDataService, SqlServerDataService>();
             builder.Services.AddSingleton<CsvImporterService>();
             builder.Services.AddSingleton<RiesgoService>();
+            builder.Services.AddSingleton<SeleccionAlumnoService>();
 
             // 2. ViewModels
             builder.Services.AddTransient<HomeViewModel>();

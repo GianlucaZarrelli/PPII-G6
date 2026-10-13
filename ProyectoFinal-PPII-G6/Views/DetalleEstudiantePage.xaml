@@ -79,9 +79,12 @@
                         <Border StrokeShape="RoundRectangle 6" Padding="10"
                                 BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
                             <Grid ColumnDefinitions="*, Auto">
-                                <Label Grid.Column="0" Text="{Binding Fecha}" VerticalOptions="Center"
-                                       TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
-                                <Label Grid.Column="1" Text="{Binding Estado}"
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding Fecha}" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                    <Label Text="{Binding Tema}" FontSize="12" TextColor="Gray" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1" Text="{Binding Estado}" VerticalOptions="Center"
                                        FontAttributes="Bold" TextColor="{Binding Color}" />
                             </Grid>
                         </Border>

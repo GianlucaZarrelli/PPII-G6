@@ -14,17 +14,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class HistorialAsistenciaItem
     {
-        /// <summary>
-        /// Fecha de la clase con formato dd/MM/yyyy.
-        /// </summary>
         public string Fecha { get; set; } = string.Empty;
-        /// <summary>
-        /// Texto del estado de asistencia (presente, ausente, justificada o sin registro).
-        /// </summary>
+        public string Tema { get; set; } = string.Empty;
         public string Estado { get; set; } = string.Empty;
-        /// <summary>
-        /// Color hexadecimal con el que se muestra el estado.
-        /// </summary>
         public string Color { get; set; } = "#757575";
     }
 
@@ -33,21 +25,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class HistorialEntregaItem
     {
-        /// <summary>
-        /// Título del trabajo práctico.
-        /// </summary>
         public string Titulo { get; set; } = string.Empty;
-        /// <summary>
-        /// Texto con la fecha de entrega del trabajo, listo para mostrar.
-        /// </summary>
         public string FechaEntrega { get; set; } = string.Empty;
-        /// <summary>
-        /// Texto del estado de la entrega ("Entregado" o "No entregado").
-        /// </summary>
         public string Estado { get; set; } = string.Empty;
-        /// <summary>
-        /// Color hexadecimal con el que se muestra el estado.
-        /// </summary>
         public string Color { get; set; } = "#757575";
     }
 
@@ -58,34 +38,20 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     {
         private readonly IDataService _dataService;
         private readonly RiesgoService _riesgoService;
+        private readonly SeleccionAlumnoService _seleccion;
 
         /// <summary>
         /// Mientras es true, los setters de las selecciones no disparan cargas (se usa al repoblar las listas).
         /// </summary>
         private bool _actualizando;
 
-        /// <summary>
-        /// Comisiones disponibles para elegir, ordenadas por nombre.
-        /// </summary>
         public ObservableCollection<Comision> Comisiones { get; } = new();
-        /// <summary>
-        /// Alumnos de la comisión elegida, ordenados por apellido y nombre.
-        /// </summary>
         public ObservableCollection<Estudiante> ListaEstudiantes { get; } = new();
-        /// <summary>
-        /// Historial de asistencia del alumno elegido, una fila por clase de su comisión.
-        /// </summary>
         public ObservableCollection<HistorialAsistenciaItem> HistorialAsistencias { get; } = new();
-        /// <summary>
-        /// Historial de entregas del alumno elegido, una fila por trabajo práctico de su comisión.
-        /// </summary>
         public ObservableCollection<HistorialEntregaItem> HistorialEntregas { get; } = new();
 
         private Comision? _comisionSeleccionada;
 
-        /// <summary>
-        /// Comisión elegida; al cambiar recarga la lista de alumnos (salvo durante una actualización interna).
-        /// </summary>
         public Comision? ComisionSeleccionada
         {
             get => _comisionSeleccionada;
@@ -101,9 +67,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private Estudiante? _estudianteSeleccionado;
 
-        /// <summary>
-        /// Alumno elegido; al cambiar carga su ficha o la limpia si es null (salvo durante una actualización interna).
-        /// </summary>
         public Estudiante? EstudianteSeleccionado
         {
             get => _estudianteSeleccionado;
@@ -123,9 +86,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _comisionNombre = string.Empty;
 
-        /// <summary>
-        /// Nombre de la comisión del alumno elegido.
-        /// </summary>
         public string ComisionNombre
         {
             get => _comisionNombre;
@@ -134,9 +94,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _nivelRiesgoTexto = "Seleccione un alumno";
 
-        /// <summary>
-        /// Texto del nivel de riesgo del alumno; también se usa para mensajes de estado o error.
-        /// </summary>
         public string NivelRiesgoTexto
         {
             get => _nivelRiesgoTexto;
@@ -145,9 +102,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _colorRiesgo = "#757575";
 
-        /// <summary>
-        /// Color hexadecimal asociado al nivel de riesgo.
-        /// </summary>
         public string ColorRiesgo
         {
             get => _colorRiesgo;
@@ -156,9 +110,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _detalleAsistencia = string.Empty;
 
-        /// <summary>
-        /// Resumen de asistencia del alumno (presentes, justificadas y porcentaje).
-        /// </summary>
         public string DetalleAsistencia
         {
             get => _detalleAsistencia;
@@ -167,34 +118,44 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _detalleEntregas = string.Empty;
 
-        /// <summary>
-        /// Resumen de entregas del alumno (entregados sobre total y porcentaje).
-        /// </summary>
         public string DetalleEntregas
         {
             get => _detalleEntregas;
             set { _detalleEntregas = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Crea el ViewModel con el servicio de datos y el servicio de cálculo de riesgo.
-        /// </summary>
-        public DetalleEstudianteViewModel(IDataService dataService, RiesgoService riesgoService)
+        public DetalleEstudianteViewModel(
+            IDataService dataService,
+            RiesgoService riesgoService,
+            SeleccionAlumnoService seleccion)
         {
             _dataService = dataService;
             _riesgoService = riesgoService;
+            _seleccion = seleccion;
         }
 
         /// <summary>
         /// Recarga las comisiones y los alumnos, y conserva la comisión y el alumno elegidos
         /// (para que la ficha se refresque al volver a la pestaña).
+        /// Si se llegó desde otra pantalla (por ejemplo, el Panel), abre el alumno que se pidió.
         /// </summary>
         public async Task CargarListaEstudiantesAsync()
         {
             try
             {
-                var idComision = ComisionSeleccionada?.Id;
-                var idEstudiante = EstudianteSeleccionado?.Id;
+                int? idComision = ComisionSeleccionada?.Id;
+                int? idEstudiante = EstudianteSeleccionado?.Id;
+
+                var pendiente = _seleccion.TomarPendiente();
+                if (pendiente != null)
+                {
+                    var alumno = await _dataService.GetEstudianteByIdAsync(pendiente.Value);
+                    if (alumno != null)
+                    {
+                        idComision = alumno.ComisionId;
+                        idEstudiante = alumno.Id;
+                    }
+                }
 
                 var comisiones = await _dataService.GetComisionesAsync();
 
@@ -286,9 +247,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
-        /// <summary>
-        /// Vacía los historiales y resúmenes y vuelve el riesgo a su estado inicial.
-        /// </summary>
         private void LimpiarDetalle()
         {
             HistorialAsistencias.Clear();
@@ -354,12 +312,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
-        /// <summary>
-        /// Arma la fila del historial para una clase según la asistencia del alumno (sin registro cuenta como ausente).
-        /// </summary>
         private static HistorialAsistenciaItem CrearItemAsistencia(Clase clase, Asistencia? asis)
         {
-            var item = new HistorialAsistenciaItem { Fecha = clase.Fecha.ToString("dd/MM/yyyy") };
+            var item = new HistorialAsistenciaItem
+            {
+                Fecha = clase.Fecha.ToString("dd/MM/yyyy"),
+                Tema = string.IsNullOrWhiteSpace(clase.Descripcion) ? "Sin descripción" : clase.Descripcion
+            };
 
             if (asis == null)
             {
@@ -385,9 +344,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             return item;
         }
 
-        /// <summary>
-        /// Calcula el riesgo con <see cref="RiesgoService"/> y actualiza los textos de resumen, el nivel y su color.
-        /// </summary>
         private void CalcularNivelRiesgo(List<Asistencia> asistencias, int totalClases, List<Entrega> entregas, int totalTps)
         {
             if (totalClases == 0 && totalTps == 0)

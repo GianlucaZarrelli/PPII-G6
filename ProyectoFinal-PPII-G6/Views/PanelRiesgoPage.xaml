@@ -20,6 +20,8 @@
                     Title="-- Seleccione una comisión --"
                     TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
 
+            <Label Text="Tocá un alumno para ver su ficha completa." FontSize="12" TextColor="Gray" />
+
             <VerticalStackLayout Spacing="8" BindableLayout.ItemsSource="{Binding Alumnos}">
                 <BindableLayout.EmptyView>
                     <Label Text="No hay alumnos para mostrar en esta comisión."
@@ -32,6 +34,10 @@
                                 Stroke="#33FFFFFF"
                                 Padding="0"
                                 BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+                            <Border.GestureRecognizers>
+                                <TapGestureRecognizer Tapped="OnAlumnoTapped" />
+                            </Border.GestureRecognizers>
+
                             <Grid ColumnDefinitions="6, *, Auto">
                                 <!-- Barra de color del nivel -->
                                 <BoxView Grid.Column="0" Color="{Binding ColorNivel}" />
