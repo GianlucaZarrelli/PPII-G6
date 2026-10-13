@@ -211,14 +211,20 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                         Email = (alumno.Email ?? string.Empty).Trim()
                     };
 
-                    if (fila.Dni.Length == 0 || fila.Nombre.Length == 0 || fila.Apellido.Length == 0)
+                    if (fila.Dni.Length == 0 || fila.Nombre.Length == 0
+                        || fila.Apellido.Length == 0 || fila.Email.Length == 0)
                     {
                         conErrores++;
                         fila.Estado = "Datos incompletos";
                         fila.Color = "#D32F2F";
                     }
-                    else if (fila.Dni.Length > 20 || fila.Nombre.Length > 100
-                             || fila.Apellido.Length > 100 || fila.Email.Length > 100)
+                    else if (!ValidacionEmail.EsValido(fila.Email))
+                    {
+                        conErrores++;
+                        fila.Estado = "Email inválido";
+                        fila.Color = "#D32F2F";
+                    }
+                    else if (fila.Dni.Length > 20 || fila.Nombre.Length > 100 || fila.Apellido.Length > 100)
                     {
                         conErrores++;
                         fila.Estado = "Dato demasiado largo";

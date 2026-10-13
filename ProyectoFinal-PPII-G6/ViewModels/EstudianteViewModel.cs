@@ -258,9 +258,15 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             var email = (Email ?? string.Empty).Trim();
             var comision = ComisionSeleccionada;
 
-            if (dni.Length == 0 || nombre.Length == 0 || apellido.Length == 0 || comision == null)
+            if (dni.Length == 0 || nombre.Length == 0 || apellido.Length == 0 || email.Length == 0 || comision == null)
             {
-                await AvisarAsync("Error", "DNI, Nombre, Apellido y Comisión son obligatorios.");
+                await AvisarAsync("Error", "DNI, Nombre, Apellido, Email y Comisión son obligatorios.");
+                return;
+            }
+
+            if (!ValidacionEmail.EsValido(email))
+            {
+                await AvisarAsync("Error", "El email no es válido. Tiene que tener el formato nombre@dominio.com.");
                 return;
             }
 
