@@ -6,12 +6,12 @@ using ProyectoFinal_PPII_G6.Views;
 namespace ProyectoFinal_PPII_G6
 {
     /// <summary>
-    /// Configuración inicial de la aplicación.
+    /// Punto de configuración de la aplicación MAUI.
     /// </summary>
     public static class MauiProgram
     {
         /// <summary>
-        /// Crea la aplicación y registra fuentes, servicios, ViewModels y vistas.
+        /// Construye la aplicación: registra fuentes, servicios, ViewModels y vistas en el contenedor de dependencias.
         /// </summary>
         public static MauiApp CreateMauiApp()
         {
@@ -24,23 +24,33 @@ namespace ProyectoFinal_PPII_G6
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-#if DEBUG
-            builder.Logging.AddDebug();
-#endif
-
-            // Servicios de Persistencia y Lógica de Negocio
+            // 1. Persistencia y servicios de dominio
             builder.Services.AddSingleton<IDataService, SqlServerDataService>();
-            builder.Services.AddSingleton<ICalculadorRiesgoService, CalculadorRiesgoService>();
+            builder.Services.AddSingleton<CsvImporterService>();
+            builder.Services.AddSingleton<RiesgoService>();
+            builder.Services.AddSingleton<SeleccionAlumnoService>();
 
-            // ViewModels
+            // 2. ViewModels
             builder.Services.AddTransient<HomeViewModel>();
             builder.Services.AddTransient<EstudianteViewModel>();
             builder.Services.AddTransient<DetalleEstudianteViewModel>();
+            builder.Services.AddTransient<CargaMasivaViewModel>();
+            builder.Services.AddTransient<AsistenciaFechaViewModel>();
+            builder.Services.AddTransient<PanelRiesgoViewModel>();
+            builder.Services.AddTransient<EntregasViewModel>();
 
-            // Vistas
+            // 3. Vistas (las que usa AppShell.xaml)
             builder.Services.AddTransient<HomePage>();
             builder.Services.AddTransient<EstudiantePage>();
             builder.Services.AddTransient<DetalleEstudiantePage>();
+            builder.Services.AddTransient<CargaMasivaPage>();
+            builder.Services.AddTransient<AsistenciaFechaPage>();
+            builder.Services.AddTransient<PanelRiesgoPage>();
+            builder.Services.AddTransient<EntregasPage>();
+
+#if DEBUG
+            builder.Logging.AddDebug();
+#endif
 
             return builder.Build();
         }

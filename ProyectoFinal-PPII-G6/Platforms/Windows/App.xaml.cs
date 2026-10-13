@@ -19,6 +19,9 @@ namespace ProyectoFinal_PPII_G6.WinUI
             this.InitializeComponent();
         }
 
+        /// <summary>
+        /// Crea la aplicación MAUI usando la configuración de MauiProgram.
+        /// </summary>
         protected override MauiApp CreateMauiApp() => MauiProgram.CreateMauiApp();
     }
 

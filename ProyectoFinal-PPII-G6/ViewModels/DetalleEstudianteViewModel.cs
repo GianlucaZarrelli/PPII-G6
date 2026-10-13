@@ -1,43 +1,72 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
 using ProyectoFinal_PPII_G6.Models;
 using ProyectoFinal_PPII_G6.Services;
-using System.Linq;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
     /// <summary>
-    /// ViewModel de la pantalla de asistencia: registra asistencias y muestra el historial y el nivel de riesgo.
+    /// Una fila del historial de asistencia: una clase y el estado del alumno en ella.
+    /// </summary>
+    public class HistorialAsistenciaItem
+    {
+        public string Fecha { get; set; } = string.Empty;
+        public string Tema { get; set; } = string.Empty;
+        public string Estado { get; set; } = string.Empty;
+        public string Color { get; set; } = "#757575";
+    }
+
+    /// <summary>
+    /// Una fila del historial de entregas: un trabajo práctico y si el alumno lo entregó.
+    /// </summary>
+    public class HistorialEntregaItem
+    {
+        public string Titulo { get; set; } = string.Empty;
+        public string FechaEntrega { get; set; } = string.Empty;
+        public string Estado { get; set; } = string.Empty;
+        public string Color { get; set; } = "#757575";
+    }
+
+    /// <summary>
+    /// ViewModel de la ficha del alumno: historial de asistencia y entregas, y nivel de riesgo (solo lectura).
     /// </summary>
     public class DetalleEstudianteViewModel : BindableObject
     {
-        /// <summary>
-        /// Servicio de acceso a datos.
-        /// </summary>
         private readonly IDataService _dataService;
+        private readonly RiesgoService _riesgoService;
+        private readonly SeleccionAlumnoService _seleccion;
 
         /// <summary>
-        /// Servicio que calcula el nivel de riesgo.
+        /// Mientras es true, los setters de las selecciones no disparan cargas (se usa al repoblar las listas).
         /// </summary>
-        private readonly ICalculadorRiesgoService _calculadorRiesgoService;
+        private bool _actualizando;
 
-        /// <summary>
-        /// Estudiantes disponibles para seleccionar.
-        /// </summary>
-        public ObservableCollection<Estudiante> ListaEstudiantes { get; set; }
+        public ObservableCollection<Comision> Comisiones { get; } = new();
+        public ObservableCollection<Estudiante> ListaEstudiantes { get; } = new();
+        public ObservableCollection<HistorialAsistenciaItem> HistorialAsistencias { get; } = new();
+        public ObservableCollection<HistorialEntregaItem> HistorialEntregas { get; } = new();
 
-        /// <summary>
-        /// Historial de asistencias del estudiante seleccionado.
-        /// </summary>
-        public ObservableCollection<Asistencia> HistorialAsistencias { get; set; }
+        private Comision? _comisionSeleccionada;
+
+        public Comision? ComisionSeleccionada
+        {
+            get => _comisionSeleccionada;
+            set
+            {
+                _comisionSeleccionada = value;
+                OnPropertyChanged();
+
+                if (_actualizando) return;
+                _ = CargarEstudiantesAsync();
+            }
+        }
 
         private Estudiante? _estudianteSeleccionado;
 
-        /// <summary>
-        /// Estudiante seleccionado. Al cambiarlo se carga su historial y su nivel de riesgo.
-        /// </summary>
         public Estudiante? EstudianteSeleccionado
         {
             get => _estudianteSeleccionado;
@@ -45,18 +74,26 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             {
                 _estudianteSeleccionado = value;
                 OnPropertyChanged();
+
+                if (_actualizando) return;
+
                 if (value != null)
-                {
-                    _ = CargarDetalleAsync(value.Id);
-                }
+                    _ = CargarDetalleAsync(value);
+                else
+                    LimpiarDetalle();
             }
+        }
+
+        private string _comisionNombre = string.Empty;
+
+        public string ComisionNombre
+        {
+            get => _comisionNombre;
+            set { _comisionNombre = value; OnPropertyChanged(); }
         }
 
         private string _nivelRiesgoTexto = "Seleccione un alumno";
 
-        /// <summary>
-        /// Texto del nivel de riesgo que se muestra en pantalla.
-        /// </summary>
         public string NivelRiesgoTexto
         {
             get => _nivelRiesgoTexto;
@@ -65,136 +102,282 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _colorRiesgo = "#757575";
 
-        /// <summary>
-        /// Color del indicador de riesgo.
-        /// </summary>
         public string ColorRiesgo
         {
             get => _colorRiesgo;
             set { _colorRiesgo = value; OnPropertyChanged(); }
         }
 
-        /// <summary>
-        /// Comando para registrar al estudiante como presente.
-        /// </summary>
-        public Command RegistrarAsistenciaCommand { get; }
+        private string _detalleAsistencia = string.Empty;
 
-        /// <summary>
-        /// Comando para registrar al estudiante como ausente.
-        /// </summary>
-        public Command RegistrarInasistenciaCommand { get; }
+        public string DetalleAsistencia
+        {
+            get => _detalleAsistencia;
+            set { _detalleAsistencia = value; OnPropertyChanged(); }
+        }
 
-        /// <summary>
-        /// Crea el ViewModel con los servicios que necesita e inicializa los comandos.
-        /// </summary>
-        public DetalleEstudianteViewModel(IDataService dataService, ICalculadorRiesgoService calculadorRiesgoService)
+        private string _detalleEntregas = string.Empty;
+
+        public string DetalleEntregas
+        {
+            get => _detalleEntregas;
+            set { _detalleEntregas = value; OnPropertyChanged(); }
+        }
+
+        public DetalleEstudianteViewModel(
+            IDataService dataService,
+            RiesgoService riesgoService,
+            SeleccionAlumnoService seleccion)
         {
             _dataService = dataService;
-            _calculadorRiesgoService = calculadorRiesgoService;
-            ListaEstudiantes = new ObservableCollection<Estudiante>();
-            HistorialAsistencias = new ObservableCollection<Asistencia>();
-
-            RegistrarAsistenciaCommand = new Command(async () => await RegistrarAsistenciaAsync(true));
-            RegistrarInasistenciaCommand = new Command(async () => await RegistrarAsistenciaAsync(false));
+            _riesgoService = riesgoService;
+            _seleccion = seleccion;
         }
 
         /// <summary>
-        /// Carga la lista de estudiantes para el selector.
+        /// Recarga las comisiones y los alumnos, y conserva la comisión y el alumno elegidos
+        /// (para que la ficha se refresque al volver a la pestaña).
+        /// Si se llegó desde otra pantalla (por ejemplo, el Panel), abre el alumno que se pidió.
         /// </summary>
         public async Task CargarListaEstudiantesAsync()
         {
-            var estudiantes = await _dataService.GetEstudiantesAsync();
-            ListaEstudiantes.Clear();
-            foreach (var est in estudiantes)
+            try
             {
-                ListaEstudiantes.Add(est);
+                int? idComision = ComisionSeleccionada?.Id;
+                int? idEstudiante = EstudianteSeleccionado?.Id;
+
+                var pendiente = _seleccion.TomarPendiente();
+                if (pendiente != null)
+                {
+                    var alumno = await _dataService.GetEstudianteByIdAsync(pendiente.Value);
+                    if (alumno != null)
+                    {
+                        idComision = alumno.ComisionId;
+                        idEstudiante = alumno.Id;
+                    }
+                }
+
+                var comisiones = await _dataService.GetComisionesAsync();
+
+                _actualizando = true;
+                try
+                {
+                    Comisiones.Clear();
+                    foreach (var c in comisiones.OrderBy(c => c.Nombre))
+                    {
+                        Comisiones.Add(c);
+                    }
+
+                    ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idComision)
+                                           ?? Comisiones.FirstOrDefault();
+                }
+                finally
+                {
+                    _actualizando = false;
+                }
+
+                await CargarEstudiantesAsync(idEstudiante);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                NivelRiesgoTexto = "No se pudieron cargar las comisiones";
             }
         }
 
         /// <summary>
-        /// Carga el historial de asistencias de un estudiante y actualiza su nivel de riesgo.
+        /// Carga los alumnos de la comisión elegida. Si se pasa un Id y sigue en la lista, lo deja seleccionado.
         /// </summary>
-        public async Task CargarDetalleAsync(int estudianteId)
+        private async Task CargarEstudiantesAsync(int? seleccionarId = null)
         {
-            var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(estudianteId);
+            var comision = ComisionSeleccionada;
+
+            _actualizando = true;
+            try
+            {
+                ListaEstudiantes.Clear();
+                EstudianteSeleccionado = null;
+            }
+            finally
+            {
+                _actualizando = false;
+            }
+
+            LimpiarDetalle();
+
+            if (comision == null) return;
+
+            try
+            {
+                var estudiantes = await _dataService.GetEstudiantesByComisionIdAsync(comision.Id);
+
+                // Si mientras consultaba cambió la comisión, este resultado ya no sirve
+                if (comision != ComisionSeleccionada) return;
+
+                _actualizando = true;
+                try
+                {
+                    foreach (var est in estudiantes.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
+                    {
+                        ListaEstudiantes.Add(est);
+                    }
+
+                    EstudianteSeleccionado = ListaEstudiantes.FirstOrDefault(e => e.Id == seleccionarId);
+                }
+                finally
+                {
+                    _actualizando = false;
+                }
+
+                if (ListaEstudiantes.Count == 0)
+                {
+                    NivelRiesgoTexto = "La comisión no tiene alumnos cargados";
+                    return;
+                }
+
+                if (EstudianteSeleccionado != null)
+                {
+                    await CargarDetalleAsync(EstudianteSeleccionado);
+                }
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                NivelRiesgoTexto = "No se pudo cargar la lista de alumnos";
+            }
+        }
+
+        private void LimpiarDetalle()
+        {
             HistorialAsistencias.Clear();
-
-            int inasistencias = 0;
-            foreach (var asis in asistencias)
-            {
-                HistorialAsistencias.Add(asis);
-                if (!asis.Presente) inasistencias++;
-            }
-
-            CalcularNivelRiesgo(asistencias.Count, inasistencias);
+            HistorialEntregas.Clear();
+            ComisionNombre = string.Empty;
+            DetalleAsistencia = string.Empty;
+            DetalleEntregas = string.Empty;
+            NivelRiesgoTexto = "Seleccione un alumno";
+            ColorRiesgo = "#757575";
         }
 
         /// <summary>
-        /// Registra la asistencia del día del estudiante seleccionado. Si ya estaba registrada, la actualiza.
+        /// Carga el historial del alumno y calcula su riesgo con las clases y trabajos de SU comisión.
         /// </summary>
-        private async Task RegistrarAsistenciaAsync(bool presente)
+        public async Task CargarDetalleAsync(Estudiante estudiante)
         {
-            if (EstudianteSeleccionado == null)
+            try
             {
-                if (Application.Current?.MainPage != null)
-                    await Application.Current.MainPage.DisplayAlert("Atención", "Seleccione un estudiante antes de registrar asistencia.", "OK");
-                return;
+                var comision = await _dataService.GetComisionByIdAsync(estudiante.ComisionId);
+                var clases = await _dataService.GetClasesByComisionIdAsync(estudiante.ComisionId);
+                var asistenciasAlumno = await _dataService.GetAsistenciasPorEstudianteAsync(estudiante.Id);
+                var tps = await _dataService.GetTrabajosPracticosByComisionIdAsync(estudiante.ComisionId);
+                var entregasAlumno = await _dataService.GetEntregasPorEstudianteAsync(estudiante.Id);
+
+                // Si mientras consultaba el usuario eligió otro alumno, este resultado ya no sirve
+                if (EstudianteSeleccionado?.Id != estudiante.Id) return;
+
+                // Solo cuenta lo que pertenece a la comisión del alumno
+                var idsClases = clases.Select(c => c.Id).ToHashSet();
+                var idsTps = tps.Select(t => t.Id).ToHashSet();
+                var asistencias = asistenciasAlumno.Where(a => idsClases.Contains(a.ClaseId)).ToList();
+                var entregas = entregasAlumno.Where(e => idsTps.Contains(e.TrabajoPracticoId)).ToList();
+
+                ComisionNombre = comision?.Nombre ?? "-";
+
+                HistorialAsistencias.Clear();
+                foreach (var clase in clases) // ya vienen de la más reciente a la más antigua
+                {
+                    var asis = asistencias.FirstOrDefault(a => a.ClaseId == clase.Id);
+                    HistorialAsistencias.Add(CrearItemAsistencia(clase, asis));
+                }
+
+                HistorialEntregas.Clear();
+                foreach (var tp in tps.OrderBy(t => t.FechaEntrega))
+                {
+                    var entregado = entregas.Any(e => e.TrabajoPracticoId == tp.Id && e.Entregado);
+                    HistorialEntregas.Add(new HistorialEntregaItem
+                    {
+                        Titulo = tp.Titulo,
+                        FechaEntrega = $"Fecha de entrega: {tp.FechaEntrega:dd/MM/yyyy}",
+                        Estado = entregado ? "Entregado" : "No entregado",
+                        Color = entregado ? "#388E3C" : "#D32F2F"
+                    });
+                }
+
+                CalcularNivelRiesgo(asistencias, clases.Count, entregas, tps.Count);
             }
-
-            var fechaHoy = DateTime.Today;
-            var clases = await _dataService.GetClasesAsync();
-            var claseHoy = clases.FirstOrDefault(c => c.Fecha.Date == fechaHoy);
-
-            int claseId;
-            if (claseHoy != null)
+            catch (Exception ex)
             {
-                claseId = claseHoy.Id;
-            }
-            else
-            {
-                var nuevaClase = new Clase(0, fechaHoy, $"Clase {fechaHoy:dd/MM/yyyy}");
-                claseId = await _dataService.SaveClaseAsync(nuevaClase);
-            }
-
-            // Buscar si ya existe una asistencia registrada para este alumno en la clase de hoy
-            var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(EstudianteSeleccionado.Id);
-            var asistenciaExistente = asistencias.FirstOrDefault(a => a.ClaseId == claseId);
-
-            if (asistenciaExistente != null)
-            {
-                // Actualizar el registro existente (Evita duplicados)
-                asistenciaExistente.Presente = presente;
-                await _dataService.SaveAsistenciaAsync(asistenciaExistente);
-            }
-            else
-            {
-                // Crear un nuevo registro si es la primera marca del día
-                var nuevaAsistencia = new Asistencia(0, EstudianteSeleccionado.Id, claseId, presente);
-                await _dataService.SaveAsistenciaAsync(nuevaAsistencia);
-            }
-
-            await CargarDetalleAsync(EstudianteSeleccionado.Id);
-        }
-
-        /// <summary>
-        /// Actualiza el texto y el color del indicador según el nivel de riesgo.
-        /// </summary>
-        private void CalcularNivelRiesgo(int totalClases, int inasistencias)
-        {
-            if (totalClases == 0)
-            {
-                NivelRiesgoTexto = "Sin registros de asistencia";
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                NivelRiesgoTexto = "No se pudo cargar el historial";
                 ColorRiesgo = "#757575";
+            }
+        }
+
+        private static HistorialAsistenciaItem CrearItemAsistencia(Clase clase, Asistencia? asis)
+        {
+            var item = new HistorialAsistenciaItem
+            {
+                Fecha = clase.Fecha.ToString("dd/MM/yyyy"),
+                Tema = string.IsNullOrWhiteSpace(clase.Descripcion) ? "Sin descripción" : clase.Descripcion
+            };
+
+            if (asis == null)
+            {
+                item.Estado = "Sin registro (cuenta como ausente)";
+                item.Color = "#F57C00";
+            }
+            else if (asis.Presente)
+            {
+                item.Estado = "Presente";
+                item.Color = "#388E3C";
+            }
+            else if (asis.Justificada)
+            {
+                item.Estado = "Ausente (justificada)";
+                item.Color = "#F57C00";
+            }
+            else
+            {
+                item.Estado = "Ausente";
+                item.Color = "#D32F2F";
+            }
+
+            return item;
+        }
+
+        private void CalcularNivelRiesgo(List<Asistencia> asistencias, int totalClases, List<Entrega> entregas, int totalTps)
+        {
+            if (totalClases == 0 && totalTps == 0)
+            {
+                NivelRiesgoTexto = "Sin clases ni trabajos registrados";
+                ColorRiesgo = "#757575";
+                DetalleAsistencia = string.Empty;
+                DetalleEntregas = string.Empty;
                 return;
             }
 
-            switch (_calculadorRiesgoService.CalcularNivelRiesgo(inasistencias))
+            var resultado = _riesgoService.CalcularRiesgo(asistencias, totalClases, entregas, totalTps);
+
+            int presentes = asistencias.Count(a => a.Presente);
+            int justificadas = asistencias.Count(a => !a.Presente && a.Justificada);
+            int entregados = entregas.Count(e => e.Entregado);
+
+            DetalleAsistencia = totalClases > 0
+                ? (justificadas > 0
+                    ? $"Asistencia: {presentes} presentes + {justificadas} justificadas (valen la mitad) de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)"
+                    : $"Asistencia: {presentes} de {totalClases} clases ({resultado.PorcentajeAsistencia:F0}%)")
+                : "Asistencia: sin clases registradas";
+
+            DetalleEntregas = totalTps > 0
+                ? $"Entregas: {entregados} de {totalTps} trabajos ({resultado.PorcentajeEntregas:F0}%)"
+                : "Entregas: sin trabajos cargados";
+
+            switch (resultado.Nivel)
             {
-                case NivelRiesgo.Alto:
-                    NivelRiesgoTexto = "ALTO RIESGO (3+ Inasistencias)";
+                case NivelRiesgoEnum.Rojo:
+                    NivelRiesgoTexto = "ALTO RIESGO";
                     ColorRiesgo = "#D32F2F";
                     break;
-                case NivelRiesgo.Moderado:
+                case NivelRiesgoEnum.Amarillo:
                     NivelRiesgoTexto = "RIESGO MODERADO";
                     ColorRiesgo = "#F57C00";
                     break;

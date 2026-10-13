@@ -3,18 +3,57 @@
     x:Class="ProyectoFinal_PPII_G6.AppShell"
     xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
     xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
-    xmlns:local="clr-namespace:ProyectoFinal_PPII_G6.Views"
+    xmlns:views="clr-namespace:ProyectoFinal_PPII_G6.Views"
     Shell.FlyoutBehavior="Disabled">
 
     <TabBar>
         <Tab Title="Inicio">
-            <ShellContent Title="Menú" ContentTemplate="{DataTemplate local:HomePage}" Route="HomePage" />
+            <ShellContent
+                Title="Menú"
+                ContentTemplate="{DataTemplate views:HomePage}"
+                Route="HomePage" />
         </Tab>
-        <Tab Title="Alumnos">
-            <ShellContent Title="Gestión" ContentTemplate="{DataTemplate local:EstudiantePage}" Route="GestorEstudiantes" />
+
+        <Tab Title="Panel de riesgo">
+            <ShellContent
+                Title="Alumnos por prioridad"
+                ContentTemplate="{DataTemplate views:PanelRiesgoPage}"
+                Route="PanelRiesgo" />
         </Tab>
-        <Tab Title="Asistencia">
-            <ShellContent Title="Historial" ContentTemplate="{DataTemplate local:DetalleEstudiantePage}" Route="HistorialEstudiantes" />
+
+        <Tab Title="Carga de alumnos">
+            <ShellContent
+                Title="Gestión"
+                ContentTemplate="{DataTemplate views:EstudiantePage}"
+                Route="GestorEstudiantes" />
+        </Tab>
+
+        <Tab Title="Historial de asistencia">
+            <ShellContent
+                Title="Historial del alumno"
+                ContentTemplate="{DataTemplate views:DetalleEstudiantePage}"
+                Route="HistorialEstudiantes" />
+        </Tab>
+
+        <Tab Title="Registro de asistencia">
+            <ShellContent
+                Title="Asistencia por fecha"
+                ContentTemplate="{DataTemplate views:AsistenciaFechaPage}"
+                Route="AsistenciaFecha" />
+        </Tab>
+
+        <Tab Title="Entregas">
+            <ShellContent
+                Title="Entrega de trabajos"
+                ContentTemplate="{DataTemplate views:EntregasPage}"
+                Route="Entregas" />
+        </Tab>
+
+        <Tab Title="Carga Masiva de Estudiantes">
+            <ShellContent
+                Title="Importar CSV"
+                ContentTemplate="{DataTemplate views:CargaMasivaPage}"
+                Route="CargaMasiva" />
         </Tab>
     </TabBar>
 

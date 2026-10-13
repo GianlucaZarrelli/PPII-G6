@@ -51,21 +51,6 @@ namespace ProyectoFinal_PPII_G6.Services
         }
 
         /// <summary>
-        /// Elimina un estudiante por su Id.
-        /// </summary>
-        public async Task<int> DeleteEstudianteAsync(int id)
-        {
-            using var context = CreateContext();
-            var estudiante = await context.Estudiantes.FindAsync(id);
-            if (estudiante != null)
-            {
-                context.Estudiantes.Remove(estudiante);
-                return await context.SaveChangesAsync();
-            }
-            return 0;
-        }
-
-        /// <summary>
         /// Obtiene todas las clases ordenadas por fecha descendente.
         /// </summary>
         public async Task<List<Clase>> GetClasesAsync()
@@ -125,6 +110,156 @@ namespace ProyectoFinal_PPII_G6.Services
 
             await context.SaveChangesAsync();
             return asistencia.Id;
+        }
+
+        /// <summary>
+        /// Obtiene todas las comisiones.
+        /// </summary>
+        public async Task<List<Comision>> GetComisionesAsync()
+        {
+            using var context = CreateContext();
+            return await context.Comisiones.AsNoTracking().ToListAsync();
+        }
+
+        /// <summary>
+        /// Busca una comisión por su Id.
+        /// </summary>
+        public async Task<Comision?> GetComisionByIdAsync(int id)
+        {
+            using var context = CreateContext();
+            return await context.Comisiones.FindAsync(id);
+
+        }
+
+        /// <summary>
+        /// Obtiene los estudiantes de una comisión.
+        /// </summary>
+        public async Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId)
+        {
+            using var context = CreateContext();
+            return await context.Estudiantes
+                .AsNoTracking()
+                .Where(e => e.ComisionId == comisionId)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Agrega una lista de estudiantes nuevos en una sola operación.
+        /// </summary>
+        public async Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes)
+        {
+            using var context = CreateContext();
+            await context.Estudiantes.AddRangeAsync(estudiantes);
+            await context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Obtiene las clases de una comisión ordenadas por fecha descendente.
+        /// </summary>
+        public async Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId)
+        {
+            using var context = CreateContext();
+            return await context.Clases
+                .AsNoTracking()
+                .Where(c => c.ComisionId == comisionId)
+                .OrderByDescending(c => c.Fecha)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Busca una comisión por nombre (sin espacios extremos) y la crea si no existe. Lanza excepción si el nombre está vacío.
+        /// </summary>
+        public async Task<Comision> GetOrCreateComisionAsync(string nombre)
+        {
+            ArgumentException.ThrowIfNullOrWhiteSpace(nombre);
+
+            var nombreLimpio = nombre.Trim();
+
+            using var context = CreateContext();
+
+            var comision = await context.Comisiones
+                .FirstOrDefaultAsync(c => c.Nombre == nombreLimpio);
+
+            if (comision == null)
+            {
+                comision = new Comision { Nombre = nombreLimpio };
+                await context.Comisiones.AddAsync(comision);
+                await context.SaveChangesAsync();
+            }
+
+            return comision;
+        }
+
+        /// <summary>
+        /// Crea o actualiza varias asistencias y devuelve la cantidad procesada.
+        /// </summary>
+        public async Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias)
+        {
+            using var context = CreateContext();
+            foreach (var asistencia in asistencias)
+            {
+                if (asistencia.Id == 0)
+                    await context.Asistencias.AddAsync(asistencia);
+                else
+                    context.Asistencias.Update(asistencia);
+            }
+            await context.SaveChangesAsync();
+            return asistencias.Count;
+        }
+
+        /// <summary>
+        /// Obtiene los trabajos prácticos de una comisión.
+        /// </summary>
+        public async Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId)
+        {
+            using var context = CreateContext();
+            return await context.TrabajosPracticos
+                .AsNoTracking()
+                .Where(tp => tp.ComisionId == comisionId)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Crea o actualiza un trabajo práctico y lo devuelve.
+        /// </summary>
+        public async Task<TrabajoPractico> SaveTrabajoPracticoAsync(TrabajoPractico tp)
+        {
+            using var context = CreateContext();
+            if (tp.Id == 0)
+                await context.TrabajosPracticos.AddAsync(tp);
+            else
+                context.TrabajosPracticos.Update(tp);
+            await context.SaveChangesAsync();
+            return tp;
+        }
+
+        /// <summary>
+        /// Crea o actualiza varias entregas.
+        /// </summary>
+        public async Task SaveEntregasAsync(List<Entrega> entregas)
+        {
+            using var context = CreateContext();
+            foreach (var entrega in entregas)
+            {
+                if (entrega.Id == 0)
+                    await context.Entregas.AddAsync(entrega);
+                else
+                    context.Entregas.Update(entrega);
+            }
+
+            await context.SaveChangesAsync();
+        }
+
+        /// <summary>
+        /// Obtiene las entregas de un estudiante.
+        /// </summary>
+        public async Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId)
+        {
+            using var context = CreateContext();
+            return await context.Entregas
+                .AsNoTracking()
+                .Where(e => e.EstudianteId == estudianteId)
+                .ToListAsync();
         }
     }
 }

@@ -1,0 +1,104 @@
+﻿using System;
+using System.Collections.Generic;
+using System.Linq;
+using ProyectoFinal_PPII_G6.Models;
+
+namespace ProyectoFinal_PPII_G6.Services
+{
+    /// <summary>
+    /// Nivel de riesgo académico de un estudiante.
+    /// </summary>
+    public enum NivelRiesgoEnum
+    {
+        /// <summary>
+        /// Riesgo alto.
+        /// </summary>
+        Rojo,
+        /// <summary>
+        /// Riesgo medio.
+        /// </summary>
+        Amarillo,
+        /// <summary>
+        /// Sin riesgo.
+        /// </summary>
+        Verde
+    }
+
+    /// <summary>
+    /// Resultado del cálculo de riesgo de un estudiante.
+    /// </summary>
+    public class ResultadoRiesgo
+    {
+        /// <summary>
+        /// Porcentaje de asistencia efectiva (0 a 100).
+        /// </summary>
+        public double PorcentajeAsistencia;
+        /// <summary>
+        /// Porcentaje de trabajos prácticos entregados (0 a 100).
+        /// </summary>
+        public double PorcentajeEntregas;
+        /// <summary>
+        /// Nivel de riesgo resultante.
+        /// </summary>
+        public NivelRiesgoEnum Nivel { get; set; }
+    }
+
+    /// <summary>
+    /// Calcula el nivel de riesgo de un estudiante según su asistencia y sus entregas.
+    /// </summary>
+    public class RiesgoService
+    {
+        /// <summary>
+        /// Peso de una ausencia justificada en el cálculo de asistencia.
+        /// </summary>
+        private const double ValorAusenciaJustificada = 0.5;
+        /// <summary>
+        /// Calcula los porcentajes de asistencia y entregas y el nivel de riesgo: Rojo si la asistencia es menor a 75% o las entregas a 60%;
+        /// Amarillo si la asistencia es menor a 85% o las entregas a 80%; Verde en otro caso. Sin clases o TPs, el porcentaje es 100%.
+        /// </summary>
+        public ResultadoRiesgo CalcularRiesgo(
+            List<Asistencia> asistenciasEstudiante,
+            int totalClasesComision,
+            List<Entrega> entregasEstudiante,
+            int totalTpsComision)
+        {
+            var resultado = new ResultadoRiesgo();
+
+            if (totalClasesComision > 0)
+            {
+                int presentes = asistenciasEstudiante.Count(a => a.Presente == true);
+                int justificadas = asistenciasEstudiante.Count(a => !a.Presente && a.Justificada);
+                double asistenciaEfectiva = presentes + justificadas * ValorAusenciaJustificada;
+                resultado.PorcentajeAsistencia = (asistenciaEfectiva / totalClasesComision) * 100;
+            }
+            else
+            {
+                resultado.PorcentajeAsistencia = 100;
+            }
+
+            if (totalTpsComision > 0)
+            {
+                int entregados = entregasEstudiante.Count(e => e.Entregado);
+                resultado.PorcentajeEntregas = ((double)entregados / totalTpsComision) * 100;
+            }
+            else
+            {
+                resultado.PorcentajeEntregas = 100;
+            }
+
+            if (resultado.PorcentajeAsistencia < 75 || resultado.PorcentajeEntregas < 60)
+            {
+                resultado.Nivel = NivelRiesgoEnum.Rojo;
+            } else if (resultado.PorcentajeAsistencia < 85 || resultado.PorcentajeEntregas < 80)
+            {
+                resultado.Nivel = NivelRiesgoEnum.Amarillo;
+            } else
+            {
+                resultado.Nivel = NivelRiesgoEnum.Verde;
+            }
+
+            return resultado;
+        }
+    }
+
+}

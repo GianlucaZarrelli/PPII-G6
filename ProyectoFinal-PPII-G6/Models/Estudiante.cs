@@ -52,6 +52,9 @@ namespace ProyectoFinal_PPII_G6.Models
         /// </summary>
         public string Email { get; set; }
 
+        /// <summary>
+        /// Identificador de la comisión en la que está inscripto el estudiante.
+        /// </summary>
         public int ComisionId { get; set; }
 
         /// <summary>

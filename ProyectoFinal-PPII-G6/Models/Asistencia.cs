@@ -48,6 +48,9 @@ namespace ProyectoFinal_PPII_G6.Models
         /// </summary>
         public bool Presente { get; set; }
 
+        /// <summary>
+        /// Indica si la ausencia fue justificada.
+        /// </summary>
         public bool Justificada { get; set; }
     }
 }

@@ -1,6 +1,9 @@
+using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
+using ProyectoFinal_PPII_G6.Models;
 using ProyectoFinal_PPII_G6.Services;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
@@ -10,20 +13,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class HomeViewModel : BindableObject
     {
-        /// <summary>
-        /// Servicio de acceso a datos.
-        /// </summary>
         private readonly IDataService _dataService;
-
-        /// <summary>
-        /// Servicio que calcula el nivel de riesgo.
-        /// </summary>
-        private readonly ICalculadorRiesgoService _calculadorRiesgoService;
+        private readonly RiesgoService _riesgoService;
 
         private int _totalEstudiantes;
 
         /// <summary>
-        /// Cantidad total de estudiantes.
+        /// Cantidad total de estudiantes registrados.
         /// </summary>
         public int TotalEstudiantes
         {
@@ -43,38 +39,63 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Crea el ViewModel con los servicios que necesita.
+        /// Crea el ViewModel con sus servicios.
         /// </summary>
-        public HomeViewModel(IDataService dataService, ICalculadorRiesgoService calculadorRiesgoService)
+        public HomeViewModel(IDataService dataService, RiesgoService riesgoService)
         {
             _dataService = dataService;
-            _calculadorRiesgoService = calculadorRiesgoService;
+            _riesgoService = riesgoService;
         }
 
         /// <summary>
-        /// Calcula el total de estudiantes y cuántos están en riesgo alto.
+        /// Calcula el total de estudiantes y cuántos están en riesgo alto,
+        /// con el mismo criterio que la ficha del alumno (asistencia + entregas, por comisión).
         /// </summary>
         public async Task CargarMetricasAsync()
         {
-            var estudiantes = await _dataService.GetEstudiantesAsync();
-            var todasLasAsistencias = await _dataService.GetTodasLasAsistenciasAsync();
-
-            TotalEstudiantes = estudiantes.Count;
-
-            int enRiesgoCount = 0;
-            foreach (var est in estudiantes)
+            try
             {
-                int ausencias = todasLasAsistencias
-                    .Where(a => a.EstudianteId == est.Id && !a.Presente)
-                    .Count();
+                var estudiantes = await _dataService.GetEstudiantesAsync();
+                var todasLasAsistencias = await _dataService.GetTodasLasAsistenciasAsync();
+                var clases = await _dataService.GetClasesAsync();
+                var comisiones = await _dataService.GetComisionesAsync();
 
-                if (_calculadorRiesgoService.CalcularNivelRiesgo(ausencias) == NivelRiesgo.Alto)
+                var tpsPorComision = new Dictionary<int, List<TrabajoPractico>>();
+                foreach (var c in comisiones)
                 {
-                    enRiesgoCount++;
+                    tpsPorComision[c.Id] = await _dataService.GetTrabajosPracticosByComisionIdAsync(c.Id);
                 }
-            }
 
-            EstudiantesEnRiesgo = enRiesgoCount;
+                int enRiesgoCount = 0;
+
+                foreach (var est in estudiantes)
+                {
+                    var idsClases = clases.Where(c => c.ComisionId == est.ComisionId).Select(c => c.Id).ToHashSet();
+                    var tps = tpsPorComision.GetValueOrDefault(est.ComisionId) ?? new List<TrabajoPractico>();
+                    var idsTps = tps.Select(t => t.Id).ToHashSet();
+
+                    var asistencias = todasLasAsistencias
+                        .Where(a => a.EstudianteId == est.Id && idsClases.Contains(a.ClaseId))
+                        .ToList();
+
+                    var entregasAlumno = await _dataService.GetEntregasPorEstudianteAsync(est.Id);
+                    var entregas = entregasAlumno.Where(e => idsTps.Contains(e.TrabajoPracticoId)).ToList();
+
+                    var resultado = _riesgoService.CalcularRiesgo(asistencias, idsClases.Count, entregas, tps.Count);
+
+                    if (resultado.Nivel == NivelRiesgoEnum.Rojo)
+                    {
+                        enRiesgoCount++;
+                    }
+                }
+
+                TotalEstudiantes = estudiantes.Count;
+                EstudiantesEnRiesgo = enRiesgoCount;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+            }
         }
     }
 }
