@@ -1,6 +1,6 @@
 -- ============================================================
--- Datos de demostración: 12 alumnos en las comisiones A, B y C,
--- con 6 clases y 3 trabajos prácticos por comisión.
+-- 04 - Datos de demostración: 12 alumnos en las comisiones A, B y C,
+--      con 6 clases y 3 trabajos prácticos por comisión.
 -- Se puede volver a correr: borra y recrea SOLO los datos de A, B y C.
 -- Las fechas se calculan hacia atrás desde hoy: conviene correrlo
 -- el día de la demo o el anterior.
@@ -75,4 +75,34 @@ SELECT a.Dni, a.Nombre, a.Apellido, a.Email, c.Id
 FROM #Alumnos a
 JOIN Comisiones c ON c.Nombre = a.Comision;
 
--- 6.
+-- 6. Asistencias: las ausencias caen en las clases más recientes ("dejó de venir")
+INSERT INTO Asistencias (EstudianteId, ClaseId, Presente, Justificada)
+SELECT e.Id, cl.Id, CASE WHEN cl.Orden <= a.Presentes THEN 1 ELSE 0 END, 0
+FROM #Alumnos a
+JOIN Comisiones c ON c.Nombre = a.Comision
+JOIN Estudiantes e ON e.DNI = a.Dni AND e.ComisionId = c.Id
+JOIN (SELECT Id, ComisionId,
+             ROW_NUMBER() OVER (PARTITION BY ComisionId ORDER BY Fecha) AS Orden
+      FROM Clases) cl ON cl.ComisionId = c.Id;
+
+-- 7. Entregas: se entregan primero los trabajos más antiguos
+INSERT INTO Entregas (EstudianteId, TrabajoPracticoId, Entregado)
+SELECT e.Id, t.Id, CASE WHEN t.Orden <= a.Entregados THEN 1 ELSE 0 END
+FROM #Alumnos a
+JOIN Comisiones c ON c.Nombre = a.Comision
+JOIN Estudiantes e ON e.DNI = a.Dni AND e.ComisionId = c.Id
+JOIN (SELECT Id, ComisionId,
+             ROW_NUMBER() OVER (PARTITION BY ComisionId ORDER BY FechaEntrega) AS Orden
+      FROM TrabajosPracticos) t ON t.ComisionId = c.Id;
+
+DROP TABLE #Alumnos;
+
+COMMIT TRANSACTION;
+
+-- Verificación
+SELECT c.Nombre AS Comision,
+       (SELECT COUNT(*) FROM Estudiantes e WHERE e.ComisionId = c.Id) AS Alumnos,
+       (SELECT COUNT(*) FROM Clases cl WHERE cl.ComisionId = c.Id) AS Clases,
+       (SELECT COUNT(*) FROM TrabajosPracticos t WHERE t.ComisionId = c.Id) AS Trabajos
+FROM Comisiones c
+ORDER BY c.Nombre;
