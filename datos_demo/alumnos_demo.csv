@@ -1,0 +1,10 @@
+Dni;Nombre;Apellido;Email
+40100004;Lucía;Fernández;lucia.fernandez@demo.edu
+40400001;Ana;García;ana.garcia@demo.edu
+40400002;Pedro;López;pedro.lopez@demo.edu
+40400003;María;Suárez;maria.suarez@demo.edu
+40400004;Juan;Castro;juan.castro@demo.edu
+40400005;Elena;Vega;elena.vega@demo.edu
+40400006;Diego;Romero;diego.romero@demo.edu
+40400002;Pedro;López;pedro.otro@demo.edu
+40400007;;SinNombre;error@demo.edu

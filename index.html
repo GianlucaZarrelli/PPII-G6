@@ -1,0 +1,159 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Alerta temprana</title>
+  <link rel="stylesheet" href="css/estilos.css">
+</head>
+<body>
+  <header>
+    <div>
+      <h1>Alerta temprana</h1>
+      <p>¿A quién llamo esta semana? Asistencia y entregas, juntas.</p>
+    </div>
+    <button id="tema" type="button">Tema oscuro</button>
+  </header>
+
+  <!--
+    PESTAÑAS. Cada botón tiene data-vista. Ese texto tiene que ser igual al id
+    de la sección de abajo. El click lo atiende js/app.js, función mostrar().
+    Para una pestaña nueva: botón acá + <section id="el-mismo-nombre"> en main
+    + una línea if dentro de mostrar() en app.js.
+  -->
+  <nav>
+    <button type="button" data-vista="inicio" class="activa">Inicio</button>
+    <button type="button" data-vista="panel">Panel</button>
+    <button type="button" data-vista="historial">Historial</button>
+    <button type="button" data-vista="asistencia">Asistencia</button>
+    <button type="button" data-vista="entregas">Entregas</button>
+    <button type="button" data-vista="alumnos">Alumnos</button>
+    <button type="button" data-vista="csv">Carga CSV</button>
+  </nav>
+
+  <main>
+    <!-- id="inicio" coincide con data-vista="inicio". Los botones de adentro se enganchan al final de app.js por su id. -->
+    <section id="inicio" class="vista activa">
+      <div class="metricas" id="metricas"></div>
+      <div class="tarjeta">
+        <p>Esta página usa la misma regla que <strong>RiesgoService.CalcularRiesgo</strong>. El color se recalcula al abrir cada pantalla: no queda guardado.</p>
+        <p class="ayuda">Joaquín viene a todas las clases y entregó 1 de 3. Solo con asistencia saldría verde. Con las dos señales sale rojo.</p>
+        <div class="acciones">
+          <button type="button" class="principal" id="ir-panel">Ver la comisión A</button>
+          <button type="button" id="restaurar">Volver a los datos de la demo</button>
+        </div>
+      </div>
+    </section>
+
+    <section id="panel" class="vista">
+      <div class="fila-form">
+        <label>Comisión
+          <select id="panel-comision"></select>
+        </label>
+      </div>
+      <p class="ayuda">Primero los rojos. Dentro del mismo color, primero el peor porcentaje.</p>
+      <div id="panel-lista" class="lista"></div>
+    </section>
+
+    <section id="historial" class="vista">
+      <div class="fila-form">
+        <label>Comisión
+          <select id="historial-comision"></select>
+        </label>
+        <label>Alumno
+          <select id="historial-alumno"></select>
+        </label>
+      </div>
+      <div id="historial-detalle"></div>
+    </section>
+
+    <section id="asistencia" class="vista">
+      <div class="fila-form">
+        <label>Comisión
+          <select id="asistencia-comision"></select>
+        </label>
+        <label>Fecha
+          <input id="asistencia-fecha" type="date">
+        </label>
+        <button type="button" class="principal" id="guardar-asistencia">Guardar asistencia</button>
+      </div>
+      <p id="asistencia-aviso" class="aviso" hidden></p>
+      <p class="ayuda">Si la fecha no tiene clase, se crea al guardar. Una fecha futura no se acepta. Guardar de nuevo actualiza, no duplica. Sin registro, el alumno aparece como presente.</p>
+      <div id="asistencia-lista" class="lista"></div>
+    </section>
+
+    <section id="entregas" class="vista">
+      <div class="tarjeta">
+        <h2>Nuevo trabajo práctico</h2>
+        <div class="fila-form">
+          <label>Comisión
+            <select id="entregas-comision"></select>
+          </label>
+          <label>Título
+            <input id="trabajo-titulo" type="text" maxlength="80" placeholder="TP4">
+          </label>
+          <label>Fecha de entrega
+            <input id="trabajo-fecha" type="date">
+          </label>
+          <button type="button" class="principal" id="crear-trabajo">Crear trabajo</button>
+        </div>
+        <p id="entregas-aviso" class="aviso" hidden></p>
+      </div>
+      <div class="fila-form" style="margin-top:14px">
+        <label>Trabajo
+          <select id="entregas-trabajo"></select>
+        </label>
+        <button type="button" class="principal" id="guardar-entregas">Guardar entregas</button>
+      </div>
+      <p class="ayuda">Sin registro cuenta como no entregado. No se pueden crear dos trabajos con el mismo título en la comisión.</p>
+      <div id="entregas-lista" class="lista"></div>
+    </section>
+
+    <section id="alumnos" class="vista">
+      <div class="tarjeta">
+        <h2>Alta de alumno</h2>
+        <div class="fila-form">
+          <label>Comisión
+            <select id="alumnos-comision"></select>
+          </label>
+          <label>DNI
+            <input id="alumno-dni" type="text" maxlength="20">
+          </label>
+          <label>Nombre
+            <input id="alumno-nombre" type="text" maxlength="50">
+          </label>
+          <label>Apellido
+            <input id="alumno-apellido" type="text" maxlength="50">
+          </label>
+          <label>Email
+            <input id="alumno-email" type="text" maxlength="100">
+          </label>
+          <button type="button" class="principal" id="guardar-alumno">Guardar alumno</button>
+        </div>
+        <p id="alumnos-aviso" class="aviso" hidden></p>
+      </div>
+      <div id="alumnos-lista" class="lista"></div>
+    </section>
+
+    <section id="csv" class="vista">
+      <div class="fila-form">
+        <label>Comisión de destino
+          <select id="csv-comision"></select>
+        </label>
+        <label>Archivo CSV
+          <input id="csv-archivo" type="file" accept=".csv,text/csv">
+        </label>
+        <button type="button" id="bajar-csv">Descargar ejemplo</button>
+        <button type="button" class="principal" id="importar-csv">Importar alumnos</button>
+      </div>
+      <p id="csv-resumen" class="aviso">Elegí la comisión A y el archivo de ejemplo. Tiene que decir 6 para importar, 1 ya existe (Lucía), 1 repetido y 1 con errores.</p>
+      <div id="csv-lista"></div>
+    </section>
+  </main>
+
+  <script src="js/riesgo.js"></script>
+  <script src="js/validacion.js"></script>
+  <script src="js/datos.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
