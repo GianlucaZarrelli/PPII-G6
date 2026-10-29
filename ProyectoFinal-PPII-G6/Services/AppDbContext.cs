@@ -74,6 +74,7 @@ namespace ProyectoFinal_PPII_G6.Services
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Apellido).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Email).HasMaxLength(100);
+                entity.Property(e => e.FechaAlta).IsRequired();
                 entity.Property(e => e.ComisionId).IsRequired();
             });
 

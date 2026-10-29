@@ -70,8 +70,8 @@ INSERT INTO #Alumnos VALUES
  ('C', '90000011', N'Julieta',   N'Herrera',   'julieta.herrera@demo.test',   5, 2),  -- amarillo (las dos señales)
  ('C', '90000012', N'Facundo',   N'Medina',    'facundo.medina@demo.test',    4, 2);  -- rojo (asistencia)
 
-INSERT INTO Estudiantes (DNI, Nombre, Apellido, Email, ComisionId)
-SELECT a.Dni, a.Nombre, a.Apellido, a.Email, c.Id
+INSERT INTO Estudiantes (DNI, Nombre, Apellido, Email, ComisionId, FechaAlta)
+SELECT a.Dni, a.Nombre, a.Apellido, a.Email, c.Id, CAST(DATEADD(DAY, -60, GETDATE()) AS DATE)
 FROM #Alumnos a
 JOIN Comisiones c ON c.Nombre = a.Comision;
 

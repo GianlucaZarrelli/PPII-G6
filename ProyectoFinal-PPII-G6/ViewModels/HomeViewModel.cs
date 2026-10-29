@@ -1,9 +1,7 @@
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Maui.Controls;
-using ProyectoFinal_PPII_G6.Models;
 using ProyectoFinal_PPII_G6.Services;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
@@ -13,13 +11,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     /// </summary>
     public class HomeViewModel : BindableObject
     {
-        private readonly IDataService _dataService;
-        private readonly RiesgoService _riesgoService;
+        private readonly ConsultaSeguimiento _consulta;
 
         private int _totalEstudiantes;
 
         /// <summary>
-        /// Cantidad total de estudiantes registrados.
+        /// Total de alumnos de todas las comisiones.
         /// </summary>
         public int TotalEstudiantes
         {
@@ -30,7 +27,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private int _estudiantesEnRiesgo;
 
         /// <summary>
-        /// Cantidad de estudiantes en riesgo alto.
+        /// Cantidad de alumnos en riesgo alto (nivel rojo).
         /// </summary>
         public int EstudiantesEnRiesgo
         {
@@ -39,58 +36,24 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Crea el ViewModel con sus servicios.
+        /// Crea el ViewModel con la consulta que evalúa a los alumnos.
         /// </summary>
-        public HomeViewModel(IDataService dataService, RiesgoService riesgoService)
+        public HomeViewModel(ConsultaSeguimiento consulta)
         {
-            _dataService = dataService;
-            _riesgoService = riesgoService;
+            _consulta = consulta;
         }
 
         /// <summary>
-        /// Calcula el total de estudiantes y cuántos están en riesgo alto,
-        /// con el mismo criterio que la ficha del alumno (asistencia + entregas, por comisión).
+        /// Evalúa a todos los alumnos con el mismo criterio que el panel y la ficha, y cuenta los que están en rojo.
         /// </summary>
         public async Task CargarMetricasAsync()
         {
             try
             {
-                var estudiantes = await _dataService.GetEstudiantesAsync();
-                var todasLasAsistencias = await _dataService.GetTodasLasAsistenciasAsync();
-                var clases = await _dataService.GetClasesAsync();
-                var comisiones = await _dataService.GetComisionesAsync();
+                var resumenes = await _consulta.ObtenerTodasAsync();
 
-                var tpsPorComision = new Dictionary<int, List<TrabajoPractico>>();
-                foreach (var c in comisiones)
-                {
-                    tpsPorComision[c.Id] = await _dataService.GetTrabajosPracticosByComisionIdAsync(c.Id);
-                }
-
-                int enRiesgoCount = 0;
-
-                foreach (var est in estudiantes)
-                {
-                    var idsClases = clases.Where(c => c.ComisionId == est.ComisionId).Select(c => c.Id).ToHashSet();
-                    var tps = tpsPorComision.GetValueOrDefault(est.ComisionId) ?? new List<TrabajoPractico>();
-                    var idsTps = tps.Select(t => t.Id).ToHashSet();
-
-                    var asistencias = todasLasAsistencias
-                        .Where(a => a.EstudianteId == est.Id && idsClases.Contains(a.ClaseId))
-                        .ToList();
-
-                    var entregasAlumno = await _dataService.GetEntregasPorEstudianteAsync(est.Id);
-                    var entregas = entregasAlumno.Where(e => idsTps.Contains(e.TrabajoPracticoId)).ToList();
-
-                    var resultado = _riesgoService.CalcularRiesgo(asistencias, idsClases.Count, entregas, tps.Count);
-
-                    if (resultado.Nivel == NivelRiesgoEnum.Rojo)
-                    {
-                        enRiesgoCount++;
-                    }
-                }
-
-                TotalEstudiantes = estudiantes.Count;
-                EstudiantesEnRiesgo = enRiesgoCount;
+                TotalEstudiantes = resumenes.Count;
+                EstudiantesEnRiesgo = resumenes.Count(r => r.Nivel == NivelSeguimiento.Rojo);
             }
             catch (Exception ex)
             {
