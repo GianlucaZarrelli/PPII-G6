@@ -5,6 +5,10 @@
 *.suo
 *.docstates
 
+## JetBrains Rider (guarda configuraciones de ejecución que pueden llevar claves)
+.idea/
+.run/
+
 ## Archivos de compilación (Build)
 [Bb]in/
 [Oo]bj/
