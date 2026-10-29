@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinal_PPII_G6.Models;
 
-namespace ProyectoFinal_PPII_G6.Services
+namespace ProyectoFinal_PPII_G6.Infraestructura
 {
     /// <summary>
     /// Contexto de Entity Framework para la base de datos SistemaAlertaTemprana.
