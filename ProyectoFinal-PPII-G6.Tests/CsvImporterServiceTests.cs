@@ -36,8 +36,8 @@ namespace ProyectoFinal_PPII_G6.Tests
             var alumnos = await Leer(csv);
 
             // Assert
-            Assert.Equal(1, alumnos.Count);
-            Assert.Equal("Perez", alumnos[0].Apellido);
+            var alumno = Assert.Single(alumnos);
+            Assert.Equal("Perez", alumno.Apellido);
         }
 
         [Fact]

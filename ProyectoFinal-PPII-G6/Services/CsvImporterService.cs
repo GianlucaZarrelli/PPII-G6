@@ -12,19 +12,19 @@ namespace ProyectoFinal_PPII_G6.Services
     {
         /// <summary>
         /// Lee un CSV (omitiendo la cabecera) con columnas DNI, nombre, apellido y email opcional, separadas por ';' o ',', y devuelve los estudiantes asignados a la comisión indicada. Ignora líneas vacías o con menos de tres columnas.
+        /// Lee hasta que ReadLineAsync devuelve null: consultar EndOfStream bloquearía el hilo dentro de un método asíncrono.
         /// </summary>
         public async Task<List<Estudiante>> ParseCsvAsync(Stream csvStream, int comisionId)
         {
             var estudiantes = new List<Estudiante>();
 
             using var reader = new StreamReader(csvStream);
+            await reader.ReadLineAsync(); // la primera línea es el encabezado
 
-            // La primera línea es el encabezado
-            await reader.ReadLineAsync();
-
-            while (!reader.EndOfStream)
+            string? linea;
+            while ((linea = await reader.ReadLineAsync()) != null)
             {
-                var alumno = ParsearLinea(await reader.ReadLineAsync(), comisionId);
+                var alumno = ParsearLinea(linea, comisionId);
 
                 if (alumno != null)
                     estudiantes.Add(alumno);

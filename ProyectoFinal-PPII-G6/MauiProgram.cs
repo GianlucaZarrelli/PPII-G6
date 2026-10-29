@@ -1,8 +1,8 @@
 using Microsoft.Extensions.Logging;
+using ProyectoFinal_PPII_G6.Presentacion;
 using ProyectoFinal_PPII_G6.Services;
 using ProyectoFinal_PPII_G6.ViewModels;
 using ProyectoFinal_PPII_G6.Views;
-using ProyectoFinal_PPII_G6.Presentacion;
 
 namespace ProyectoFinal_PPII_G6
 {
@@ -25,38 +25,57 @@ namespace ProyectoFinal_PPII_G6
                     fonts.AddFont("OpenSans-Semibold.ttf", "OpenSansSemibold");
                 });
 
-            // 1. Persistencia y servicios de dominio
-            builder.Services.AddSingleton<IDataService, SqlServerDataService>();
-            builder.Services.AddSingleton<CsvImporterService>();
-            builder.Services.AddSingleton<RiesgoService>();
-            builder.Services.AddSingleton<SeleccionAlumnoService>();
-            builder.Services.AddSingleton<SeguimientoService>();
-            builder.Services.AddSingleton<ConsultaSeguimiento>();
-            builder.Services.AddSingleton<IDialogoService, DialogoService>();
-
-            // 2. ViewModels
-            builder.Services.AddTransient<HomeViewModel>();
-            builder.Services.AddTransient<EstudianteViewModel>();
-            builder.Services.AddTransient<DetalleEstudianteViewModel>();
-            builder.Services.AddTransient<CargaMasivaViewModel>();
-            builder.Services.AddTransient<AsistenciaFechaViewModel>();
-            builder.Services.AddTransient<PanelRiesgoViewModel>();
-            builder.Services.AddTransient<EntregasViewModel>();
-
-            // 3. Vistas (las que usa AppShell.xaml)
-            builder.Services.AddTransient<HomePage>();
-            builder.Services.AddTransient<EstudiantePage>();
-            builder.Services.AddTransient<DetalleEstudiantePage>();
-            builder.Services.AddTransient<CargaMasivaPage>();
-            builder.Services.AddTransient<AsistenciaFechaPage>();
-            builder.Services.AddTransient<PanelRiesgoPage>();
-            builder.Services.AddTransient<EntregasPage>();
+            RegistrarServicios(builder.Services);
+            RegistrarViewModels(builder.Services);
+            RegistrarPaginas(builder.Services);
 
 #if DEBUG
             builder.Logging.AddDebug();
 #endif
 
             return builder.Build();
+        }
+
+        /// <summary>
+        /// Registra la persistencia y los servicios de dominio. Todos son únicos: se crean una vez y se comparten.
+        /// </summary>
+        private static void RegistrarServicios(IServiceCollection services)
+        {
+            services.AddSingleton<IDataService, SqlServerDataService>();
+            services.AddSingleton<CsvImporterService>();
+            services.AddSingleton<RiesgoService>();
+            services.AddSingleton<SeleccionAlumnoService>();
+            services.AddSingleton<SeguimientoService>();
+            services.AddSingleton<ConsultaSeguimiento>();
+            services.AddSingleton<IDialogoService, DialogoService>();
+        }
+
+        /// <summary>
+        /// Registra los ViewModels. Son transitorios: cada pantalla recibe el suyo.
+        /// </summary>
+        private static void RegistrarViewModels(IServiceCollection services)
+        {
+            services.AddTransient<HomeViewModel>();
+            services.AddTransient<EstudianteViewModel>();
+            services.AddTransient<DetalleEstudianteViewModel>();
+            services.AddTransient<CargaMasivaViewModel>();
+            services.AddTransient<AsistenciaFechaViewModel>();
+            services.AddTransient<PanelRiesgoViewModel>();
+            services.AddTransient<EntregasViewModel>();
+        }
+
+        /// <summary>
+        /// Registra las vistas que usa AppShell.xaml.
+        /// </summary>
+        private static void RegistrarPaginas(IServiceCollection services)
+        {
+            services.AddTransient<HomePage>();
+            services.AddTransient<EstudiantePage>();
+            services.AddTransient<DetalleEstudiantePage>();
+            services.AddTransient<CargaMasivaPage>();
+            services.AddTransient<AsistenciaFechaPage>();
+            services.AddTransient<PanelRiesgoPage>();
+            services.AddTransient<EntregasPage>();
         }
     }
 }

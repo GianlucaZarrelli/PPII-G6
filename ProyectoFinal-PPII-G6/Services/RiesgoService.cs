@@ -52,6 +52,27 @@ namespace ProyectoFinal_PPII_G6.Services
         /// Peso de una ausencia justificada en el cálculo de asistencia.
         /// </summary>
         private const double ValorAusenciaJustificada = 0.5;
+
+        /// <summary>
+        /// Por debajo de este porcentaje de asistencia, el riesgo es alto.
+        /// </summary>
+        private const double UmbralAsistenciaRojo = 75;
+
+        /// <summary>
+        /// Por debajo de este porcentaje de entregas, el riesgo es alto.
+        /// </summary>
+        private const double UmbralEntregasRojo = 60;
+
+        /// <summary>
+        /// Por debajo de este porcentaje de asistencia (y desde el umbral rojo), el riesgo es medio.
+        /// </summary>
+        private const double UmbralAsistenciaAmarillo = 85;
+
+        /// <summary>
+        /// Por debajo de este porcentaje de entregas (y desde el umbral rojo), el riesgo es medio.
+        /// </summary>
+        private const double UmbralEntregasAmarillo = 80;
+
         /// <summary>
         /// Calcula los porcentajes de asistencia y entregas y el nivel de riesgo: Rojo si la asistencia es menor a 75% o las entregas a 60%;
         /// Amarillo si la asistencia es menor a 85% o las entregas a 80%; Verde en otro caso. Sin clases o TPs, el porcentaje es 100%.
@@ -62,42 +83,56 @@ namespace ProyectoFinal_PPII_G6.Services
             List<Entrega> entregasEstudiante,
             int totalTpsComision)
         {
-            var resultado = new ResultadoRiesgo();
+            var asistencia = CalcularPorcentajeAsistencia(asistenciasEstudiante, totalClasesComision);
+            var entregas = CalcularPorcentajeEntregas(entregasEstudiante, totalTpsComision);
 
-            if (totalClasesComision > 0)
+            return new ResultadoRiesgo
             {
-                int presentes = asistenciasEstudiante.Count(a => a.Presente == true);
-                int justificadas = asistenciasEstudiante.Count(a => !a.Presente && a.Justificada);
-                double asistenciaEfectiva = presentes + justificadas * ValorAusenciaJustificada;
-                resultado.PorcentajeAsistencia = (asistenciaEfectiva / totalClasesComision) * 100;
-            }
-            else
-            {
-                resultado.PorcentajeAsistencia = 100;
-            }
+                PorcentajeAsistencia = asistencia,
+                PorcentajeEntregas = entregas,
+                Nivel = ElegirNivel(asistencia, entregas)
+            };
+        }
 
-            if (totalTpsComision > 0)
-            {
-                int entregados = entregasEstudiante.Count(e => e.Entregado);
-                resultado.PorcentajeEntregas = ((double)entregados / totalTpsComision) * 100;
-            }
-            else
-            {
-                resultado.PorcentajeEntregas = 100;
-            }
+        /// <summary>
+        /// Porcentaje de asistencia efectiva: una presente vale 1 y una ausencia justificada vale la mitad.
+        /// Sin clases, no hay nada que penalizar y el resultado es 100.
+        /// </summary>
+        private static double CalcularPorcentajeAsistencia(List<Asistencia> asistencias, int totalClases)
+        {
+            if (totalClases <= 0) return 100;
 
-            if (resultado.PorcentajeAsistencia < 75 || resultado.PorcentajeEntregas < 60)
-            {
-                resultado.Nivel = NivelRiesgoEnum.Rojo;
-            } else if (resultado.PorcentajeAsistencia < 85 || resultado.PorcentajeEntregas < 80)
-            {
-                resultado.Nivel = NivelRiesgoEnum.Amarillo;
-            } else
-            {
-                resultado.Nivel = NivelRiesgoEnum.Verde;
-            }
+            int presentes = asistencias.Count(a => a.Presente);
+            int justificadas = asistencias.Count(a => !a.Presente && a.Justificada);
+            double asistenciaEfectiva = presentes + justificadas * ValorAusenciaJustificada;
 
-            return resultado;
+            return (asistenciaEfectiva / totalClases) * 100;
+        }
+
+        /// <summary>
+        /// Porcentaje de trabajos entregados. Sin trabajos, no hay nada que penalizar y el resultado es 100.
+        /// </summary>
+        private static double CalcularPorcentajeEntregas(List<Entrega> entregas, int totalTps)
+        {
+            if (totalTps <= 0) return 100;
+
+            int entregados = entregas.Count(e => e.Entregado);
+
+            return ((double)entregados / totalTps) * 100;
+        }
+
+        /// <summary>
+        /// Rojo si cualquiera de los dos porcentajes cae bajo su umbral rojo; si no, amarillo si cae bajo el amarillo; si no, verde.
+        /// </summary>
+        private static NivelRiesgoEnum ElegirNivel(double asistencia, double entregas)
+        {
+            if (asistencia < UmbralAsistenciaRojo || entregas < UmbralEntregasRojo)
+                return NivelRiesgoEnum.Rojo;
+
+            if (asistencia < UmbralAsistenciaAmarillo || entregas < UmbralEntregasAmarillo)
+                return NivelRiesgoEnum.Amarillo;
+
+            return NivelRiesgoEnum.Verde;
         }
     }
 
