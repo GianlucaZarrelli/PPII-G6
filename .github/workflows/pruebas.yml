@@ -22,10 +22,10 @@ jobs:
     timeout-minutes: 30
     steps:
       - name: Descargar el codigo
-        uses: actions/checkout@v4
+        uses: actions/checkout@v5
 
       - name: Instalar .NET 10
-        uses: actions/setup-dotnet@v4
+        uses: actions/setup-dotnet@v5
         with:
           dotnet-version: 10.0.x
 
@@ -40,7 +40,7 @@ jobs:
 
       - name: Guardar los resultados
         if: always()
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v6
         with:
           name: resultados-pruebas
           path: "**/resultados.trx"
