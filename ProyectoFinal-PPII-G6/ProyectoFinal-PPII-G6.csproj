@@ -85,5 +85,13 @@
 	    <Generator>MSBuild:Compile</Generator>
 	  </MauiXaml>
 	</ItemGroup>
-
+	
+	
+	<!-- En macOS, un paquete declara una biblioteca nativa que MSBuild de .NET Core no puede resolver.
+     Solo el destino "net10.0" (el que usan las pruebas) la descarta; los demás destinos no cambian. -->
+	<Target Name="DescartarReferenciasNativasEnNet10" AfterTargets="ResolveProjectReferences" Condition="'$(TargetFramework)' == 'net10.0'">
+		<ItemGroup>
+			<NativeReference Remove="@(NativeReference)" />
+		</ItemGroup>
+	</Target>
 </Project>
