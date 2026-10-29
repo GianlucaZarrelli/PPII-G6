@@ -1,0 +1,47 @@
+name: Pruebas
+
+on:
+  push:
+    branches: [ main, 'fix/**', 'feat/**', 'ci/**' ]
+  pull_request:
+    branches: [ main ]
+  workflow_dispatch:
+
+# Si se sube otro cambio a la misma rama, se cancela la corrida anterior
+concurrency:
+  group: pruebas-${{ github.ref }}
+  cancel-in-progress: true
+
+# El workflow solo necesita leer el codigo
+permissions:
+  contents: read
+
+jobs:
+  pruebas:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Descargar el codigo
+        uses: actions/checkout@v5
+
+      - name: Instalar .NET 10
+        uses: actions/setup-dotnet@v5
+        with:
+          dotnet-version: 10.0.x
+
+      - name: Instalar el workload de MAUI
+        run: dotnet workload install maui
+
+      - name: Compilar la aplicacion para Windows
+        run: dotnet build ProyectoFinal-PPII-G6/ProyectoFinal-PPII-G6.csproj -f net10.0-windows10.0.19041.0 -c Release
+
+      - name: Correr las pruebas
+        run: dotnet test ProyectoFinal-PPII-G6.Tests/ProyectoFinal-PPII-G6.Tests.csproj -c Release --logger "trx;LogFileName=resultados.trx"
+
+      - name: Guardar los resultados
+        if: always()
+        uses: actions/upload-artifact@v6
+        with:
+          name: resultados-pruebas
+          path: "**/resultados.trx"
+          if-no-files-found: ignore
