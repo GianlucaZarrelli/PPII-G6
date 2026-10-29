@@ -2,6 +2,7 @@ using Microsoft.Extensions.Logging;
 using ProyectoFinal_PPII_G6.Services;
 using ProyectoFinal_PPII_G6.ViewModels;
 using ProyectoFinal_PPII_G6.Views;
+using ProyectoFinal_PPII_G6.Presentacion;
 
 namespace ProyectoFinal_PPII_G6
 {
@@ -31,6 +32,7 @@ namespace ProyectoFinal_PPII_G6
             builder.Services.AddSingleton<SeleccionAlumnoService>();
             builder.Services.AddSingleton<SeguimientoService>();
             builder.Services.AddSingleton<ConsultaSeguimiento>();
+            builder.Services.AddSingleton<IDialogoService, DialogoService>();
 
             // 2. ViewModels
             builder.Services.AddTransient<HomeViewModel>();

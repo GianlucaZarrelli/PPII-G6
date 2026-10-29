@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,28 +10,30 @@ using ProyectoFinal_PPII_G6.Services;
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
     /// <summary>
-    /// Una fila de la pantalla: un alumno con su estado de asistencia en la fecha elegida.
+    /// Una fila de la lista de asistencia: un alumno, si estuvo presente y, si faltó, si la ausencia es justificada.
     /// </summary>
     public class AsistenciaFila : BindableObject
     {
         /// <summary>
-        /// Id del alumno de la fila.
+        /// Id del alumno.
         /// </summary>
         public int EstudianteId { get; set; }
+
         /// <summary>
-        /// Nombre del alumno con formato "Apellido, Nombre".
+        /// Apellido y nombre del alumno, para mostrar en la lista.
         /// </summary>
         public string NombreCompleto { get; set; } = string.Empty;
 
         /// <summary>
-        /// Id del registro existente; 0 si el alumno todavía no tiene asistencia en esa clase.
+        /// Id del registro de asistencia ya guardado, o 0 si todavía no hay.
         /// </summary>
         public int AsistenciaId { get; set; }
 
         private bool _presente = true;
 
         /// <summary>
-        /// Indica si el alumno estuvo presente (por defecto, sí). Al marcarlo presente se quita la justificación.
+        /// Indica si el alumno estuvo presente. Al marcarlo presente se borra la justificación,
+        /// porque una ausencia justificada solo tiene sentido si el alumno faltó.
         /// </summary>
         public bool Presente
         {
@@ -40,7 +43,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 if (_presente == value) return;
                 _presente = value;
 
-                // Una ausencia justificada solo tiene sentido si el alumno está ausente
                 if (value) _justificada = false;
 
                 OnPropertyChanged();
@@ -52,7 +54,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private bool _justificada;
 
         /// <summary>
-        /// Indica si la ausencia del alumno está justificada.
+        /// Indica si la ausencia está justificada (vale la mitad de una presente).
         /// </summary>
         public bool Justificada
         {
@@ -61,22 +63,30 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Inverso de <see cref="Presente"/>; útil para habilitar la opción de justificar en la vista.
+        /// Lo contrario de presente: la pantalla lo usa para mostrar el interruptor de la justificación.
         /// </summary>
         public bool Ausente => !Presente;
     }
 
     /// <summary>
-    /// ViewModel para tomar o corregir la asistencia de una comisión en una fecha.
+    /// ViewModel del registro de asistencia: se elige una comisión y una fecha, se marca quién vino y se guarda.
+    /// Si la clase de esa fecha no existe, se crea al guardar.
     /// </summary>
     public class AsistenciaFechaViewModel : BindableObject
     {
         private readonly IDataService _dataService;
+        private readonly IDialogoService _dialogo;
+
+        /// <summary>
+        /// Evita que un doble toque en "Guardar" guarde dos veces.
+        /// </summary>
+        private bool _guardando;
 
         /// <summary>
         /// Comisiones disponibles para elegir.
         /// </summary>
         public ObservableCollection<Comision> Comisiones { get; } = new();
+
         /// <summary>
         /// Alumnos de la comisión con su asistencia en la fecha elegida.
         /// </summary>
@@ -85,7 +95,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private Comision? _comisionSeleccionada;
 
         /// <summary>
-        /// Comisión elegida; al cambiar recarga las filas de asistencia.
+        /// Comisión elegida; al cambiarla se recarga la lista de alumnos.
         /// </summary>
         public Comision? ComisionSeleccionada
         {
@@ -101,7 +111,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private DateTime _fecha = DateTime.Today;
 
         /// <summary>
-        /// Fecha de la clase (por defecto, hoy); al cambiar recarga las filas de asistencia.
+        /// Fecha de la clase; al cambiarla se recarga la asistencia de ese día.
         /// </summary>
         public DateTime Fecha
         {
@@ -117,7 +127,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private string _estado = "Seleccione una comisión.";
 
         /// <summary>
-        /// Mensaje informativo que se muestra al usuario (estado de la clase o errores).
+        /// Texto que indica qué se está mostrando, o por qué la lista está vacía.
         /// </summary>
         public string Estado
         {
@@ -126,21 +136,23 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Comando que guarda la asistencia de todos los alumnos en la fecha elegida.
+        /// Comando para guardar la asistencia de la fecha elegida.
         /// </summary>
         public Command GuardarCommand { get; }
 
         /// <summary>
-        /// Crea el ViewModel con el servicio de datos e inicializa el comando de guardado.
+        /// Crea el ViewModel con el acceso a datos y el servicio de avisos.
         /// </summary>
-        public AsistenciaFechaViewModel(IDataService dataService)
+        public AsistenciaFechaViewModel(IDataService dataService, IDialogoService dialogo)
         {
             _dataService = dataService;
+            _dialogo = dialogo;
+
             GuardarCommand = new Command(async () => await GuardarAsync());
         }
 
         /// <summary>
-        /// Recarga las comisiones y conserva la selección anterior (o elige la primera).
+        /// Carga las comisiones y conserva la elegida (o elige la primera).
         /// </summary>
         public async Task CargarComisionesAsync()
         {
@@ -149,12 +161,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 var idPrevio = ComisionSeleccionada?.Id;
                 var lista = await _dataService.GetComisionesAsync();
 
-                Comisiones.Clear();
-                foreach (var c in lista)
-                {
-                    Comisiones.Add(c);
-                }
-
+                RepoblarComisiones(lista);
                 ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idPrevio)
                                        ?? Comisiones.FirstOrDefault();
             }
@@ -166,58 +173,46 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Arma la lista de alumnos con la asistencia ya registrada en la fecha elegida (presente si no hay registro).
+        /// Reemplaza el selector de comisiones por la lista recibida, ordenada por nombre.
+        /// </summary>
+        private void RepoblarComisiones(IEnumerable<Comision> lista)
+        {
+            Comisiones.Clear();
+            foreach (var c in lista.OrderBy(c => c.Nombre))
+            {
+                Comisiones.Add(c);
+            }
+        }
+
+        /// <summary>
+        /// Carga la lista de alumnos con su asistencia en la fecha elegida, o avisa que hay que elegir una comisión.
         /// </summary>
         private async Task CargarFilasAsync()
         {
             Filas.Clear();
-
-            if (ComisionSeleccionada == null)
-            {
-                Estado = "Seleccione una comisión.";
-                return;
-            }
-
             var comision = ComisionSeleccionada;
-            var fecha = Fecha.Date;
 
+            if (comision == null)
+                Estado = "Seleccione una comisión.";
+            else
+                await TraerFilasAsync(comision, Fecha.Date);
+        }
+
+        /// <summary>
+        /// Pide los alumnos, la clase de ese día y sus asistencias, y los muestra.
+        /// Si mientras consultaba cambió la comisión o la fecha, descarta el resultado porque ya no sirve.
+        /// </summary>
+        private async Task TraerFilasAsync(Comision comision, DateTime fecha)
+        {
             try
             {
                 var estudiantes = await _dataService.GetEstudiantesByComisionIdAsync(comision.Id);
-                var clases = await _dataService.GetClasesByComisionIdAsync(comision.Id);
-                var clase = clases.FirstOrDefault(c => c.Fecha.Date == fecha);
-
-                var asistencias = new System.Collections.Generic.List<Asistencia>();
-                if (clase != null)
-                {
-                    var todas = await _dataService.GetTodasLasAsistenciasAsync();
-                    asistencias = todas.Where(a => a.ClaseId == clase.Id).ToList();
-                }
-
-                // Si mientras consultaba cambió la comisión o la fecha, este resultado ya no sirve
+                var clase = await BuscarClaseAsync(comision.Id, fecha);
+                var asistencias = await BuscarAsistenciasAsync(clase);
                 if (comision != ComisionSeleccionada || fecha != Fecha.Date) return;
 
-                Filas.Clear();
-                foreach (var est in estudiantes.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
-                {
-                    var asis = asistencias.FirstOrDefault(a => a.EstudianteId == est.Id);
-
-                    Filas.Add(new AsistenciaFila
-                    {
-                        EstudianteId = est.Id,
-                        NombreCompleto = $"{est.Apellido}, {est.Nombre}",
-                        AsistenciaId = asis?.Id ?? 0,
-                        Presente = asis?.Presente ?? true,
-                        Justificada = asis?.Justificada ?? false
-                    });
-                }
-
-                if (Filas.Count == 0)
-                    Estado = "La comisión no tiene alumnos cargados.";
-                else if (clase == null)
-                    Estado = $"No hay clase registrada el {fecha:dd/MM/yyyy}. Al guardar se crea.";
-                else
-                    Estado = $"Clase del {fecha:dd/MM/yyyy}: {Filas.Count} alumnos.";
+                MostrarFilas(estudiantes, asistencias);
+                Estado = ResumirClase(clase, fecha);
             }
             catch (Exception ex)
             {
@@ -227,62 +222,153 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Guarda la asistencia de la fecha elegida (no permite fechas futuras), creando la clase si no existe, y recarga la lista.
+        /// Busca la clase de la comisión en esa fecha. Devuelve null si todavía no existe.
+        /// </summary>
+        private async Task<Clase?> BuscarClaseAsync(int comisionId, DateTime fecha)
+        {
+            var clases = await _dataService.GetClasesByComisionIdAsync(comisionId);
+            return clases.FirstOrDefault(c => c.Fecha.Date == fecha);
+        }
+
+        /// <summary>
+        /// Trae las asistencias de la clase. Si la clase todavía no existe, no hay ninguna.
+        /// </summary>
+        private async Task<List<Asistencia>> BuscarAsistenciasAsync(Clase? clase)
+        {
+            if (clase == null) return new List<Asistencia>();
+
+            var todas = await _dataService.GetTodasLasAsistenciasAsync();
+            return todas.Where(a => a.ClaseId == clase.Id).ToList();
+        }
+
+        /// <summary>
+        /// Llena la lista con los alumnos ordenados por apellido.
+        /// </summary>
+        private void MostrarFilas(List<Estudiante> estudiantes, List<Asistencia> asistencias)
+        {
+            Filas.Clear();
+            foreach (var est in estudiantes.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
+            {
+                Filas.Add(CrearFila(est, asistencias.FirstOrDefault(a => a.EstudianteId == est.Id)));
+            }
+        }
+
+        /// <summary>
+        /// Arma la fila de un alumno. Sin registro previo, figura como presente.
+        /// </summary>
+        private static AsistenciaFila CrearFila(Estudiante estudiante, Asistencia? asistencia) => new()
+        {
+            EstudianteId = estudiante.Id,
+            NombreCompleto = $"{estudiante.Apellido}, {estudiante.Nombre}",
+            AsistenciaId = asistencia?.Id ?? 0,
+            Presente = asistencia?.Presente ?? true,
+            Justificada = asistencia?.Justificada ?? false
+        };
+
+        /// <summary>
+        /// Texto de estado: avisa si no hay alumnos, si la clase se va a crear al guardar, o cuántos alumnos tiene.
+        /// </summary>
+        private string ResumirClase(Clase? clase, DateTime fecha)
+        {
+            if (Filas.Count == 0)
+                return "La comisión no tiene alumnos cargados.";
+
+            return clase == null
+                ? $"No hay clase registrada el {fecha:dd/MM/yyyy}. Al guardar se crea."
+                : $"Clase del {fecha:dd/MM/yyyy}: {Filas.Count} alumnos.";
+        }
+
+        /// <summary>
+        /// Valida la fecha y la lista y, si están bien, guarda la asistencia. Si ya se está guardando, no hace nada.
         /// </summary>
         private async Task GuardarAsync()
         {
+            if (_guardando) return;
+
+            var error = ObtenerErrorParaGuardar();
+
+            if (error != null)
+                await _dialogo.AvisarAsync("Atención", error);
+            else
+                await GuardarConBloqueoAsync(ComisionSeleccionada!, Fecha.Date);
+        }
+
+        /// <summary>
+        /// Devuelve por qué no se puede guardar (falta la comisión o los alumnos, o la fecha es futura), o null si se puede.
+        /// </summary>
+        private string? ObtenerErrorParaGuardar()
+        {
             if (ComisionSeleccionada == null || Filas.Count == 0)
-            {
-                if (Application.Current?.MainPage != null)
-                    await Application.Current.MainPage.DisplayAlert("Atención", "Elegí una comisión con alumnos antes de guardar.", "OK");
-                return;
-            }
+                return "Elegí una comisión con alumnos antes de guardar.";
 
-            var fecha = Fecha.Date;
+            return ValidacionAsistencia.ObtenerErrorDeFecha(Fecha, DateTime.Today);
+        }
 
-            // Una clase futura inflaría el total de clases y marcaría ausentes a todos
-            if (fecha > DateTime.Today)
-            {
-                if (Application.Current?.MainPage != null)
-                    await Application.Current.MainPage.DisplayAlert("Atención", "No se puede registrar asistencia de una fecha futura.", "OK");
-                return;
-            }
-
+        /// <summary>
+        /// Marca que hay un guardado en curso mientras trabaja, y lo desmarca al terminar, salga como salga.
+        /// </summary>
+        private async Task GuardarConBloqueoAsync(Comision comision, DateTime fecha)
+        {
+            _guardando = true;
             try
             {
-                var clases = await _dataService.GetClasesByComisionIdAsync(ComisionSeleccionada.Id);
-                var clase = clases.FirstOrDefault(c => c.Fecha.Date == fecha);
+                await GuardarYAvisarAsync(comision, fecha);
+            }
+            finally
+            {
+                _guardando = false;
+            }
+        }
 
-                int claseId;
-                if (clase != null)
-                {
-                    claseId = clase.Id;
-                }
-                else
-                {
-                    var nueva = new Clase(0, fecha, $"Clase {fecha:dd/MM/yyyy}", ComisionSeleccionada.Id);
-                    claseId = await _dataService.SaveClaseAsync(nueva);
-                }
+        /// <summary>
+        /// Guarda la asistencia y, si salió bien, recarga la lista y avisa.
+        /// Se recarga para que las filas nuevas tomen su Id y un segundo guardado actualice en vez de duplicar.
+        /// </summary>
+        private async Task GuardarYAvisarAsync(Comision comision, DateTime fecha)
+        {
+            if (!await IntentarGuardarAsync(comision, fecha)) return;
 
-                var asistencias = Filas
-                    .Select(f => new Asistencia(f.AsistenciaId, f.EstudianteId, claseId, f.Presente, !f.Presente && f.Justificada))
-                    .ToList();
+            await CargarFilasAsync();
+            await _dialogo.AvisarAsync("Éxito", "Asistencia guardada.");
+        }
+
+        /// <summary>
+        /// Guarda la asistencia de todos los alumnos de la lista. Si la base falla, avisa y devuelve false.
+        /// </summary>
+        private async Task<bool> IntentarGuardarAsync(Comision comision, DateTime fecha)
+        {
+            try
+            {
+                var claseId = await ObtenerOCrearClaseAsync(comision, fecha);
+                var asistencias = Filas.Select(f => CrearAsistencia(f, claseId)).ToList();
 
                 await _dataService.SaveAsistenciasAsync(asistencias);
+                return true;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
-                if (Application.Current?.MainPage != null)
-                    await Application.Current.MainPage.DisplayAlert("Error", "No se pudo guardar la asistencia.", "OK");
-                return;
+                await _dialogo.AvisarAsync("Error", "No se pudo guardar la asistencia.");
+                return false;
             }
-
-            // Recargo para que las filas nuevas tomen su Id y un segundo guardado actualice en vez de duplicar
-            await CargarFilasAsync();
-
-            if (Application.Current?.MainPage != null)
-                await Application.Current.MainPage.DisplayAlert("Éxito", "Asistencia guardada.", "OK");
         }
+
+        /// <summary>
+        /// Devuelve el Id de la clase de esa fecha, y si todavía no existe la crea.
+        /// </summary>
+        private async Task<int> ObtenerOCrearClaseAsync(Comision comision, DateTime fecha)
+        {
+            var clase = await BuscarClaseAsync(comision.Id, fecha);
+            if (clase != null) return clase.Id;
+
+            var nueva = new Clase(0, fecha, $"Clase {fecha:dd/MM/yyyy}", comision.Id);
+            return await _dataService.SaveClaseAsync(nueva);
+        }
+
+        /// <summary>
+        /// Convierte una fila en el registro que se guarda. La justificación solo vale si el alumno faltó.
+        /// </summary>
+        private static Asistencia CrearAsistencia(AsistenciaFila fila, int claseId) =>
+            new(fila.AsistenciaId, fila.EstudianteId, claseId, fila.Presente, !fila.Presente && fila.Justificada);
     }
 }

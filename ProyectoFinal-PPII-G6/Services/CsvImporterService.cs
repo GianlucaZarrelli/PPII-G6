@@ -19,32 +19,39 @@ namespace ProyectoFinal_PPII_G6.Services
 
             using var reader = new StreamReader(csvStream);
 
+            // La primera línea es el encabezado
             await reader.ReadLineAsync();
 
             while (!reader.EndOfStream)
             {
-                var line = await reader.ReadLineAsync();
+                var alumno = ParsearLinea(await reader.ReadLineAsync(), comisionId);
 
-                if (string.IsNullOrWhiteSpace(line)) continue;
-
-                var values = line.Split(';', ',');
-
-                if (values.Length < 3) continue;
-                
-                var alumno = new Estudiante
-                {
-                    Dni = values[0].Trim(),
-                    Nombre = values[1].Trim(),
-                    Apellido = values[2].Trim(),
-                    Email = values.Length > 3 ? values[3].Trim() : string.Empty,
-                    ComisionId = comisionId
-                };
-
-                estudiantes.Add(alumno);
-
+                if (alumno != null)
+                    estudiantes.Add(alumno);
             }
 
             return estudiantes;
+        }
+
+        /// <summary>
+        /// Convierte una línea del archivo en un estudiante. Devuelve null si la línea está vacía
+        /// o tiene menos de tres columnas (DNI, nombre y apellido); el email es opcional.
+        /// </summary>
+        public static Estudiante? ParsearLinea(string? linea, int comisionId)
+        {
+            if (string.IsNullOrWhiteSpace(linea)) return null;
+
+            var valores = linea.Split(';', ',');
+            if (valores.Length < 3) return null;
+
+            return new Estudiante
+            {
+                Dni = valores[0].Trim(),
+                Nombre = valores[1].Trim(),
+                Apellido = valores[2].Trim(),
+                Email = valores.Length > 3 ? valores[3].Trim() : string.Empty,
+                ComisionId = comisionId
+            };
         }
     }
 }
