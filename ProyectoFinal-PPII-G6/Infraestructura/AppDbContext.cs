@@ -1,7 +1,7 @@
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinal_PPII_G6.Models;
 
-namespace ProyectoFinal_PPII_G6.Services
+namespace ProyectoFinal_PPII_G6.Infraestructura
 {
     /// <summary>
     /// Contexto de Entity Framework para la base de datos SistemaAlertaTemprana.
@@ -59,13 +59,32 @@ namespace ProyectoFinal_PPII_G6.Services
         {
             base.OnModelCreating(modelBuilder);
 
+            ConfigurarComision(modelBuilder);
+            ConfigurarEstudiante(modelBuilder);
+            ConfigurarClase(modelBuilder);
+            ConfigurarAsistencia(modelBuilder);
+            ConfigurarTrabajoPractico(modelBuilder);
+            ConfigurarEntrega(modelBuilder);
+        }
+
+        /// <summary>
+        /// Tabla Comisiones.
+        /// </summary>
+        private static void ConfigurarComision(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Comision>(entity =>
             {
                 entity.ToTable("Comisiones");
                 entity.HasKey(c => c.Id);
                 entity.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
             });
+        }
 
+        /// <summary>
+        /// Tabla Estudiantes.
+        /// </summary>
+        private static void ConfigurarEstudiante(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Estudiante>(entity =>
             {
                 entity.ToTable("Estudiantes");
@@ -74,9 +93,16 @@ namespace ProyectoFinal_PPII_G6.Services
                 entity.Property(e => e.Nombre).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Apellido).IsRequired().HasMaxLength(100);
                 entity.Property(e => e.Email).HasMaxLength(100);
+                entity.Property(e => e.FechaAlta).IsRequired();
                 entity.Property(e => e.ComisionId).IsRequired();
             });
+        }
 
+        /// <summary>
+        /// Tabla Clases.
+        /// </summary>
+        private static void ConfigurarClase(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Clase>(entity =>
             {
                 entity.ToTable("Clases");
@@ -85,7 +111,13 @@ namespace ProyectoFinal_PPII_G6.Services
                 entity.Property(c => c.Descripcion).HasMaxLength(200);
                 entity.Property(c => c.ComisionId).IsRequired();
             });
+        }
 
+        /// <summary>
+        /// Tabla Asistencias.
+        /// </summary>
+        private static void ConfigurarAsistencia(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Asistencia>(entity =>
             {
                 entity.ToTable("Asistencias");
@@ -95,7 +127,13 @@ namespace ProyectoFinal_PPII_G6.Services
                 entity.Property(a => a.Presente).IsRequired();
                 entity.Property(a => a.Justificada).IsRequired();
             });
+        }
 
+        /// <summary>
+        /// Tabla TrabajosPracticos.
+        /// </summary>
+        private static void ConfigurarTrabajoPractico(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<TrabajoPractico>(entity =>
             {
                 entity.ToTable("TrabajosPracticos");
@@ -104,7 +142,13 @@ namespace ProyectoFinal_PPII_G6.Services
                 entity.Property(tp => tp.FechaEntrega).IsRequired();
                 entity.Property(tp => tp.ComisionId).IsRequired();
             });
+        }
 
+        /// <summary>
+        /// Tabla Entregas.
+        /// </summary>
+        private static void ConfigurarEntrega(ModelBuilder modelBuilder)
+        {
             modelBuilder.Entity<Entrega>(entity =>
             {
                 entity.ToTable("Entregas");

@@ -7,51 +7,98 @@ using Microsoft.Maui.Controls;
 using Microsoft.Maui.Devices;
 using Microsoft.Maui.Storage;
 using ProyectoFinal_PPII_G6.Models;
+using ProyectoFinal_PPII_G6.Presentacion;
 using ProyectoFinal_PPII_G6.Services;
 
 namespace ProyectoFinal_PPII_G6.ViewModels
 {
     /// <summary>
-    /// Una fila de la vista previa: un alumno leído del archivo y qué se va a hacer con él.
+    /// Una fila de la vista previa de la importación: un alumno del archivo y lo que se hará con él.
     /// </summary>
     public class ImportacionFila
     {
+        /// <summary>
+        /// DNI de la fila, ya normalizado.
+        /// </summary>
         public string Dni { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Nombre del alumno.
+        /// </summary>
         public string Nombre { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Apellido del alumno.
+        /// </summary>
         public string Apellido { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Email del alumno.
+        /// </summary>
         public string Email { get; set; } = string.Empty;
 
+        /// <summary>
+        /// Nombre y apellido juntos, o "(sin nombre)" si la fila no los trae.
+        /// </summary>
         public string NombreCompleto =>
             string.IsNullOrWhiteSpace($"{Nombre} {Apellido}") ? "(sin nombre)" : $"{Nombre} {Apellido}".Trim();
 
+        /// <summary>
+        /// DNI y email en una línea, para mostrar debajo del nombre.
+        /// </summary>
         public string Detalle =>
             string.IsNullOrWhiteSpace(Email) ? $"DNI: {Dni}" : $"DNI: {Dni}  |  {Email}";
 
+        /// <summary>
+        /// Texto que indica qué se hará con la fila.
+        /// </summary>
         public string Estado { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Color del estado, en hexadecimal.
+        /// </summary>
         public string Color { get; set; } = "#757575";
 
         /// <summary>
-        /// True solo para las filas nuevas y válidas: son las únicas que se guardan.
+        /// Indica si la fila se guarda al importar (solo las nuevas y válidas).
         /// </summary>
         public bool SeImporta { get; set; }
     }
 
     /// <summary>
-    /// ViewModel de la carga masiva: lee un CSV de alumnos, muestra una vista previa y los importa a una comisión.
+    /// ViewModel de la carga masiva: se elige una comisión y un CSV, se ve qué se puede importar y se guarda todo junto.
     /// </summary>
     public class CargaMasivaViewModel : BindableObject
     {
         private readonly IDataService _dataService;
         private readonly CsvImporterService _csvImporter;
+        private readonly IDialogoService _dialogo;
 
+        /// <summary>
+        /// Alumnos leídos del archivo elegido, sin evaluar.
+        /// </summary>
         private List<Estudiante> _leidos = new();
+
+        /// <summary>
+        /// Evita que un doble toque en "Importar" guarde dos veces.
+        /// </summary>
         private bool _importando;
 
+        /// <summary>
+        /// Comisiones disponibles para elegir.
+        /// </summary>
         public ObservableCollection<Comision> Comisiones { get; } = new();
+
+        /// <summary>
+        /// Vista previa de las filas del archivo.
+        /// </summary>
         public ObservableCollection<ImportacionFila> Filas { get; } = new();
 
         private Comision? _comisionSeleccionada;
 
+        /// <summary>
+        /// Comisión elegida; al cambiarla se vuelve a evaluar el archivo contra sus alumnos.
+        /// </summary>
         public Comision? ComisionSeleccionada
         {
             get => _comisionSeleccionada;
@@ -59,14 +106,15 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             {
                 _comisionSeleccionada = value;
                 OnPropertyChanged();
-
-                // Si ya había un archivo leído, se vuelve a evaluar contra la comisión nueva
                 _ = EvaluarAsync();
             }
         }
 
         private string _nombreArchivo = string.Empty;
 
+        /// <summary>
+        /// Nombre del archivo elegido.
+        /// </summary>
         public string NombreArchivo
         {
             get => _nombreArchivo;
@@ -75,38 +123,40 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private string _estado = "Elegí una comisión y un archivo CSV.";
 
+        /// <summary>
+        /// Resumen de lo que se puede importar, o qué falta para poder hacerlo.
+        /// </summary>
         public string Estado
         {
             get => _estado;
             set { _estado = value; OnPropertyChanged(); }
         }
 
+        /// <summary>
+        /// Comando para elegir el archivo CSV.
+        /// </summary>
         public Command ElegirArchivoCommand { get; }
+
+        /// <summary>
+        /// Comando para guardar los alumnos nuevos.
+        /// </summary>
         public Command ImportarCommand { get; }
 
-        public CargaMasivaViewModel(IDataService dataService, CsvImporterService csvImporter)
+        /// <summary>
+        /// Crea el ViewModel con el acceso a datos, el lector de CSV y el servicio de avisos.
+        /// </summary>
+        public CargaMasivaViewModel(IDataService dataService, CsvImporterService csvImporter, IDialogoService dialogo)
         {
             _dataService = dataService;
             _csvImporter = csvImporter;
+            _dialogo = dialogo;
 
             ElegirArchivoCommand = new Command(async () => await ElegirArchivoAsync());
             ImportarCommand = new Command(async () => await ImportarAsync());
         }
 
-        private static async Task AvisarAsync(string titulo, string mensaje)
-        {
-            if (Application.Current?.MainPage != null)
-                await Application.Current.MainPage.DisplayAlert(titulo, mensaje, "OK");
-        }
-
         /// <summary>
-        /// Quita puntos y espacios para que "30.123.456" y "30123456" cuenten como el mismo DNI.
-        /// </summary>
-        private static string NormalizarDni(string? dni) =>
-            (dni ?? string.Empty).Replace(".", string.Empty).Replace(" ", string.Empty).Trim();
-
-        /// <summary>
-        /// Recarga las comisiones y conserva la selección anterior (o elige la primera).
+        /// Carga las comisiones, conserva la elegida (o elige la primera) y evalúa el archivo si ya había uno.
         /// </summary>
         public async Task CargarComisionesAsync()
         {
@@ -115,12 +165,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 var idPrevio = ComisionSeleccionada?.Id;
                 var lista = await _dataService.GetComisionesAsync();
 
-                Comisiones.Clear();
-                foreach (var c in lista.OrderBy(c => c.Nombre))
-                {
-                    Comisiones.Add(c);
-                }
-
+                RepoblarComisiones(lista);
                 ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idPrevio)
                                        ?? Comisiones.FirstOrDefault();
             }
@@ -131,135 +176,106 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Reemplaza el selector de comisiones por la lista recibida, ordenada por nombre.
+        /// </summary>
+        private void RepoblarComisiones(IEnumerable<Comision> lista)
+        {
+            Comisiones.Clear();
+            foreach (var c in lista.OrderBy(c => c.Nombre))
+            {
+                Comisiones.Add(c);
+            }
+        }
+
+        /// <summary>
+        /// Abre el selector de archivos, lee el CSV elegido y lo evalúa contra la comisión.
+        /// </summary>
         private async Task ElegirArchivoAsync()
         {
             try
             {
-                var tipoCsv = new FilePickerFileType(
-                    new Dictionary<DevicePlatform, IEnumerable<string>>
-                    {
-                        { DevicePlatform.WinUI, new[] { ".csv" } },
-                        { DevicePlatform.Android, new[] { "text/csv", "text/comma-separated-values" } },
-                        { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } },
-                        { DevicePlatform.MacCatalyst, new[] { "csv" } }
-                    });
-
-                var archivo = await FilePicker.Default.PickAsync(new PickOptions
-                {
-                    PickerTitle = "Seleccione el archivo CSV de estudiantes",
-                    FileTypes = tipoCsv
-                });
+                var archivo = await FilePicker.Default.PickAsync(OpcionesDelSelector());
 
                 // Si el usuario cancela el selector, no pasa nada
                 if (archivo == null) return;
 
-                using var stream = await archivo.OpenReadAsync();
-                _leidos = await _csvImporter.ParseCsvAsync(stream, ComisionSeleccionada?.Id ?? 0);
-                NombreArchivo = archivo.FileName;
-
+                await LeerArchivoAsync(archivo);
                 await EvaluarAsync();
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
-                await AvisarAsync("Error", "No se pudo leer el archivo.");
+                await _dialogo.AvisarAsync("Error", "No se pudo leer el archivo.");
             }
         }
 
         /// <summary>
-        /// Arma la vista previa: marca cada fila como nueva, ya existente, repetida o con errores.
+        /// Configuración del selector de archivos: solo CSV, con el identificador de tipo de cada plataforma.
+        /// </summary>
+        private static PickOptions OpcionesDelSelector() => new()
+        {
+            PickerTitle = "Seleccione el archivo CSV de estudiantes",
+            FileTypes = new FilePickerFileType(new Dictionary<DevicePlatform, IEnumerable<string>>
+            {
+                { DevicePlatform.WinUI, new[] { ".csv" } },
+                { DevicePlatform.Android, new[] { "text/csv", "text/comma-separated-values" } },
+                { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } },
+                { DevicePlatform.MacCatalyst, new[] { "csv" } }
+            })
+        };
+
+        /// <summary>
+        /// Lee los alumnos del archivo elegido y recuerda su nombre.
+        /// </summary>
+        private async Task LeerArchivoAsync(FileResult archivo)
+        {
+            using var stream = await archivo.OpenReadAsync();
+            _leidos = await _csvImporter.ParseCsvAsync(stream, ComisionSeleccionada?.Id ?? 0);
+            NombreArchivo = archivo.FileName;
+        }
+
+        /// <summary>
+        /// Compara lo leído con los alumnos de la comisión y muestra la vista previa, o explica qué falta.
         /// </summary>
         private async Task EvaluarAsync()
         {
             Filas.Clear();
+            var motivo = ObtenerMotivoParaNoEvaluar();
 
+            if (motivo != null)
+                Estado = motivo;
+            else
+                await ClasificarAsync(ComisionSeleccionada!);
+        }
+
+        /// <summary>
+        /// Devuelve qué falta para poder evaluar el archivo (el archivo o la comisión), o null si ya se puede.
+        /// </summary>
+        private string? ObtenerMotivoParaNoEvaluar()
+        {
             if (_leidos.Count == 0)
             {
-                Estado = string.IsNullOrEmpty(NombreArchivo)
+                return string.IsNullOrEmpty(NombreArchivo)
                     ? "Elegí una comisión y un archivo CSV."
                     : "No se encontraron alumnos en el archivo. Formato: Dni;Nombre;Apellido;Email, con encabezado.";
-                return;
             }
 
-            var comision = ComisionSeleccionada;
-            if (comision == null)
-            {
-                Estado = "Elegí una comisión para ver qué se puede importar.";
-                return;
-            }
+            return ComisionSeleccionada == null ? "Elegí una comisión para ver qué se puede importar." : null;
+        }
 
+        /// <summary>
+        /// Trae los alumnos de la comisión, clasifica el archivo y muestra el resultado.
+        /// Si mientras consultaba cambió la comisión elegida, descarta el resultado porque ya no sirve.
+        /// </summary>
+        private async Task ClasificarAsync(Comision comision)
+        {
             try
             {
                 var existentes = await _dataService.GetEstudiantesByComisionIdAsync(comision.Id);
-
-                // Si mientras consultaba cambió la comisión, este resultado ya no sirve
                 if (comision != ComisionSeleccionada) return;
 
-                var dnisExistentes = existentes.Select(e => NormalizarDni(e.Dni)).ToHashSet();
-                var dnisVistos = new HashSet<string>();
-
-                int nuevos = 0, yaExisten = 0, repetidos = 0, conErrores = 0;
-                var filas = new List<ImportacionFila>();
-
-                foreach (var alumno in _leidos)
-                {
-                    var fila = new ImportacionFila
-                    {
-                        Dni = NormalizarDni(alumno.Dni),
-                        Nombre = (alumno.Nombre ?? string.Empty).Trim(),
-                        Apellido = (alumno.Apellido ?? string.Empty).Trim(),
-                        Email = (alumno.Email ?? string.Empty).Trim()
-                    };
-
-                    if (fila.Dni.Length == 0 || fila.Nombre.Length == 0
-                        || fila.Apellido.Length == 0 || fila.Email.Length == 0)
-                    {
-                        conErrores++;
-                        fila.Estado = "Datos incompletos";
-                        fila.Color = "#D32F2F";
-                    }
-                    else if (!ValidacionEmail.EsValido(fila.Email))
-                    {
-                        conErrores++;
-                        fila.Estado = "Email inválido";
-                        fila.Color = "#D32F2F";
-                    }
-                    else if (fila.Dni.Length > 20 || fila.Nombre.Length > 100 || fila.Apellido.Length > 100)
-                    {
-                        conErrores++;
-                        fila.Estado = "Dato demasiado largo";
-                        fila.Color = "#D32F2F";
-                    }
-                    else if (dnisExistentes.Contains(fila.Dni))
-                    {
-                        yaExisten++;
-                        fila.Estado = "Ya existe en la comisión";
-                        fila.Color = "#757575";
-                    }
-                    else if (!dnisVistos.Add(fila.Dni))
-                    {
-                        repetidos++;
-                        fila.Estado = "DNI repetido en el archivo";
-                        fila.Color = "#F57C00";
-                    }
-                    else
-                    {
-                        nuevos++;
-                        fila.SeImporta = true;
-                        fila.Estado = "Nuevo";
-                        fila.Color = "#388E3C";
-                    }
-
-                    filas.Add(fila);
-                }
-
-                foreach (var fila in filas)
-                {
-                    Filas.Add(fila);
-                }
-
-                Estado = $"{NombreArchivo}: {nuevos} para importar, {yaExisten} ya existen, " +
-                         $"{repetidos} repetidos en el archivo, {conErrores} con errores.";
+                MostrarResultado(ClasificadorImportacion.Clasificar(_leidos, existentes.Select(e => e.Dni)));
             }
             catch (Exception ex)
             {
@@ -268,56 +284,121 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             }
         }
 
+        /// <summary>
+        /// Muestra las filas de la vista previa y el resumen con los totales.
+        /// </summary>
+        private void MostrarResultado(ResultadoClasificacion resultado)
+        {
+            foreach (var fila in resultado.Filas)
+            {
+                Filas.Add(CrearFila(fila));
+            }
+
+            Estado = $"{NombreArchivo}: {resultado.Nuevos} para importar, {resultado.YaExisten} ya existen, " +
+                     $"{resultado.Repetidos} repetidos en el archivo, {resultado.ConErrores} con errores.";
+        }
+
+        /// <summary>
+        /// Traduce una fila clasificada a la fila que muestra la pantalla.
+        /// </summary>
+        private static ImportacionFila CrearFila(FilaClasificada fila) => new()
+        {
+            Dni = fila.Dni,
+            Nombre = fila.Nombre,
+            Apellido = fila.Apellido,
+            Email = fila.Email,
+            Estado = PresentacionEstadoFila.Texto(fila.Estado),
+            Color = PresentacionEstadoFila.Color(fila.Estado),
+            SeImporta = fila.SeImporta
+        };
+
+        /// <summary>
+        /// Guarda los alumnos nuevos todos juntos. Si ya se está importando, no hace nada.
+        /// </summary>
         private async Task ImportarAsync()
         {
             if (_importando) return;
 
             var comision = ComisionSeleccionada;
-            if (comision == null)
-            {
-                await AvisarAsync("Atención", "Elegí una comisión antes de importar.");
-                return;
-            }
-
             var nuevos = Filas.Where(f => f.SeImporta).ToList();
-            if (nuevos.Count == 0)
-            {
-                await AvisarAsync("Atención", "No hay alumnos nuevos para importar.");
-                return;
-            }
+            var motivo = ObtenerMotivoParaNoImportar(comision, nuevos.Count);
 
+            if (motivo == null)
+                await GuardarConBloqueoAsync(comision!, nuevos);
+            else
+                await _dialogo.AvisarAsync("Atención", motivo);
+        }
+
+        /// <summary>
+        /// Devuelve por qué no se puede importar (sin comisión o sin alumnos nuevos), o null si se puede.
+        /// </summary>
+        private static string? ObtenerMotivoParaNoImportar(Comision? comision, int cantidadNuevos)
+        {
+            if (comision == null)
+                return "Elegí una comisión antes de importar.";
+
+            return cantidadNuevos == 0 ? "No hay alumnos nuevos para importar." : null;
+        }
+
+        /// <summary>
+        /// Marca que hay una importación en curso mientras guarda, y la desmarca al terminar, salga como salga.
+        /// </summary>
+        private async Task GuardarConBloqueoAsync(Comision comision, List<ImportacionFila> nuevos)
+        {
             _importando = true;
             try
             {
-                try
-                {
-                    var alumnos = nuevos
-                        .Select(f => new Estudiante(0, f.Dni, f.Nombre, f.Apellido, f.Email, comision.Id))
-                        .ToList();
-
-                    // Se guarda todo junto: si algo falla, no queda ningún alumno a medias
-                    await _dataService.SaveEstudiantesMassiveAsync(alumnos);
-                }
-                catch (Exception ex)
-                {
-                    System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
-                    await AvisarAsync("Error", "No se pudo importar el archivo. No se guardó ningún alumno.");
-                    return;
-                }
-
-                var mensaje = $"Se importaron {nuevos.Count} alumnos a la comisión {comision.Nombre}.";
-
-                _leidos = new List<Estudiante>();
-                NombreArchivo = string.Empty;
-                Filas.Clear();
-                Estado = mensaje;
-
-                await AvisarAsync("Éxito", mensaje);
+                await GuardarYAvisarAsync(comision, nuevos);
             }
             finally
             {
                 _importando = false;
             }
+        }
+
+        /// <summary>
+        /// Guarda los alumnos y, si salió bien, limpia la pantalla y avisa cuántos se importaron.
+        /// </summary>
+        private async Task GuardarYAvisarAsync(Comision comision, List<ImportacionFila> nuevos)
+        {
+            if (!await IntentarGuardarAsync(comision, nuevos)) return;
+
+            var mensaje = $"Se importaron {nuevos.Count} alumnos a la comisión {comision.Nombre}.";
+            ReiniciarImportacion(mensaje);
+            await _dialogo.AvisarAsync("Éxito", mensaje);
+        }
+
+        /// <summary>
+        /// Guarda todo junto: si algo falla, no queda ningún alumno a medias, y devuelve false.
+        /// </summary>
+        private async Task<bool> IntentarGuardarAsync(Comision comision, List<ImportacionFila> nuevos)
+        {
+            try
+            {
+                var alumnos = nuevos
+                    .Select(f => new Estudiante(0, f.Dni, f.Nombre, f.Apellido, f.Email, comision.Id))
+                    .ToList();
+
+                await _dataService.SaveEstudiantesMassiveAsync(alumnos);
+                return true;
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                await _dialogo.AvisarAsync("Error", "No se pudo importar el archivo. No se guardó ningún alumno.");
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Deja la pantalla como al principio, con el mensaje indicado como resumen.
+        /// </summary>
+        private void ReiniciarImportacion(string mensaje)
+        {
+            _leidos = new List<Estudiante>();
+            NombreArchivo = string.Empty;
+            Filas.Clear();
+            Estado = mensaje;
         }
     }
 }

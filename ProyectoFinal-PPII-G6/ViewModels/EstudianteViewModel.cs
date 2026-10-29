@@ -1,4 +1,5 @@
 using System;
+using System.Collections.Generic;
 using System.Collections.ObjectModel;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,9 +15,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     public class EstudianteViewModel : BindableObject
     {
         /// <summary>
-        /// Servicio de acceso a datos.
+        /// Lo que se escribió en el formulario de alta, ya limpio (sin espacios de más y con el DNI normalizado).
         /// </summary>
+        private sealed record DatosAlta(string Dni, string Nombre, string Apellido, string Email, Comision? Comision);
+
         private readonly IDataService _dataService;
+        private readonly IDialogoService _dialogo;
 
         /// <summary>
         /// Mientras es true, el setter de la comisión no dispara cargas (se usa al repoblar el selector).
@@ -146,26 +150,15 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// <summary>
         /// Crea el ViewModel, inicializa los comandos y carga las comisiones.
         /// </summary>
-        public EstudianteViewModel(IDataService dataService)
+        public EstudianteViewModel(IDataService dataService, IDialogoService dialogo)
         {
             _dataService = dataService;
+            _dialogo = dialogo;
 
             GuardarEstudianteCommand = new Command(async () => await GuardarEstudianteAsync());
             CargarEstudianteCommand = new Command(async () => await CargarEstudianteAsync());
 
             CargarEstudianteCommand.Execute(null);
-        }
-
-        /// <summary>
-        /// Quita puntos y espacios para que "30.123.456" y "30123456" cuenten como el mismo DNI.
-        /// </summary>
-        private static string NormalizarDni(string? dni) =>
-            (dni ?? string.Empty).Replace(".", string.Empty).Replace(" ", string.Empty).Trim();
-
-        private static async Task AvisarAsync(string titulo, string mensaje)
-        {
-            if (Application.Current?.MainPage != null)
-                await Application.Current.MainPage.DisplayAlert(titulo, mensaje, "OK");
         }
 
         /// <summary>
@@ -176,28 +169,11 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             try
             {
                 var idPrevio = ComisionSeleccionada?.Id;
-                var lista = (await _dataService.GetComisionesAsync())
-                    .OrderBy(c => c.Nombre)
-                    .ToList();
+                var lista = (await _dataService.GetComisionesAsync()).OrderBy(c => c.Nombre).ToList();
 
-                _actualizando = true;
-                try
-                {
-                    Comisiones.Clear();
-                    foreach (var c in lista)
-                    {
-                        Comisiones.Add(c);
-                    }
-
-                    ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idPrevio);
-                }
-                finally
-                {
-                    _actualizando = false;
-                }
-
+                RepoblarComisiones(lista, idPrevio);
                 AvisoComisiones = lista.Count == 0
-                    ? "No hay comisiones cargadas. Ejecutá scripts/03_comisiones.sql en la base."
+                    ? "No hay comisiones cargadas. Ejecutá scripts/comisiones.sql en la base."
                     : string.Empty;
 
                 await CargarAlumnosAsync();
@@ -210,7 +186,29 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Carga los alumnos de la comisión elegida.
+        /// Vuelve a llenar el selector sin disparar la carga de alumnos, y deja elegida la comisión indicada si sigue estando.
+        /// </summary>
+        private void RepoblarComisiones(List<Comision> lista, int? idPrevio)
+        {
+            _actualizando = true;
+            try
+            {
+                Comisiones.Clear();
+                foreach (var c in lista)
+                {
+                    Comisiones.Add(c);
+                }
+
+                ComisionSeleccionada = Comisiones.FirstOrDefault(c => c.Id == idPrevio);
+            }
+            finally
+            {
+                _actualizando = false;
+            }
+        }
+
+        /// <summary>
+        /// Carga los alumnos de la comisión elegida, o avisa que hay que elegir una.
         /// </summary>
         private async Task CargarAlumnosAsync()
         {
@@ -218,27 +216,23 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             Estudiantes.Clear();
 
             if (comision == null)
-            {
                 EstadoLista = "Elegí una comisión para ver su nómina.";
-                return;
-            }
+            else
+                await TraerAlumnosAsync(comision);
+        }
 
+        /// <summary>
+        /// Pide los alumnos de la comisión a la base y los muestra.
+        /// Si mientras consultaba cambió la comisión elegida, descarta el resultado porque ya no sirve.
+        /// </summary>
+        private async Task TraerAlumnosAsync(Comision comision)
+        {
             try
             {
                 var lista = await _dataService.GetEstudiantesByComisionIdAsync(comision.Id);
-
-                // Si mientras consultaba cambió la comisión, este resultado ya no sirve
                 if (comision != ComisionSeleccionada) return;
 
-                Estudiantes.Clear();
-                foreach (var est in lista.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
-                {
-                    Estudiantes.Add(est);
-                }
-
-                EstadoLista = Estudiantes.Count == 0
-                    ? "Esta comisión todavía no tiene alumnos."
-                    : $"{Estudiantes.Count} {(Estudiantes.Count == 1 ? "alumno" : "alumnos")}";
+                MostrarAlumnos(lista);
             }
             catch (Exception ex)
             {
@@ -248,56 +242,129 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
+        /// Reemplaza la nómina por los alumnos recibidos, ordenados por apellido, y actualiza el texto de estado.
+        /// </summary>
+        private void MostrarAlumnos(IEnumerable<Estudiante> lista)
+        {
+            Estudiantes.Clear();
+            foreach (var est in lista.OrderBy(e => e.Apellido).ThenBy(e => e.Nombre))
+            {
+                Estudiantes.Add(est);
+            }
+
+            EstadoLista = Estudiantes.Count == 0
+                ? "Esta comisión todavía no tiene alumnos."
+                : $"{Estudiantes.Count} {(Estudiantes.Count == 1 ? "alumno" : "alumnos")}";
+        }
+
+        /// <summary>
         /// Valida el formulario, guarda el estudiante en la comisión elegida, limpia los campos y recarga la nómina.
         /// </summary>
         private async Task GuardarEstudianteAsync()
         {
-            var dni = NormalizarDni(Dni);
-            var nombre = (Nombre ?? string.Empty).Trim();
-            var apellido = (Apellido ?? string.Empty).Trim();
-            var email = (Email ?? string.Empty).Trim();
-            var comision = ComisionSeleccionada;
+            var datos = LeerFormulario();
+            var error = ObtenerErrorDelFormulario(datos);
 
-            if (dni.Length == 0 || nombre.Length == 0 || apellido.Length == 0 || email.Length == 0 || comision == null)
+            if (error != null)
             {
-                await AvisarAsync("Error", "DNI, Nombre, Apellido, Email y Comisión son obligatorios.");
+                await _dialogo.AvisarAsync("Error", error);
                 return;
             }
 
-            if (!ValidacionEmail.EsValido(email))
-            {
-                await AvisarAsync("Error", "El email no es válido. Tiene que tener el formato nombre@dominio.com.");
-                return;
-            }
+            if (!await IntentarGuardarAsync(datos)) return;
 
-            // La lista de la pantalla es la de la comisión elegida: sirve para avisar antes de ir a la base
-            if (Estudiantes.Any(e => NormalizarDni(e.Dni) == dni))
-            {
-                await AvisarAsync("Error", $"Ya existe un estudiante con ese DNI en la comisión {comision.Nombre}.");
-                return;
-            }
+            LimpiarFormulario();
+            await CargarAlumnosAsync();
+            await _dialogo.AvisarAsync("Éxito", $"Estudiante registrado en la comisión {datos.Comision!.Nombre}.");
+        }
 
+        /// <summary>
+        /// Toma lo escrito en el formulario y lo deja limpio: sin espacios de más y con el DNI normalizado.
+        /// </summary>
+        private DatosAlta LeerFormulario() => new(
+            ValidacionDni.Normalizar(Dni),
+            (Nombre ?? string.Empty).Trim(),
+            (Apellido ?? string.Empty).Trim(),
+            (Email ?? string.Empty).Trim(),
+            ComisionSeleccionada);
+
+        /// <summary>
+        /// Devuelve el primer problema que tenga el formulario, con un mensaje propio para cada uno, o null si está bien.
+        /// El orden importa: primero lo que falta, después el formato y al final si el alumno ya existe.
+        /// </summary>
+        private string? ObtenerErrorDelFormulario(DatosAlta datos) =>
+            ErrorDeObligatorios(datos)
+            ?? ValidacionDni.ObtenerError(datos.Dni)
+            ?? ErrorDeLargo(datos)
+            ?? ErrorDeEmail(datos)
+            ?? ErrorDeDuplicado(datos);
+
+        /// <summary>
+        /// Avisa si falta la comisión o alguno de los datos obligatorios.
+        /// </summary>
+        private static string? ErrorDeObligatorios(DatosAlta datos)
+        {
+            if (datos.Comision == null)
+                return "Elegí una comisión antes de guardar.";
+
+            return datos.Dni.Length == 0 || datos.Nombre.Length == 0 || datos.Apellido.Length == 0 || datos.Email.Length == 0
+                ? "DNI, nombre, apellido y email son obligatorios."
+                : null;
+        }
+
+        /// <summary>
+        /// Avisa si el nombre o el apellido no entran en la base.
+        /// </summary>
+        private static string? ErrorDeLargo(DatosAlta datos) =>
+            datos.Nombre.Length > LimitesAlumno.LargoNombre || datos.Apellido.Length > LimitesAlumno.LargoApellido
+                ? $"El nombre y el apellido admiten hasta {LimitesAlumno.LargoNombre} caracteres."
+                : null;
+
+        /// <summary>
+        /// Avisa si el email no tiene formato de dirección.
+        /// </summary>
+        private static string? ErrorDeEmail(DatosAlta datos) =>
+            ValidacionEmail.EsValido(datos.Email)
+                ? null
+                : "El email no es válido. Tiene que tener el formato nombre@dominio.com.";
+
+        /// <summary>
+        /// Avisa si el DNI ya está en la comisión. La lista de la pantalla es la de la comisión elegida,
+        /// así que sirve para avisar antes de ir a la base.
+        /// </summary>
+        private string? ErrorDeDuplicado(DatosAlta datos) =>
+            Estudiantes.Any(e => ValidacionDni.Normalizar(e.Dni) == datos.Dni)
+                ? $"Ya existe un estudiante con ese DNI en la comisión {datos.Comision?.Nombre}."
+                : null;
+
+        /// <summary>
+        /// Guarda el alumno. Si la base falla, avisa y devuelve false.
+        /// </summary>
+        private async Task<bool> IntentarGuardarAsync(DatosAlta datos)
+        {
             try
             {
-                var nuevo = new Estudiante(0, dni, nombre, apellido, email, comision.Id);
+                var nuevo = new Estudiante(0, datos.Dni, datos.Nombre, datos.Apellido, datos.Email, datos.Comision!.Id);
                 await _dataService.SaveEstudianteAsync(nuevo);
+                return true;
             }
             catch (Exception ex)
             {
                 System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
-                await AvisarAsync("Error", "No se pudo guardar el estudiante. Revisá que el DNI no esté repetido en la comisión.");
-                return;
+                await _dialogo.AvisarAsync("Error", "No se pudo guardar el estudiante. Revisá la conexión con la base de datos.");
+                return false;
             }
+        }
 
-            // La comisión queda elegida para cargar varios alumnos seguidos en la misma
+        /// <summary>
+        /// Vacía los campos del formulario. La comisión queda elegida para cargar varios alumnos seguidos en la misma.
+        /// </summary>
+        private void LimpiarFormulario()
+        {
             Dni = string.Empty;
             Nombre = string.Empty;
             Apellido = string.Empty;
             Email = string.Empty;
-
-            await CargarAlumnosAsync();
-
-            await AvisarAsync("Éxito", $"Estudiante registrado en la comisión {comision.Nombre}.");
         }
     }
 }

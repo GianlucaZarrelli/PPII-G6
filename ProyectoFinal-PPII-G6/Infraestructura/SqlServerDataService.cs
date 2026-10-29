@@ -3,8 +3,9 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 using ProyectoFinal_PPII_G6.Models;
+using ProyectoFinal_PPII_G6.Services;
 
-namespace ProyectoFinal_PPII_G6.Services
+namespace ProyectoFinal_PPII_G6.Infraestructura
 {
     /// <summary>
     /// Acceso a datos sobre SQL Server usando Entity Framework.

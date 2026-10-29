@@ -56,7 +56,7 @@ namespace ProyectoFinal_PPII_G6.Views
         /// <summary>
         /// Cambia entre tema claro y oscuro.
         /// </summary>
-        private void OnThemeSwitchToggled(object sender, ToggledEventArgs e)
+        private void OnThemeSwitchToggled(object? sender, ToggledEventArgs e)
         {
             // Si el cambio lo hizo la app en OnAppearing, ignoramos el evento
             if (_isUpdatingSwitch) return;
@@ -70,7 +70,7 @@ namespace ProyectoFinal_PPII_G6.Views
         /// <summary>
         /// Navega a la pestaña de gestión de alumnos.
         /// </summary>
-        private async void OnNavegarEstudiantesClicked(object sender, EventArgs e)
+        private async void OnNavegarEstudiantesClicked(object? sender, TappedEventArgs e)
         {
             await Shell.Current.GoToAsync("//GestorEstudiantes");
         }
@@ -78,7 +78,7 @@ namespace ProyectoFinal_PPII_G6.Views
         /// <summary>
         /// Navega a la pestaña de asistencia.
         /// </summary>
-        private async void OnNavegarHistorialClicked(object sender, EventArgs e)
+        private async void OnNavegarHistorialClicked(object? sender, TappedEventArgs e)
         {
             await Shell.Current.GoToAsync("//HistorialEstudiantes");
         }

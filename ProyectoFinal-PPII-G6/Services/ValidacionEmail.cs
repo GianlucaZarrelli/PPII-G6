@@ -9,11 +9,6 @@ namespace ProyectoFinal_PPII_G6.Services
     public static class ValidacionEmail
     {
         /// <summary>
-        /// Largo máximo de la columna Email en la base de datos.
-        /// </summary>
-        private const int LargoMaximo = 100;
-
-        /// <summary>
         /// Indica si el texto es una dirección de email válida: no vacía, con formato nombre@dominio.ext
         /// y que entre en la columna de la base.
         /// </summary>
@@ -22,7 +17,7 @@ namespace ProyectoFinal_PPII_G6.Services
             if (string.IsNullOrWhiteSpace(email)) return false;
 
             var texto = email.Trim();
-            if (texto.Length > LargoMaximo) return false;
+            if (texto.Length > LimitesAlumno.LargoEmail) return false;
 
             if (!MailAddress.TryCreate(texto, out var direccion)) return false;
 
