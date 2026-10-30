@@ -63,6 +63,9 @@
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
                     <Label Text="{Binding DetalleEntregas}" FontSize="13"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                    <!-- Si ya lo contactaron y cuándo -->
+                    <Label Text="{Binding ContactoTexto}" FontSize="13" FontAttributes="Bold"
+                           TextColor="{Binding ColorContacto}" />
                 </VerticalStackLayout>
             </Border>
 
@@ -118,6 +121,34 @@
                 </BindableLayout.ItemTemplate>
             </VerticalStackLayout>
 
+            
+            <!-- Historial de contactos -->
+            <Label Text="Contactos con el alumno" FontSize="16" FontAttributes="Bold" />
+
+            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding HistorialContactos}">
+                <BindableLayout.EmptyView>
+                    <Label Text="Todavía no se registraron contactos con este alumno."
+                           HorizontalOptions="Center" TextColor="Gray" Margin="0,10" />
+                </BindableLayout.EmptyView>
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeShape="RoundRectangle 6" Padding="10"
+                                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+                            <VerticalStackLayout Spacing="4">
+                                <Grid ColumnDefinitions="*, Auto">
+                                    <Label Grid.Column="0" Text="{Binding FechaHora}" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                    <Label Grid.Column="1" Text="{Binding Medio}" FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+                                </Grid>
+                                <Label Text="{Binding Resultado}" FontSize="13"
+                                       TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                            </VerticalStackLayout>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+            
         </VerticalStackLayout>
     </ScrollView>
 </ContentPage>

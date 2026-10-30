@@ -54,6 +54,16 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// Resultado u observaciones del contacto.
         /// </summary>
         public string Resultado { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Arma la fila del historial a partir de un contacto. La usan la pantalla de contactos y la ficha del alumno.
+        /// </summary>
+        public static ContactoFila Desde(Contacto contacto) => new()
+        {
+            FechaHora = PresentacionContacto.FechaHora(contacto.FechaHora),
+            Medio = PresentacionMedio.Texto(contacto.Medio),
+            Resultado = contacto.Resultado
+        };
     }
 
     /// <summary>
@@ -356,23 +366,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
             foreach (var contacto in contactos)
             {
-                Historial.Add(CrearFila(contacto));
+                Historial.Add(ContactoFila.Desde(contacto));
             }
 
             Estado = contactos.Count == 0
                 ? $"{alumno.NombreCompleto} todavía no tiene contactos registrados."
                 : $"Contactos con {alumno.NombreCompleto}: {contactos.Count}.";
         }
-
-        /// <summary>
-        /// Arma la fila del historial de un contacto.
-        /// </summary>
-        private static ContactoFila CrearFila(Contacto contacto) => new()
-        {
-            FechaHora = contacto.FechaHora.ToString("dd/MM/yyyy HH:mm"),
-            Medio = PresentacionMedio.Texto(contacto.Medio),
-            Resultado = contacto.Resultado
-        };
 
         /// <summary>
         /// Valida el contacto y, si está bien, lo guarda. Si ya se está guardando, no hace nada.

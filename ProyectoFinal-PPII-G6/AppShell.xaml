@@ -48,13 +48,6 @@
                 ContentTemplate="{DataTemplate views:EntregasPage}"
                 Route="Entregas" />
         </Tab>
-        
-        <Tab Title="Entregas">
-            <ShellContent
-                Title="Entrega de trabajos"
-                ContentTemplate="{DataTemplate views:EntregasPage}"
-                Route="Entregas" />
-        </Tab>
 
         <Tab Title="Contactos">
             <ShellContent

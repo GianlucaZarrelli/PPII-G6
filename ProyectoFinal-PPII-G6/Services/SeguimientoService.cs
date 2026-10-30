@@ -78,6 +78,16 @@ namespace ProyectoFinal_PPII_G6.Services
         public IReadOnlySet<int> IdsTrabajosContados { get; init; } = new HashSet<int>();
 
         /// <summary>
+        /// Fecha y hora del último contacto con el alumno, o null si todavía no se lo contactó.
+        /// </summary>
+        public DateTime? UltimoContacto { get; init; }
+
+        /// <summary>
+        /// Cantidad de contactos registrados con el alumno.
+        /// </summary>
+        public int CantidadContactos { get; init; }
+
+        /// <summary>
         /// El menor de los dos porcentajes: desempata dentro de un mismo nivel.
         /// </summary>
         public double PeorPorcentaje => Math.Min(PorcentajeAsistencia, PorcentajeEntregas);
@@ -107,6 +117,7 @@ namespace ProyectoFinal_PPII_G6.Services
         /// <summary>
         /// Evalúa a un alumno. Las clases y los trabajos son los de su comisión; "hoy" se recibe
         /// como parámetro para poder probar qué pasa con los trabajos vencidos y los que no.
+        /// Los contactos son los del alumno: se suman al resumen, pero no cambian su nivel.
         /// </summary>
         public ResumenAlumno Evaluar(
             Estudiante alumno,
@@ -114,7 +125,8 @@ namespace ProyectoFinal_PPII_G6.Services
             IEnumerable<TrabajoPractico> trabajosComision,
             IEnumerable<Asistencia> asistenciasAlumno,
             IEnumerable<Entrega> entregasAlumno,
-            DateTime hoy)
+            DateTime hoy,
+            IEnumerable<Contacto>? contactosAlumno = null)
         {
             var asistenciasTodas = asistenciasAlumno.ToList();
             var clases = SeleccionarClasesDelAlumno(alumno, clasesComision, asistenciasTodas);
@@ -124,7 +136,8 @@ namespace ProyectoFinal_PPII_G6.Services
             var entregas = FiltrarEntregas(entregasAlumno, trabajos);
 
             var resultado = _riesgoService.CalcularRiesgo(asistencias, clases.Count, entregas, trabajos.Count);
-            return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado);
+            var contactos = (contactosAlumno ?? Array.Empty<Contacto>()).ToList();
+            return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado, contactos);
         }
 
         /// <summary>
@@ -186,7 +199,8 @@ namespace ProyectoFinal_PPII_G6.Services
         /// </summary>
         private static ResumenAlumno ArmarResumen(
             Estudiante alumno, List<Clase> clases, List<TrabajoPractico> trabajos,
-            List<Asistencia> asistencias, List<Entrega> entregas, ResultadoRiesgo resultado)
+            List<Asistencia> asistencias, List<Entrega> entregas, ResultadoRiesgo resultado,
+            List<Contacto> contactos)
         {
             return new ResumenAlumno
             {
@@ -200,7 +214,9 @@ namespace ProyectoFinal_PPII_G6.Services
                 PorcentajeAsistencia = resultado.PorcentajeAsistencia,
                 PorcentajeEntregas = resultado.PorcentajeEntregas,
                 IdsClasesContadas = clases.Select(c => c.Id).ToHashSet(),
-                IdsTrabajosContados = trabajos.Select(t => t.Id).ToHashSet()
+                IdsTrabajosContados = trabajos.Select(t => t.Id).ToHashSet(),
+                UltimoContacto = contactos.Count == 0 ? null : contactos.Max(c => c.FechaHora),
+                CantidadContactos = contactos.Count
             };
         }
 

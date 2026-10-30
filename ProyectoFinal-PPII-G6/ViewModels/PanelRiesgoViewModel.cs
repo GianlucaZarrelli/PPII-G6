@@ -39,6 +39,16 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// Los números que justifican el nivel, por ejemplo "Asistencia 4/6 (67 %)".
         /// </summary>
         public string Detalle { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Resumen del contacto con el alumno: la fecha y hora del último, o "Sin contactar".
+        /// </summary>
+        public string ContactoTexto { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Color del resumen del contacto, en hexadecimal.
+        /// </summary>
+        public string ContactoColor { get; set; } = "#757575";
     }
 
     /// <summary>
@@ -161,7 +171,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             NombreCompleto = resumen.Estudiante.NombreCompleto,
             Nivel = PresentacionNivel.Texto(resumen.Nivel),
             ColorNivel = PresentacionNivel.Color(resumen.Nivel),
-            Detalle = $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}"
+            Detalle = $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}",
+            ContactoTexto = PresentacionContacto.Texto(resumen),
+            ContactoColor = PresentacionContacto.Color(resumen)
         };
     }
 }

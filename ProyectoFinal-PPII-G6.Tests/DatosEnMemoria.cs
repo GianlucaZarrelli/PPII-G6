@@ -20,6 +20,26 @@ namespace ProyectoFinal_PPII_G6.Tests
         public List<Estudiante> Estudiantes { get; } = new();
 
         /// <summary>
+        /// Clases de todas las comisiones de la base falsa.
+        /// </summary>
+        public List<Clase> Clases { get; } = new();
+
+        /// <summary>
+        /// Trabajos prácticos de todas las comisiones de la base falsa.
+        /// </summary>
+        public List<TrabajoPractico> Trabajos { get; } = new();
+
+        /// <summary>
+        /// Asistencias registradas en la base falsa.
+        /// </summary>
+        public List<Asistencia> Asistencias { get; } = new();
+
+        /// <summary>
+        /// Entregas registradas en la base falsa.
+        /// </summary>
+        public List<Entrega> Entregas { get; } = new();
+
+        /// <summary>
         /// Contactos guardados en la base falsa.
         /// </summary>
         public List<Contacto> Contactos { get; } = new();
@@ -29,10 +49,42 @@ namespace ProyectoFinal_PPII_G6.Tests
         /// </summary>
         public bool FallarAlGuardarContacto { get; set; }
 
+        /// <summary>
+        /// Agrega un alumno dado de alta antes de las clases, para que todas le cuenten.
+        /// </summary>
+        public Estudiante AgregarAlumno(int id, string nombre, string apellido, int comisionId)
+        {
+            var alumno = new Estudiante(id, $"9000000{id}", nombre, apellido, "", comisionId)
+            {
+                FechaAlta = new DateTime(2026, 8, 1)
+            };
+
+            Estudiantes.Add(alumno);
+            return alumno;
+        }
+
         public Task<List<Comision>> GetComisionesAsync() => Task.FromResult(Comisiones.ToList());
+
+        public Task<Comision?> GetComisionByIdAsync(int id) => Task.FromResult(Comisiones.FirstOrDefault(c => c.Id == id));
+
+        public Task<Estudiante?> GetEstudianteByIdAsync(int id) => Task.FromResult(Estudiantes.FirstOrDefault(e => e.Id == id));
 
         public Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId) =>
             Task.FromResult(Estudiantes.Where(e => e.ComisionId == comisionId).ToList());
+
+        public Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId) =>
+            Task.FromResult(Clases.Where(c => c.ComisionId == comisionId).OrderByDescending(c => c.Fecha).ToList());
+
+        public Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId) =>
+            Task.FromResult(Trabajos.Where(t => t.ComisionId == comisionId).ToList());
+
+        public Task<List<Asistencia>> GetTodasLasAsistenciasAsync() => Task.FromResult(Asistencias.ToList());
+
+        public Task<List<Asistencia>> GetAsistenciasPorEstudianteAsync(int estudianteId) =>
+            Task.FromResult(Asistencias.Where(a => a.EstudianteId == estudianteId).ToList());
+
+        public Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId) =>
+            Task.FromResult(Entregas.Where(e => e.EstudianteId == estudianteId).ToList());
 
         public Task<int> SaveContactoAsync(Contacto contacto)
         {
@@ -55,21 +107,14 @@ namespace ProyectoFinal_PPII_G6.Tests
 
         // Lo que sigue no se usa en estas pruebas.
         public Task<List<Estudiante>> GetEstudiantesAsync() => throw new NotImplementedException();
-        public Task<Estudiante?> GetEstudianteByIdAsync(int id) => throw new NotImplementedException();
         public Task<int> SaveEstudianteAsync(Estudiante estudiante) => throw new NotImplementedException();
         public Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes) => throw new NotImplementedException();
         public Task<List<Clase>> GetClasesAsync() => throw new NotImplementedException();
         public Task<int> SaveClaseAsync(Clase clase) => throw new NotImplementedException();
-        public Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId) => throw new NotImplementedException();
         public Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias) => throw new NotImplementedException();
-        public Task<List<Asistencia>> GetAsistenciasPorEstudianteAsync(int estudianteId) => throw new NotImplementedException();
-        public Task<List<Asistencia>> GetTodasLasAsistenciasAsync() => throw new NotImplementedException();
         public Task<int> SaveAsistenciaAsync(Asistencia asistencia) => throw new NotImplementedException();
-        public Task<Comision?> GetComisionByIdAsync(int id) => throw new NotImplementedException();
         public Task<Comision> GetOrCreateComisionAsync(string nombre) => throw new NotImplementedException();
-        public Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId) => throw new NotImplementedException();
         public Task<TrabajoPractico> SaveTrabajoPracticoAsync(TrabajoPractico tp) => throw new NotImplementedException();
-        public Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId) => throw new NotImplementedException();
         public Task SaveEntregasAsync(List<Entrega> entregas) => throw new NotImplementedException();
     }
 

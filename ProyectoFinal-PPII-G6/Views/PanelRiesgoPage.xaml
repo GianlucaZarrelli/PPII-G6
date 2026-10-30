@@ -50,6 +50,10 @@
                                     <Label Text="{Binding Detalle}"
                                            FontSize="12"
                                            TextColor="{AppThemeBinding Light=#444444, Dark=#CCCCCC}" />
+                                    <Label Text="{Binding ContactoTexto}"
+                                           FontSize="12"
+                                           FontAttributes="Bold"
+                                           TextColor="{Binding ContactoColor}" />
                                 </VerticalStackLayout>
 
                                 <Label Grid.Column="2"
