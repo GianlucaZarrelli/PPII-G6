@@ -221,7 +221,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 { DevicePlatform.WinUI, new[] { ".csv" } },
                 { DevicePlatform.Android, new[] { "text/csv", "text/comma-separated-values" } },
                 { DevicePlatform.iOS, new[] { "public.comma-separated-values-text" } },
-                { DevicePlatform.MacCatalyst, new[] { "csv" } }
+                { DevicePlatform.MacCatalyst, new[] { "public.comma-separated-values-text" } }
             })
         };
 
