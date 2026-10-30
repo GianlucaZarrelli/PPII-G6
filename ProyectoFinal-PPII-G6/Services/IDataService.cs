@@ -5,7 +5,7 @@ using ProyectoFinal_PPII_G6.Models;
 namespace ProyectoFinal_PPII_G6.Services
 {
     /// <summary>
-    /// Define las operaciones de acceso a datos de estudiantes, comisiones, clases, asistencias, trabajos prácticos y entregas.
+    /// Define las operaciones de acceso a datos de estudiantes, comisiones, clases, asistencias, trabajos prácticos, entregas y contactos.
     /// </summary>
     public interface IDataService
     {
@@ -111,6 +111,21 @@ namespace ProyectoFinal_PPII_G6.Services
         /// </summary>
         Task SaveEntregasAsync(List<Entrega> entregas);
 
+        // Contactos
 
+        /// <summary>
+        /// Guarda un contacto (lo crea si el Id es 0, si no lo actualiza) y devuelve su Id.
+        /// </summary>
+        Task<int> SaveContactoAsync(Contacto contacto);
+
+        /// <summary>
+        /// Obtiene los contactos de un estudiante, del más reciente al más antiguo.
+        /// </summary>
+        Task<List<Contacto>> GetContactosPorEstudianteAsync(int estudianteId);
+
+        /// <summary>
+        /// Obtiene todos los contactos en una sola consulta, del más reciente al más antiguo.
+        /// </summary>
+        Task<List<Contacto>> GetTodosLosContactosAsync();
     }
 }

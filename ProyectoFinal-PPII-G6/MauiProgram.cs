@@ -63,6 +63,8 @@ namespace ProyectoFinal_PPII_G6
             services.AddTransient<AsistenciaFechaViewModel>();
             services.AddTransient<PanelRiesgoViewModel>();
             services.AddTransient<EntregasViewModel>();
+            services.AddTransient<ContactosViewModel>();
+            
         }
 
         /// <summary>
@@ -77,6 +79,7 @@ namespace ProyectoFinal_PPII_G6
             services.AddTransient<AsistenciaFechaPage>();
             services.AddTransient<PanelRiesgoPage>();
             services.AddTransient<EntregasPage>();
+            services.AddTransient<ContactosPage>();
         }
     }
 }

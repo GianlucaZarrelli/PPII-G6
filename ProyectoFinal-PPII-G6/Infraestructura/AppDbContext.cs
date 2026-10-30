@@ -38,6 +38,11 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
         /// Tabla de entregas de trabajos prácticos.
         /// </summary>
         public DbSet<Entrega> Entregas { get; set; }
+        
+        /// <summary>
+        /// Tabla de contactos (intervenciones) con los estudiantes.
+        /// </summary>
+        public DbSet<Contacto> Contactos { get; set; }
 
         /// <summary>
         /// Configura la conexión a SQL Server.
@@ -65,6 +70,7 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
             ConfigurarAsistencia(modelBuilder);
             ConfigurarTrabajoPractico(modelBuilder);
             ConfigurarEntrega(modelBuilder);
+            ConfigurarContacto(modelBuilder);
         }
 
         /// <summary>
@@ -156,6 +162,23 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.Property(e => e.EstudianteId).IsRequired();
                 entity.Property(e => e.TrabajoPracticoId).IsRequired();
                 entity.Property(e => e.Entregado).IsRequired();
+            });
+        }
+        
+        
+        /// <summary>
+        /// Tabla Contactos. El medio se guarda con el nombre del valor (Llamada, Mail...) para que se lea en la base.
+        /// </summary>
+        private static void ConfigurarContacto(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<Contacto>(entity =>
+            {
+                entity.ToTable("Contactos");
+                entity.HasKey(c => c.Id);
+                entity.Property(c => c.EstudianteId).IsRequired();
+                entity.Property(c => c.FechaHora).IsRequired();
+                entity.Property(c => c.Medio).IsRequired().HasConversion<string>().HasMaxLength(20);
+                entity.Property(c => c.Resultado).IsRequired().HasMaxLength(500);
             });
         }
     }

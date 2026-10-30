@@ -262,5 +262,44 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 .Where(e => e.EstudianteId == estudianteId)
                 .ToListAsync();
         }
+        
+        
+        /// <summary>
+        /// Guarda un contacto (lo crea si el Id es 0, si no lo actualiza) y devuelve su Id.
+        /// </summary>
+        public async Task<int> SaveContactoAsync(Contacto contacto)
+        {
+            using var context = CreateContext();
+
+            if (contacto.Id == 0)
+                await context.Contactos.AddAsync(contacto);
+            else
+                context.Contactos.Update(contacto);
+
+            await context.SaveChangesAsync();
+            return contacto.Id;
+        }
+
+        /// <summary>
+        /// Obtiene los contactos de un estudiante, del más reciente al más antiguo.
+        /// </summary>
+        public async Task<List<Contacto>> GetContactosPorEstudianteAsync(int estudianteId)
+        {
+            using var context = CreateContext();
+            return await context.Contactos
+                .AsNoTracking()
+                .Where(c => c.EstudianteId == estudianteId)
+                .OrderByDescending(c => c.FechaHora)
+                .ToListAsync();
+        }
+
+        /// <summary>
+        /// Obtiene todos los contactos en una sola consulta, del más reciente al más antiguo.
+        /// </summary>
+        public async Task<List<Contacto>> GetTodosLosContactosAsync()
+        {
+            using var context = CreateContext();
+            return await context.Contactos.AsNoTracking().OrderByDescending(c => c.FechaHora).ToListAsync();
+        }
     }
 }
