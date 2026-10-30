@@ -1,0 +1,121 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoFinal_PPII_G6.Views.ContactosPage"
+             Title="Registro de contactos">
+
+    <Grid RowDefinitions="*,Auto">
+
+        <ScrollView Grid.Row="0" Padding="15">
+            <VerticalStackLayout Spacing="12">
+
+                <!-- Selectores: primero la comisión, después el alumno -->
+                <Label Text="Comisión:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding Comisiones}"
+                        ItemDisplayBinding="{Binding Nombre}"
+                        SelectedItem="{Binding ComisionSeleccionada}"
+                        Title="-- Seleccione una comisión --"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                <Label Text="Estudiante:" FontAttributes="Bold" FontSize="14" />
+                <Picker ItemsSource="{Binding ListaEstudiantes}"
+                        ItemDisplayBinding="{Binding NombreCompleto}"
+                        SelectedItem="{Binding EstudianteSeleccionado}"
+                        Title="-- Seleccione un alumno --"
+                        TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                <!-- Datos del contacto -->
+                <Border StrokeShape="RoundRectangle 10"
+                        Stroke="#E0E0E0"
+                        Padding="12"
+                        BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
+                    <VerticalStackLayout Spacing="8">
+                        <Label Text="Nuevo contacto"
+                               FontSize="16"
+                               FontAttributes="Bold"
+                               TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+
+                        <Label Text="Fecha:" FontSize="12" TextColor="Gray" />
+                        <DatePicker Date="{Binding Fecha}"
+                                    Format="dd/MM/yyyy"
+                                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                        <Label Text="Hora:" FontSize="12" TextColor="Gray" />
+                        <TimePicker Time="{Binding Hora}"
+                                    Format="HH:mm"
+                                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                        <Label Text="Medio de contacto:" FontSize="12" TextColor="Gray" />
+                        <Picker ItemsSource="{Binding Medios}"
+                                ItemDisplayBinding="{Binding Texto}"
+                                SelectedItem="{Binding MedioSeleccionado}"
+                                Title="-- Seleccione el medio --"
+                                TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                        <Label Text="Resultado u observaciones:" FontSize="12" TextColor="Gray" />
+                        <Editor Text="{Binding Resultado}"
+                                MaxLength="{Binding LargoMaximoResultado}"
+                                Placeholder="¿Qué pasó? ¿Qué quedó acordado?"
+                                HeightRequest="100"
+                                AutoSize="Disabled"
+                                TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                                PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}" />
+                        <Label Text="{Binding ContadorResultado}"
+                               FontSize="11"
+                               TextColor="Gray"
+                               HorizontalOptions="End" />
+                    </VerticalStackLayout>
+                </Border>
+
+                <Label Text="{Binding Estado}" FontSize="12" TextColor="Gray" />
+
+                <!-- Historial de contactos del alumno elegido -->
+                <Label Text="Contactos anteriores" FontSize="16" FontAttributes="Bold" />
+
+                <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Historial}">
+                    <BindableLayout.EmptyView>
+                        <Label Text="No hay contactos para mostrar."
+                               HorizontalOptions="Center"
+                               TextColor="Gray"
+                               Margin="0,10" />
+                    </BindableLayout.EmptyView>
+
+                    <BindableLayout.ItemTemplate>
+                        <DataTemplate>
+                            <Border StrokeShape="RoundRectangle 6"
+                                    Padding="10"
+                                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+                                <VerticalStackLayout Spacing="4">
+                                    <Grid ColumnDefinitions="*, Auto">
+                                        <Label Grid.Column="0"
+                                               Text="{Binding FechaHora}"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                        <Label Grid.Column="1"
+                                               Text="{Binding Medio}"
+                                               FontAttributes="Bold"
+                                               TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+                                    </Grid>
+                                    <Label Text="{Binding Resultado}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                </VerticalStackLayout>
+                            </Border>
+                        </DataTemplate>
+                    </BindableLayout.ItemTemplate>
+                </VerticalStackLayout>
+
+            </VerticalStackLayout>
+        </ScrollView>
+
+        <!-- Fuera del scroll para que siempre esté a mano -->
+        <Button Grid.Row="1"
+                Text="Registrar contacto"
+                Command="{Binding GuardarCommand}"
+                BackgroundColor="#512BD4"
+                TextColor="White"
+                HeightRequest="45"
+                CornerRadius="8"
+                Margin="15" />
+    </Grid>
+</ContentPage>

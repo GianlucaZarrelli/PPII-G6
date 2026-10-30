@@ -9,7 +9,7 @@ cuenta administradora (por ejemplo `sa`).
 |---|---|---|
 | 1 | `crear_base.sql` | Borra la base si existe y la crea con todas las tablas |
 | 2 | `comisiones.sql` | Crea las comisiones A, B y C |
-| 3 | `datos_demo.sql` | Carga 12 alumnos con clases, trabajos y entregas (opcional) |
+| 3 | `datos_demo.sql` | Carga 12 alumnos con clases, trabajos, entregas y algunos contactos (opcional) |
 
 ## Ensayar la demo sin recrear la base
 

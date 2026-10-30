@@ -9,6 +9,7 @@ USE SistemaAlertaTemprana;
 SET XACT_ABORT ON;
 
 BEGIN TRANSACTION;
+DELETE FROM Contactos;
 DELETE FROM Entregas;
 DELETE FROM Asistencias;
 DELETE FROM Estudiantes;
@@ -18,6 +19,7 @@ DELETE FROM Comisiones;
 COMMIT TRANSACTION;
 
 -- Reinicia los contadores: la próxima fila de cada tabla va a tener Id = 1
+DBCC CHECKIDENT ('Contactos', RESEED, 0);
 DBCC CHECKIDENT ('Entregas', RESEED, 0);
 DBCC CHECKIDENT ('Asistencias', RESEED, 0);
 DBCC CHECKIDENT ('Estudiantes', RESEED, 0);
