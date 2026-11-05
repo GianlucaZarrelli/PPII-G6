@@ -50,6 +50,11 @@ namespace ProyectoFinal_PPII_G6.Tests
         public bool FallarAlGuardarContacto { get; set; }
 
         /// <summary>
+        /// Si es true, crear una comisión falla, como si la base estuviera caída.
+        /// </summary>
+        public bool FallarAlCrearComision { get; set; }
+
+        /// <summary>
         /// Agrega un alumno dado de alta antes de las clases, para que todas le cuenten.
         /// </summary>
         public Estudiante AgregarAlumno(int id, string nombre, string apellido, int comisionId)
@@ -65,15 +70,33 @@ namespace ProyectoFinal_PPII_G6.Tests
 
         public Task<List<Comision>> GetComisionesAsync() => Task.FromResult(Comisiones.ToList());
 
+        public Task<Comision> GetOrCreateComisionAsync(string nombre)
+        {
+            if (FallarAlCrearComision)
+                throw new InvalidOperationException("La base de datos no responde.");
+
+            var existente = Comisiones.FirstOrDefault(c => string.Equals(c.Nombre, nombre.Trim(), StringComparison.OrdinalIgnoreCase));
+            if (existente != null)
+                return Task.FromResult(existente);
+
+            var nueva = new Comision(Comisiones.Count == 0 ? 1 : Comisiones.Max(c => c.Id) + 1, nombre.Trim());
+            Comisiones.Add(nueva);
+            return Task.FromResult(nueva);
+        }
+
         public Task<Comision?> GetComisionByIdAsync(int id) => Task.FromResult(Comisiones.FirstOrDefault(c => c.Id == id));
 
         public Task<Estudiante?> GetEstudianteByIdAsync(int id) => Task.FromResult(Estudiantes.FirstOrDefault(e => e.Id == id));
 
-        public Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId) =>
-            Task.FromResult(Estudiantes.Where(e => e.ComisionId == comisionId).ToList());
-
         public Task<List<Clase>> GetClasesByComisionIdAsync(int comisionId) =>
             Task.FromResult(Clases.Where(c => c.ComisionId == comisionId).OrderByDescending(c => c.Fecha).ToList());
+
+        public Task<int> SaveClaseAsync(Clase clase)
+        {
+            clase.Id = Clases.Count + 1;
+            Clases.Add(clase);
+            return Task.FromResult(clase.Id);
+        }
 
         public Task<List<TrabajoPractico>> GetTrabajosPracticosByComisionIdAsync(int comisionId) =>
             Task.FromResult(Trabajos.Where(t => t.ComisionId == comisionId).ToList());
@@ -85,6 +108,9 @@ namespace ProyectoFinal_PPII_G6.Tests
 
         public Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId) =>
             Task.FromResult(Entregas.Where(e => e.EstudianteId == estudianteId).ToList());
+
+        public Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId) =>
+            Task.FromResult(Estudiantes.Where(e => e.ComisionId == comisionId).ToList());
 
         public Task<int> SaveContactoAsync(Contacto contacto)
         {
@@ -110,10 +136,8 @@ namespace ProyectoFinal_PPII_G6.Tests
         public Task<int> SaveEstudianteAsync(Estudiante estudiante) => throw new NotImplementedException();
         public Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes) => throw new NotImplementedException();
         public Task<List<Clase>> GetClasesAsync() => throw new NotImplementedException();
-        public Task<int> SaveClaseAsync(Clase clase) => throw new NotImplementedException();
         public Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias) => throw new NotImplementedException();
         public Task<int> SaveAsistenciaAsync(Asistencia asistencia) => throw new NotImplementedException();
-        public Task<Comision> GetOrCreateComisionAsync(string nombre) => throw new NotImplementedException();
         public Task<TrabajoPractico> SaveTrabajoPracticoAsync(TrabajoPractico tp) => throw new NotImplementedException();
         public Task SaveEntregasAsync(List<Entrega> entregas) => throw new NotImplementedException();
     }

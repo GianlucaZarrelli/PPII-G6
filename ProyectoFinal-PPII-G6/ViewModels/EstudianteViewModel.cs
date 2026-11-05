@@ -137,10 +137,31 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _avisoComisiones = value; OnPropertyChanged(); }
         }
 
+        private string _nombreComision = string.Empty;
+
+        /// <summary>
+        /// Nombre escrito en el campo de la comisión nueva.
+        /// </summary>
+        public string NombreComision
+        {
+            get => _nombreComision;
+            set { _nombreComision = value ?? string.Empty; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Largo máximo del nombre de una comisión, para limitar el cuadro de texto.
+        /// </summary>
+        public int LargoMaximoNombreComision => ValidacionComision.LargoMaximoNombre;
+
         /// <summary>
         /// Comando para guardar un estudiante nuevo.
         /// </summary>
         public Command GuardarEstudianteCommand { get; }
+
+        /// <summary>
+        /// Comando para crear una comisión nueva.
+        /// </summary>
+        public Command CrearComisionCommand { get; }
 
         /// <summary>
         /// Comando para recargar las comisiones y la nómina.
@@ -157,6 +178,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
             GuardarEstudianteCommand = new Command(async () => await GuardarEstudianteAsync());
             CargarEstudianteCommand = new Command(async () => await CargarEstudianteAsync());
+            CrearComisionCommand = new Command(async () => await CrearComisionAsync());
 
             CargarEstudianteCommand.Execute(null);
         }
@@ -173,7 +195,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
                 RepoblarComisiones(lista, idPrevio);
                 AvisoComisiones = lista.Count == 0
-                    ? "No hay comisiones cargadas. Ejecutá scripts/comisiones.sql en la base."
+                    ? "Todavía no hay comisiones. Creá la primera con el campo de abajo."
                     : string.Empty;
 
                 await CargarAlumnosAsync();
@@ -205,6 +227,52 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             {
                 _actualizando = false;
             }
+        }
+
+        /// <summary>
+        /// Valida el nombre escrito y, si está bien, crea la comisión. Es pública para poder probarla sin la pantalla.
+        /// </summary>
+        public async Task CrearComisionAsync()
+        {
+            var nombre = (NombreComision ?? string.Empty).Trim();
+            var error = ValidacionComision.ObtenerError(nombre, Comisiones.Select(c => c.Nombre));
+
+            if (error != null)
+                await _dialogo.AvisarAsync("Atención", error);
+            else
+                await GuardarComisionAsync(nombre);
+        }
+
+        /// <summary>
+        /// Crea la comisión en la base, la deja elegida y avisa. Si la base falla, avisa y conserva lo escrito.
+        /// </summary>
+        private async Task GuardarComisionAsync(string nombre)
+        {
+            try
+            {
+                var comision = await _dataService.GetOrCreateComisionAsync(nombre);
+
+                NombreComision = string.Empty;
+                await MostrarComisionNuevaAsync(comision);
+                await _dialogo.AvisarAsync("Éxito", $"Comisión {comision.Nombre} creada.");
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                await _dialogo.AvisarAsync("Error", "No se pudo crear la comisión. Revisá la conexión con la base de datos.");
+            }
+        }
+
+        /// <summary>
+        /// Vuelve a cargar el selector con la comisión nueva incluida, la deja elegida y muestra su nómina (vacía).
+        /// </summary>
+        private async Task MostrarComisionNuevaAsync(Comision nueva)
+        {
+            var lista = (await _dataService.GetComisionesAsync()).OrderBy(c => c.Nombre).ToList();
+
+            RepoblarComisiones(lista, nueva.Id);
+            AvisoComisiones = string.Empty;
+            await CargarAlumnosAsync();
         }
 
         /// <summary>

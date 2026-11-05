@@ -16,6 +16,23 @@
                         Title="-- Seleccione una comisión --"
                         TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
                 <Label Text="{Binding AvisoComisiones}" FontSize="12" TextColor="#D32F2F" />
+
+                <!-- Alta de una comisión nueva -->
+                <Grid ColumnDefinitions="*, Auto" ColumnSpacing="10">
+                    <Entry Grid.Column="0"
+                           Placeholder="Nombre de la nueva comisión"
+                           Text="{Binding NombreComision}"
+                           MaxLength="{Binding LargoMaximoNombreComision}"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                           ClearButtonVisibility="WhileEditing" />
+                    <Button Grid.Column="1"
+                            Text="Crear comisión"
+                            Command="{Binding CrearComisionCommand}"
+                            BackgroundColor="#512BD4"
+                            TextColor="White"
+                            CornerRadius="8" />
+                </Grid>
             </VerticalStackLayout>
 
             <!-- Formulario de alta -->
