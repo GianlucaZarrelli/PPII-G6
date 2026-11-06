@@ -10,7 +10,7 @@
             <!-- Switch Modo Oscuro / Claro -->
             <HorizontalStackLayout HorizontalOptions="End" Spacing="10">
                 <Label Text="Modo Oscuro" VerticalOptions="Center" FontAttributes="Bold" FontSize="12" />
-                <Switch x:Name="ThemeSwitch" Toggled="OnThemeSwitchToggled" />
+                <Switch IsToggled="{Binding TemaOscuro}" />
             </HorizontalStackLayout>
 
             <!-- Encabezado del Sistema -->
@@ -60,7 +60,7 @@
                     BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
                     Stroke="#E0E0E0">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnNavegarEstudiantesClicked" />
+                    <TapGestureRecognizer Command="{Binding IrAAlumnosCommand}" />
                 </Border.GestureRecognizers>
                 <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15" VerticalOptions="Center">
                     <Label Grid.Column="0" Text="" FontSize="32" VerticalOptions="Center" />
@@ -77,7 +77,7 @@
                     BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}"
                     Stroke="#E0E0E0">
                 <Border.GestureRecognizers>
-                    <TapGestureRecognizer Tapped="OnNavegarHistorialClicked" />
+                    <TapGestureRecognizer Command="{Binding IrAHistorialCommand}" />
                 </Border.GestureRecognizers>
                 <Grid ColumnDefinitions="Auto, *" ColumnSpacing="15" VerticalOptions="Center">
                     <Label Grid.Column="0" Text="" FontSize="32" VerticalOptions="Center" />

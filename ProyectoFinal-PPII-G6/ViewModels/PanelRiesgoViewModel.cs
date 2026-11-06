@@ -49,6 +49,11 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// Color del resumen del contacto, en hexadecimal.
         /// </summary>
         public string ContactoColor { get; set; } = "#757575";
+
+        /// <summary>
+        /// Comando que abre la ficha de este alumno al tocar la fila.
+        /// </summary>
+        public Command? AbrirFichaCommand { get; set; }
     }
 
     /// <summary>
@@ -58,6 +63,8 @@ namespace ProyectoFinal_PPII_G6.ViewModels
     {
         private readonly IDataService _dataService;
         private readonly ConsultaSeguimiento _consulta;
+        private readonly SeleccionAlumnoService _seleccion;
+        private readonly INavegacion _navegacion;
 
         /// <summary>
         /// Comisiones disponibles para elegir.
@@ -86,12 +93,16 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Crea el ViewModel con el acceso a datos y la consulta que evalúa a los alumnos.
+        /// Crea el ViewModel con el acceso a datos, la consulta que evalúa a los alumnos, el aviso de qué alumno abrir
+        /// y la navegación.
         /// </summary>
-        public PanelRiesgoViewModel(IDataService dataService, ConsultaSeguimiento consulta)
+        public PanelRiesgoViewModel(
+            IDataService dataService, ConsultaSeguimiento consulta, SeleccionAlumnoService seleccion, INavegacion navegacion)
         {
             _dataService = dataService;
             _consulta = consulta;
+            _seleccion = seleccion;
+            _navegacion = navegacion;
         }
 
         /// <summary>
@@ -163,9 +174,18 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
+        /// Anota qué alumno tiene que mostrar el Historial y va a esa pantalla.
+        /// </summary>
+        private async Task AbrirFichaAsync(int estudianteId)
+        {
+            _seleccion.Pedir(estudianteId);
+            await _navegacion.IrAAsync(Rutas.Historial);
+        }
+
+        /// <summary>
         /// Traduce un resumen a la fila que muestra el panel.
         /// </summary>
-        private static AlumnoRiesgoItem CrearItem(ResumenAlumno resumen) => new()
+        private AlumnoRiesgoItem CrearItem(ResumenAlumno resumen) => new()
         {
             EstudianteId = resumen.Estudiante.Id,
             NombreCompleto = resumen.Estudiante.NombreCompleto,
@@ -173,7 +193,8 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             ColorNivel = PresentacionNivel.Color(resumen.Nivel),
             Detalle = $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}",
             ContactoTexto = PresentacionContacto.Texto(resumen),
-            ContactoColor = PresentacionContacto.Color(resumen)
+            ContactoColor = PresentacionContacto.Color(resumen),
+            AbrirFichaCommand = new Command(async () => await AbrirFichaAsync(resumen.Estudiante.Id))
         };
     }
 }

@@ -35,7 +35,7 @@
                                 Padding="0"
                                 BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
                             <Border.GestureRecognizers>
-                                <TapGestureRecognizer Tapped="OnAlumnoTapped" />
+                                <TapGestureRecognizer Command="{Binding AbrirFichaCommand}" />
                             </Border.GestureRecognizers>
 
                             <Grid ColumnDefinitions="6, *, Auto">

@@ -33,7 +33,7 @@ namespace ProyectoFinal_PPII_G6.Tests
         public async Task Panel_MarcaALosContactadosYAlosPendientes()
         {
             // Arrange
-            var vm = new PanelRiesgoViewModel(_datos, _consulta);
+            var vm = new PanelRiesgoViewModel(_datos, _consulta, new SeleccionAlumnoService(), new NavegacionFalsa());
 
             // Act
             await vm.CargarAsync();

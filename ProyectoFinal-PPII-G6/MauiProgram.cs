@@ -49,6 +49,8 @@ namespace ProyectoFinal_PPII_G6
             services.AddSingleton<SeguimientoService>();
             services.AddSingleton<ConsultaSeguimiento>();
             services.AddSingleton<IDialogoService, DialogoService>();
+            services.AddSingleton<INavegacion, NavegacionShell>();
+            services.AddSingleton<ITema, TemaApp>();
         }
 
         /// <summary>
