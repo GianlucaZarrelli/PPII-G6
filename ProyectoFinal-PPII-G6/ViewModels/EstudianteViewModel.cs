@@ -35,7 +35,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         public string Dni
         {
             get => _dni;
-            set { _dni = value; OnPropertyChanged(); }
+            set
+            {
+                _dni = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorDni)) ErrorDni = string.Empty;
+            }
         }
 
         private string _nombre = string.Empty;
@@ -46,7 +51,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         public string Nombre
         {
             get => _nombre;
-            set { _nombre = value; OnPropertyChanged(); }
+            set
+            {
+                _nombre = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorNombre)) ErrorNombre = string.Empty;
+            }
         }
 
         private string _apellido = string.Empty;
@@ -57,7 +67,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         public string Apellido
         {
             get => _apellido;
-            set { _apellido = value; OnPropertyChanged(); }
+            set
+            {
+                _apellido = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorApellido)) ErrorApellido = string.Empty;
+            }
         }
 
         private string _email = string.Empty;
@@ -68,7 +83,61 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         public string Email
         {
             get => _email;
-            set { _email = value; OnPropertyChanged(); }
+            set
+            {
+                _email = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorEmail)) ErrorEmail = string.Empty;
+            }
+        }
+
+        private string _errorComision = string.Empty;
+        private string _errorDni = string.Empty;
+        private string _errorNombre = string.Empty;
+        private string _errorApellido = string.Empty;
+        private string _errorEmail = string.Empty;
+        private string _errorNombreComision = string.Empty;
+
+        /// <summary>Texto rojo debajo del selector de comisión.</summary>
+        public string ErrorComision
+        {
+            get => _errorComision;
+            set { _errorComision = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Texto rojo debajo del DNI.</summary>
+        public string ErrorDni
+        {
+            get => _errorDni;
+            set { _errorDni = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Texto rojo debajo del nombre.</summary>
+        public string ErrorNombre
+        {
+            get => _errorNombre;
+            set { _errorNombre = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Texto rojo debajo del apellido.</summary>
+        public string ErrorApellido
+        {
+            get => _errorApellido;
+            set { _errorApellido = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Texto rojo debajo del email.</summary>
+        public string ErrorEmail
+        {
+            get => _errorEmail;
+            set { _errorEmail = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Texto rojo debajo del nombre de la comisión nueva.</summary>
+        public string ErrorNombreComision
+        {
+            get => _errorNombreComision;
+            set { _errorNombreComision = value; OnPropertyChanged(); }
         }
 
         /// <summary>
@@ -95,6 +164,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 OnPropertyChanged();
                 OnPropertyChanged(nameof(TituloAlta));
                 OnPropertyChanged(nameof(TituloNomina));
+                if (!string.IsNullOrEmpty(ErrorComision)) ErrorComision = string.Empty;
 
                 if (_actualizando) return;
                 _ = CargarAlumnosAsync();
@@ -145,7 +215,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         public string NombreComision
         {
             get => _nombreComision;
-            set { _nombreComision = value ?? string.Empty; OnPropertyChanged(); }
+            set
+            {
+                _nombreComision = value ?? string.Empty;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorNombreComision)) ErrorNombreComision = string.Empty;
+            }
         }
 
         /// <summary>
@@ -238,7 +313,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             var error = ValidacionComision.ObtenerError(nombre, Comisiones.Select(c => c.Nombre));
 
             if (error != null)
-                await _dialogo.AvisarAsync("Atención", error);
+                ErrorNombreComision = error;
             else
                 await GuardarComisionAsync(nombre);
         }
@@ -327,17 +402,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         /// <summary>
         /// Valida el formulario, guarda el estudiante en la comisión elegida, limpia los campos y recarga la nómina.
+        /// Los errores de validación se muestran en rojo debajo de cada campo (sin ventana emergente).
         /// </summary>
         private async Task GuardarEstudianteAsync()
         {
             var datos = LeerFormulario();
-            var error = ObtenerErrorDelFormulario(datos);
-
-            if (error != null)
-            {
-                await _dialogo.AvisarAsync("Error", error);
+            if (!AplicarErroresDelFormulario(datos))
                 return;
-            }
 
             if (!await IntentarGuardarAsync(datos)) return;
 
@@ -357,53 +428,58 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             ComisionSeleccionada);
 
         /// <summary>
-        /// Devuelve el primer problema que tenga el formulario, con un mensaje propio para cada uno, o null si está bien.
-        /// El orden importa: primero lo que falta, después el formato y al final si el alumno ya existe.
+        /// Completa los textos rojos de cada campo. Devuelve true si el formulario está bien.
+        /// Muestra todos los problemas a la vez (no solo el primero).
         /// </summary>
-        private string? ObtenerErrorDelFormulario(DatosAlta datos) =>
-            ErrorDeObligatorios(datos)
-            ?? ValidacionDni.ObtenerError(datos.Dni)
-            ?? ErrorDeLargo(datos)
-            ?? ErrorDeEmail(datos)
-            ?? ErrorDeDuplicado(datos);
-
-        /// <summary>
-        /// Avisa si falta la comisión o alguno de los datos obligatorios.
-        /// </summary>
-        private static string? ErrorDeObligatorios(DatosAlta datos)
+        private bool AplicarErroresDelFormulario(DatosAlta datos)
         {
-            if (datos.Comision == null)
-                return "Elegí una comisión antes de guardar.";
+            LimpiarErroresAlta();
 
-            return datos.Dni.Length == 0 || datos.Nombre.Length == 0 || datos.Apellido.Length == 0 || datos.Email.Length == 0
-                ? "DNI, nombre, apellido y email son obligatorios."
-                : null;
+            if (datos.Comision == null)
+                ErrorComision = "Elegí una comisión antes de guardar.";
+
+            ErrorDni = ValidacionDni.ObtenerError(datos.Dni) ?? string.Empty;
+
+            if (datos.Nombre.Length == 0)
+                ErrorNombre = "Ingresá un nombre.";
+            else if (datos.Nombre.Length > LimitesAlumno.LargoNombre)
+                ErrorNombre = $"El nombre admite hasta {LimitesAlumno.LargoNombre} caracteres.";
+
+            if (datos.Apellido.Length == 0)
+                ErrorApellido = "Ingresá un apellido.";
+            else if (datos.Apellido.Length > LimitesAlumno.LargoApellido)
+                ErrorApellido = $"El apellido admite hasta {LimitesAlumno.LargoApellido} caracteres.";
+
+            if (datos.Email.Length == 0)
+                ErrorEmail = "Ingresá un email.";
+            else if (!ValidacionEmail.EsValido(datos.Email))
+                ErrorEmail = "El email no es válido. Tiene que tener el formato nombre@dominio.com.";
+
+            if (string.IsNullOrEmpty(ErrorDni)
+                && datos.Comision != null
+                && Estudiantes.Any(e => ValidacionDni.Normalizar(e.Dni) == datos.Dni))
+            {
+                ErrorDni = $"Ya existe un estudiante con ese DNI en la comisión {datos.Comision.Nombre}.";
+            }
+
+            return string.IsNullOrEmpty(ErrorComision)
+                && string.IsNullOrEmpty(ErrorDni)
+                && string.IsNullOrEmpty(ErrorNombre)
+                && string.IsNullOrEmpty(ErrorApellido)
+                && string.IsNullOrEmpty(ErrorEmail);
         }
 
         /// <summary>
-        /// Avisa si el nombre o el apellido no entran en la base.
+        /// Borra los textos rojos del alta de alumno.
         /// </summary>
-        private static string? ErrorDeLargo(DatosAlta datos) =>
-            datos.Nombre.Length > LimitesAlumno.LargoNombre || datos.Apellido.Length > LimitesAlumno.LargoApellido
-                ? $"El nombre y el apellido admiten hasta {LimitesAlumno.LargoNombre} caracteres."
-                : null;
-
-        /// <summary>
-        /// Avisa si el email no tiene formato de dirección.
-        /// </summary>
-        private static string? ErrorDeEmail(DatosAlta datos) =>
-            ValidacionEmail.EsValido(datos.Email)
-                ? null
-                : "El email no es válido. Tiene que tener el formato nombre@dominio.com.";
-
-        /// <summary>
-        /// Avisa si el DNI ya está en la comisión. La lista de la pantalla es la de la comisión elegida,
-        /// así que sirve para avisar antes de ir a la base.
-        /// </summary>
-        private string? ErrorDeDuplicado(DatosAlta datos) =>
-            Estudiantes.Any(e => ValidacionDni.Normalizar(e.Dni) == datos.Dni)
-                ? $"Ya existe un estudiante con ese DNI en la comisión {datos.Comision?.Nombre}."
-                : null;
+        private void LimpiarErroresAlta()
+        {
+            ErrorComision = string.Empty;
+            ErrorDni = string.Empty;
+            ErrorNombre = string.Empty;
+            ErrorApellido = string.Empty;
+            ErrorEmail = string.Empty;
+        }
 
         /// <summary>
         /// Guarda el alumno. Si la base falla, avisa y devuelve false.
@@ -433,6 +509,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             Nombre = string.Empty;
             Apellido = string.Empty;
             Email = string.Empty;
+            LimpiarErroresAlta();
         }
     }
 }

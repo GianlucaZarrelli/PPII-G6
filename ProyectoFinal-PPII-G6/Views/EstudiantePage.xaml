@@ -33,6 +33,9 @@
                             TextColor="White"
                             CornerRadius="8" />
                 </Grid>
+                <Label Text="{Binding ErrorNombreComision}"
+                       FontSize="12"
+                       TextColor="#D32F2F" />
             </VerticalStackLayout>
 
             <!-- Formulario de alta -->
@@ -46,24 +49,37 @@
                            FontAttributes="Bold"
                            TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
 
+                    <Label Text="{Binding ErrorComision}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
+
                     <Entry Placeholder="DNI"
                            Text="{Binding Dni}"
                            Keyboard="Numeric"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
+                    <Label Text="{Binding ErrorDni}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
 
                     <Entry Placeholder="Nombre"
                            Text="{Binding Nombre}"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
+                    <Label Text="{Binding ErrorNombre}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
 
                     <Entry Placeholder="Apellido"
                            Text="{Binding Apellido}"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
+                    <Label Text="{Binding ErrorApellido}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
 
                     <Entry Placeholder="Email"
                            Text="{Binding Email}"
@@ -71,6 +87,9 @@
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
                            PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
                            ClearButtonVisibility="WhileEditing" />
+                    <Label Text="{Binding ErrorEmail}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
 
                     <Button Text="Guardar Estudiante"
                             Command="{Binding GuardarEstudianteCommand}"

@@ -92,8 +92,9 @@ namespace ProyectoFinal_PPII_G6.Tests
             // Act
             await vm.CrearComisionAsync();
 
-            // Assert
-            Assert.Equal(new[] { "Atención: El nombre de la comisión es obligatorio." }, _dialogo.Avisos);
+            // Assert: el aviso va en rojo debajo del campo, sin ventana emergente.
+            Assert.Empty(_dialogo.Avisos);
+            Assert.Equal("El nombre de la comisión es obligatorio.", vm.ErrorNombreComision);
             Assert.Equal(2, _datos.Comisiones.Count);
         }
 
@@ -108,7 +109,8 @@ namespace ProyectoFinal_PPII_G6.Tests
             await vm.CrearComisionAsync();
 
             // Assert
-            Assert.Equal(new[] { "Atención: Ya existe una comisión con ese nombre." }, _dialogo.Avisos);
+            Assert.Empty(_dialogo.Avisos);
+            Assert.Equal("Ya existe una comisión con ese nombre.", vm.ErrorNombreComision);
             Assert.Equal(2, _datos.Comisiones.Count);
         }
 
@@ -123,7 +125,8 @@ namespace ProyectoFinal_PPII_G6.Tests
             await vm.CrearComisionAsync();
 
             // Assert
-            Assert.Equal(new[] { "Atención: El nombre de la comisión admite hasta 100 caracteres." }, _dialogo.Avisos);
+            Assert.Empty(_dialogo.Avisos);
+            Assert.Equal("El nombre de la comisión admite hasta 100 caracteres.", vm.ErrorNombreComision);
             Assert.Equal(2, _datos.Comisiones.Count);
         }
 
