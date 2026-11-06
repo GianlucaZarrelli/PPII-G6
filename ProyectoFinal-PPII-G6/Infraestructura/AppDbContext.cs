@@ -43,6 +43,11 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
         /// Tabla de contactos (intervenciones) con los estudiantes.
         /// </summary>
         public DbSet<Contacto> Contactos { get; set; }
+        
+        /// <summary>
+        /// Tabla con los umbrales de riesgo: tiene una sola fila.
+        /// </summary>
+        public DbSet<UmbralesRiesgo> Umbrales { get; set; }
 
         /// <summary>
         /// Configura la conexión a SQL Server.
@@ -71,6 +76,7 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
             ConfigurarTrabajoPractico(modelBuilder);
             ConfigurarEntrega(modelBuilder);
             ConfigurarContacto(modelBuilder);
+            ConfigurarUmbrales(modelBuilder);
         }
 
         /// <summary>
@@ -165,7 +171,6 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
             });
         }
         
-        
         /// <summary>
         /// Tabla Contactos. El medio se guarda con el nombre del valor (Llamada, Mail...) para que se lea en la base.
         /// </summary>
@@ -179,6 +184,23 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.Property(c => c.FechaHora).IsRequired();
                 entity.Property(c => c.Medio).IsRequired().HasConversion<string>().HasMaxLength(20);
                 entity.Property(c => c.Resultado).IsRequired().HasMaxLength(500);
+            });
+        }
+        
+        /// <summary>
+        /// Tabla UmbralesRiesgo: una sola fila con los cuatro porcentajes. El Id lo fija la aplicación (siempre 1).
+        /// </summary>
+        private static void ConfigurarUmbrales(ModelBuilder modelBuilder)
+        {
+            modelBuilder.Entity<UmbralesRiesgo>(entity =>
+            {
+                entity.ToTable("UmbralesRiesgo");
+                entity.HasKey(u => u.Id);
+                entity.Property(u => u.Id).ValueGeneratedNever();
+                entity.Property(u => u.AsistenciaRojo).IsRequired();
+                entity.Property(u => u.EntregasRojo).IsRequired();
+                entity.Property(u => u.AsistenciaAmarillo).IsRequired();
+                entity.Property(u => u.EntregasAmarillo).IsRequired();
             });
         }
     }

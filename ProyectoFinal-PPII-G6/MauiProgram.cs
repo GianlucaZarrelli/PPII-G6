@@ -66,6 +66,7 @@ namespace ProyectoFinal_PPII_G6
             services.AddTransient<PanelRiesgoViewModel>();
             services.AddTransient<EntregasViewModel>();
             services.AddTransient<ContactosViewModel>();
+            services.AddTransient<UmbralesViewModel>();
             
         }
 
@@ -82,6 +83,7 @@ namespace ProyectoFinal_PPII_G6
             services.AddTransient<PanelRiesgoPage>();
             services.AddTransient<EntregasPage>();
             services.AddTransient<ContactosPage>();
+            services.AddTransient<UmbralesPage>();
         }
     }
 }

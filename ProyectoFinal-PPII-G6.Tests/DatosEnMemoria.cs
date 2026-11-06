@@ -55,6 +55,16 @@ namespace ProyectoFinal_PPII_G6.Tests
         public bool FallarAlCrearComision { get; set; }
 
         /// <summary>
+        /// Umbrales de riesgo guardados en la base falsa; arranca con los valores por defecto.
+        /// </summary>
+        public UmbralesRiesgo Umbrales { get; set; } = UmbralesRiesgo.PorDefecto();
+
+        /// <summary>
+        /// Si es true, guardar los umbrales falla, como si la base estuviera caída.
+        /// </summary>
+        public bool FallarAlGuardarUmbrales { get; set; }
+
+        /// <summary>
         /// Agrega un alumno dado de alta antes de las clases, para que todas le cuenten.
         /// </summary>
         public Estudiante AgregarAlumno(int id, string nombre, string apellido, int comisionId)
@@ -130,6 +140,17 @@ namespace ProyectoFinal_PPII_G6.Tests
 
         public Task<List<Contacto>> GetTodosLosContactosAsync() =>
             Task.FromResult(Contactos.OrderByDescending(c => c.FechaHora).ToList());
+
+        public Task<UmbralesRiesgo> GetUmbralesAsync() => Task.FromResult(Umbrales);
+
+        public Task SaveUmbralesAsync(UmbralesRiesgo umbrales)
+        {
+            if (FallarAlGuardarUmbrales)
+                throw new InvalidOperationException("La base de datos no responde.");
+
+            Umbrales = umbrales;
+            return Task.CompletedTask;
+        }
 
         // Lo que sigue no se usa en estas pruebas.
         public Task<List<Estudiante>> GetEstudiantesAsync() => throw new NotImplementedException();

@@ -127,5 +127,18 @@ namespace ProyectoFinal_PPII_G6.Services
         /// Obtiene todos los contactos en una sola consulta, del más reciente al más antiguo.
         /// </summary>
         Task<List<Contacto>> GetTodosLosContactosAsync();
+        
+        
+        // Umbrales de riesgo
+
+        /// <summary>
+        /// Obtiene los umbrales de riesgo guardados, o los valores por defecto si todavía no se guardó ninguno.
+        /// </summary>
+        Task<UmbralesRiesgo> GetUmbralesAsync();
+
+        /// <summary>
+        /// Guarda los umbrales de riesgo (la configuración es una sola: reemplaza a la anterior).
+        /// </summary>
+        Task SaveUmbralesAsync(UmbralesRiesgo umbrales);
     }
 }

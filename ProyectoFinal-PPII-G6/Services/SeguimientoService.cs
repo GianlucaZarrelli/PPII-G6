@@ -118,6 +118,7 @@ namespace ProyectoFinal_PPII_G6.Services
         /// Evalúa a un alumno. Las clases y los trabajos son los de su comisión; "hoy" se recibe
         /// como parámetro para poder probar qué pasa con los trabajos vencidos y los que no.
         /// Los contactos son los del alumno: se suman al resumen, pero no cambian su nivel.
+        /// Si no se indican umbrales, se usan los valores por defecto.
         /// </summary>
         public ResumenAlumno Evaluar(
             Estudiante alumno,
@@ -126,7 +127,8 @@ namespace ProyectoFinal_PPII_G6.Services
             IEnumerable<Asistencia> asistenciasAlumno,
             IEnumerable<Entrega> entregasAlumno,
             DateTime hoy,
-            IEnumerable<Contacto>? contactosAlumno = null)
+            IEnumerable<Contacto>? contactosAlumno = null,
+            UmbralesRiesgo? umbrales = null)
         {
             var asistenciasTodas = asistenciasAlumno.ToList();
             var clases = SeleccionarClasesDelAlumno(alumno, clasesComision, asistenciasTodas);
@@ -135,7 +137,7 @@ namespace ProyectoFinal_PPII_G6.Services
             var asistencias = FiltrarAsistencias(asistenciasTodas, clases);
             var entregas = FiltrarEntregas(entregasAlumno, trabajos);
 
-            var resultado = _riesgoService.CalcularRiesgo(asistencias, clases.Count, entregas, trabajos.Count);
+            var resultado = _riesgoService.CalcularRiesgo(asistencias, clases.Count, entregas, trabajos.Count, umbrales);
             var contactos = (contactosAlumno ?? Array.Empty<Contacto>()).ToList();
             return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado, contactos);
         }
