@@ -96,6 +96,11 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// </summary>
         public ObservableCollection<HistorialEntregaItem> HistorialEntregas { get; } = new();
 
+        /// <summary>
+        /// Contactos con el alumno elegido, del más reciente al más antiguo.
+        /// </summary>
+        public ObservableCollection<ContactoFila> HistorialContactos { get; } = new();
+
         private Comision? _comisionSeleccionada;
 
         /// <summary>
@@ -178,6 +183,28 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         {
             get => _detalleAsistencia;
             set { _detalleAsistencia = value; OnPropertyChanged(); }
+        }
+
+        private string _contactoTexto = string.Empty;
+
+        /// <summary>
+        /// Resumen del contacto con el alumno: la fecha y hora del último, o "Sin contactar".
+        /// </summary>
+        public string ContactoTexto
+        {
+            get => _contactoTexto;
+            set { _contactoTexto = value; OnPropertyChanged(); }
+        }
+
+        private string _colorContacto = "#757575";
+
+        /// <summary>
+        /// Color del resumen del contacto, en hexadecimal.
+        /// </summary>
+        public string ColorContacto
+        {
+            get => _colorContacto;
+            set { _colorContacto = value; OnPropertyChanged(); }
         }
 
         private string _detalleEntregas = string.Empty;
@@ -353,6 +380,9 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         {
             HistorialAsistencias.Clear();
             HistorialEntregas.Clear();
+            HistorialContactos.Clear();
+            ContactoTexto = string.Empty;
+            ColorContacto = "#757575";
             ComisionNombre = string.Empty;
             DetalleAsistencia = string.Empty;
             DetalleEntregas = string.Empty;
@@ -375,6 +405,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 MostrarHistorialAsistencia(ficha);
                 MostrarHistorialEntregas(ficha);
                 MostrarNivel(ficha.Resumen);
+                MostrarContactos(ficha);
             }
             catch (Exception ex)
             {
@@ -428,6 +459,22 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                     Color = color
                 });
             }
+        }
+
+        /// <summary>
+        /// Arma el historial de contactos con el alumno (del más reciente al más antiguo) y el resumen del último.
+        /// </summary>
+        private void MostrarContactos(FichaAlumno ficha)
+        {
+            HistorialContactos.Clear();
+
+            foreach (var contacto in ficha.Contactos)
+            {
+                HistorialContactos.Add(ContactoFila.Desde(contacto));
+            }
+
+            ContactoTexto = PresentacionContacto.Texto(ficha.Resumen);
+            ColorContacto = PresentacionContacto.Color(ficha.Resumen);
         }
 
         /// <summary>

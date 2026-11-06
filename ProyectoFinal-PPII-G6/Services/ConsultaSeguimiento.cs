@@ -40,6 +40,11 @@ namespace ProyectoFinal_PPII_G6.Services
         /// Entregas registradas del alumno.
         /// </summary>
         public IReadOnlyList<Entrega> Entregas { get; init; } = Array.Empty<Entrega>();
+
+        /// <summary>
+        /// Contactos registrados con el alumno, del más reciente al más antiguo.
+        /// </summary>
+        public IReadOnlyList<Contacto> Contactos { get; init; } = Array.Empty<Contacto>();
     }
 
     /// <summary>
@@ -66,7 +71,8 @@ namespace ProyectoFinal_PPII_G6.Services
         public async Task<IReadOnlyList<ResumenAlumno>> ObtenerComisionAsync(int comisionId)
         {
             var asistencias = await _dataService.GetTodasLasAsistenciasAsync();
-            return await EvaluarComisionAsync(comisionId, asistencias);
+            var contactos = await _dataService.GetTodosLosContactosAsync();
+            return await EvaluarComisionAsync(comisionId, asistencias, contactos);
         }
 
         /// <summary>
@@ -76,18 +82,19 @@ namespace ProyectoFinal_PPII_G6.Services
         {
             var comisiones = await _dataService.GetComisionesAsync();
             var asistencias = await _dataService.GetTodasLasAsistenciasAsync();
+            var contactos = await _dataService.GetTodosLosContactosAsync();
 
             var resumenes = new List<ResumenAlumno>();
             foreach (var comision in comisiones)
             {
-                resumenes.AddRange(await EvaluarComisionAsync(comision.Id, asistencias));
+                resumenes.AddRange(await EvaluarComisionAsync(comision.Id, asistencias, contactos));
             }
 
             return resumenes;
         }
 
         /// <summary>
-        /// Arma la ficha de un alumno: su resumen más las clases, trabajos, asistencias y entregas para mostrar el historial.
+        /// Arma la ficha de un alumno: su resumen más las clases, trabajos, asistencias, entregas y contactos para mostrar el historial.
         /// </summary>
         public async Task<FichaAlumno> ObtenerFichaAsync(Estudiante alumno)
         {
@@ -96,22 +103,25 @@ namespace ProyectoFinal_PPII_G6.Services
             var trabajos = await _dataService.GetTrabajosPracticosByComisionIdAsync(alumno.ComisionId);
             var asistencias = await _dataService.GetAsistenciasPorEstudianteAsync(alumno.Id);
             var entregas = await _dataService.GetEntregasPorEstudianteAsync(alumno.Id);
+            var contactos = await _dataService.GetContactosPorEstudianteAsync(alumno.Id);
 
             return new FichaAlumno
             {
-                Resumen = _seguimiento.Evaluar(alumno, clases, trabajos, asistencias, entregas, DateTime.Today),
+                Resumen = _seguimiento.Evaluar(alumno, clases, trabajos, asistencias, entregas, DateTime.Today, contactos),
                 ComisionNombre = comision?.Nombre ?? "-",
                 Clases = clases,
                 Trabajos = trabajos,
                 Asistencias = asistencias,
-                Entregas = entregas
+                Entregas = entregas,
+                Contactos = contactos
             };
         }
 
         /// <summary>
-        /// Evalúa a los alumnos de una comisión con las asistencias que ya se cargaron, y los ordena.
+        /// Evalúa a los alumnos de una comisión con las asistencias y los contactos que ya se cargaron, y los ordena.
         /// </summary>
-        private async Task<IReadOnlyList<ResumenAlumno>> EvaluarComisionAsync(int comisionId, List<Asistencia> asistencias)
+        private async Task<IReadOnlyList<ResumenAlumno>> EvaluarComisionAsync(
+            int comisionId, List<Asistencia> asistencias, List<Contacto> contactos)
         {
             var alumnos = await _dataService.GetEstudiantesByComisionIdAsync(comisionId);
             var clases = await _dataService.GetClasesByComisionIdAsync(comisionId);
@@ -122,7 +132,8 @@ namespace ProyectoFinal_PPII_G6.Services
             {
                 var entregas = await _dataService.GetEntregasPorEstudianteAsync(alumno.Id);
                 var asistenciasAlumno = asistencias.Where(a => a.EstudianteId == alumno.Id);
-                resumenes.Add(_seguimiento.Evaluar(alumno, clases, trabajos, asistenciasAlumno, entregas, DateTime.Today));
+                var contactosAlumno = contactos.Where(c => c.EstudianteId == alumno.Id);
+                resumenes.Add(_seguimiento.Evaluar(alumno, clases, trabajos, asistenciasAlumno, entregas, DateTime.Today, contactosAlumno));
             }
 
             return _seguimiento.Ordenar(resumenes);

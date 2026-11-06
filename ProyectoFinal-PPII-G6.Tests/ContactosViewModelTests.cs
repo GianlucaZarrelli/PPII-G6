@@ -145,7 +145,7 @@ namespace ProyectoFinal_PPII_G6.Tests
             Assert.Equal(new[] { "Éxito: Contacto registrado." }, _dialogo.Avisos);
             Assert.Equal(string.Empty, vm.Resultado);
             Assert.Null(vm.MedioSeleccionado);
-            Assert.Equal(1, vm.Historial.Count);
+            Assert.Single(vm.Historial);
             Assert.Equal("Llamada", vm.Historial[0].Medio);
         }
 
