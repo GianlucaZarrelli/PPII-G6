@@ -67,6 +67,7 @@ namespace ProyectoFinal_PPII_G6
             services.AddTransient<EntregasViewModel>();
             services.AddTransient<ContactosViewModel>();
             services.AddTransient<UmbralesViewModel>();
+            services.AddTransient<CalendarioViewModel>();
             
         }
 
@@ -84,6 +85,7 @@ namespace ProyectoFinal_PPII_G6
             services.AddTransient<EntregasPage>();
             services.AddTransient<ContactosPage>();
             services.AddTransient<UmbralesPage>();
+            services.AddTransient<CalendarioPage>();
         }
     }
 }

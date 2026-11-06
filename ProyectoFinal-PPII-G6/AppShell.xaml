@@ -42,6 +42,13 @@
                 Route="AsistenciaFecha" />
         </Tab>
 
+        <Tab Title="Calendario">
+            <ShellContent
+                Title="Calendario de la comisión"
+                ContentTemplate="{DataTemplate views:CalendarioPage}"
+                Route="Calendario" />
+        </Tab>
+
         <Tab Title="Entregas">
             <ShellContent
                 Title="Entrega de trabajos"

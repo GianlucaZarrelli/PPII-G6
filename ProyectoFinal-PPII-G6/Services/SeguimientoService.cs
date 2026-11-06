@@ -131,7 +131,7 @@ namespace ProyectoFinal_PPII_G6.Services
             UmbralesRiesgo? umbrales = null)
         {
             var asistenciasTodas = asistenciasAlumno.ToList();
-            var clases = SeleccionarClasesDelAlumno(alumno, clasesComision, asistenciasTodas);
+            var clases = SeleccionarClasesDelAlumno(alumno, clasesComision, asistenciasTodas, hoy);
             var trabajos = SeleccionarTrabajosVencidos(trabajosComision, hoy);
 
             var asistencias = FiltrarAsistencias(asistenciasTodas, clases);
@@ -156,15 +156,18 @@ namespace ProyectoFinal_PPII_G6.Services
         }
 
         /// <summary>
-        /// Cuentan las clases desde el alta del alumno, y también las anteriores en las que ya hay un registro
+        /// Cuentan las clases desde el alta del alumno hasta hoy, y también las anteriores en las que ya hay un registro
         /// (por ejemplo, si se cargó a mano la asistencia de una clase previa a su incorporación).
+        /// Una clase futura todavía no cuenta: el calendario se puede cargar por adelantado y no tiene que
+        /// marcar ausentes a todos los alumnos.
         /// </summary>
         private static List<Clase> SeleccionarClasesDelAlumno(
-            Estudiante alumno, IEnumerable<Clase> clasesComision, List<Asistencia> asistencias)
+            Estudiante alumno, IEnumerable<Clase> clasesComision, List<Asistencia> asistencias, DateTime hoy)
         {
             var conRegistro = asistencias.Select(a => a.ClaseId).ToHashSet();
 
             return clasesComision
+                .Where(c => c.Fecha.Date <= hoy.Date)
                 .Where(c => c.Fecha.Date >= alumno.FechaAlta.Date || conRegistro.Contains(c.Id))
                 .ToList();
         }

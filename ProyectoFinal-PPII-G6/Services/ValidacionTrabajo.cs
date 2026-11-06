@@ -1,5 +1,4 @@
 ﻿using System;
-using System.Globalization;
 
 namespace ProyectoFinal_PPII_G6.Services
 {
@@ -40,21 +39,7 @@ namespace ProyectoFinal_PPII_G6.Services
         /// <summary>
         /// Avisa si la fecha de entrega cae fuera del año en curso. Se compara solo el día, sin la hora.
         /// </summary>
-        private static string? ErrorDeFecha(DateTime fechaEntrega, DateTime hoy)
-        {
-            var primero = new DateTime(hoy.Year, 1, 1);
-            var ultimo = new DateTime(hoy.Year, 12, 31);
-
-            if (fechaEntrega.Date >= primero && fechaEntrega.Date <= ultimo)
-                return null;
-
-            return $"La fecha de entrega tiene que estar entre el {Formatear(primero)} y el {Formatear(ultimo)}.";
-        }
-
-        /// <summary>
-        /// Escribe la fecha como día/mes/año, igual en cualquier idioma del equipo.
-        /// </summary>
-        private static string Formatear(DateTime fecha) =>
-            fecha.ToString("dd/MM/yyyy", CultureInfo.InvariantCulture);
+        private static string? ErrorDeFecha(DateTime fechaEntrega, DateTime hoy) =>
+            AnioEnCurso.ErrorFueraDelAnio(fechaEntrega, hoy, "de entrega");
     }
 }
