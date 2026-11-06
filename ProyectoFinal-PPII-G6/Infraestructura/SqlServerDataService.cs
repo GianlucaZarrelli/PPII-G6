@@ -301,5 +301,32 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
             using var context = CreateContext();
             return await context.Contactos.AsNoTracking().OrderByDescending(c => c.FechaHora).ToListAsync();
         }
+        
+        
+        /// <summary>
+        /// Obtiene los umbrales de riesgo guardados, o los valores por defecto si todavía no se guardó ninguno.
+        /// </summary>
+        public async Task<UmbralesRiesgo> GetUmbralesAsync()
+        {
+            using var context = CreateContext();
+            return await context.Umbrales.AsNoTracking().FirstOrDefaultAsync() ?? UmbralesRiesgo.PorDefecto();
+        }
+
+        /// <summary>
+        /// Guarda los umbrales de riesgo: si ya había una configuración la reemplaza, y si no, la crea.
+        /// </summary>
+        public async Task SaveUmbralesAsync(UmbralesRiesgo umbrales)
+        {
+            using var context = CreateContext();
+            umbrales.Id = UmbralesRiesgo.IdUnico;
+            var guardados = await context.Umbrales.FirstOrDefaultAsync();
+
+            if (guardados == null)
+                await context.Umbrales.AddAsync(umbrales);
+            else
+                context.Entry(guardados).CurrentValues.SetValues(umbrales);
+
+            await context.SaveChangesAsync();
+        }
     }
 }

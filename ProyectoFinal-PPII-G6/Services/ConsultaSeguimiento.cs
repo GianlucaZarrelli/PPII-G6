@@ -72,7 +72,8 @@ namespace ProyectoFinal_PPII_G6.Services
         {
             var asistencias = await _dataService.GetTodasLasAsistenciasAsync();
             var contactos = await _dataService.GetTodosLosContactosAsync();
-            return await EvaluarComisionAsync(comisionId, asistencias, contactos);
+            var umbrales = await _dataService.GetUmbralesAsync();
+            return await EvaluarComisionAsync(comisionId, asistencias, contactos, umbrales);
         }
 
         /// <summary>
@@ -83,11 +84,12 @@ namespace ProyectoFinal_PPII_G6.Services
             var comisiones = await _dataService.GetComisionesAsync();
             var asistencias = await _dataService.GetTodasLasAsistenciasAsync();
             var contactos = await _dataService.GetTodosLosContactosAsync();
+            var umbrales = await _dataService.GetUmbralesAsync();
 
             var resumenes = new List<ResumenAlumno>();
             foreach (var comision in comisiones)
             {
-                resumenes.AddRange(await EvaluarComisionAsync(comision.Id, asistencias, contactos));
+                resumenes.AddRange(await EvaluarComisionAsync(comision.Id, asistencias, contactos, umbrales));
             }
 
             return resumenes;
@@ -107,7 +109,7 @@ namespace ProyectoFinal_PPII_G6.Services
 
             return new FichaAlumno
             {
-                Resumen = _seguimiento.Evaluar(alumno, clases, trabajos, asistencias, entregas, DateTime.Today, contactos),
+                Resumen = await EvaluarAsync(alumno, clases, trabajos, asistencias, entregas, contactos),
                 ComisionNombre = comision?.Nombre ?? "-",
                 Clases = clases,
                 Trabajos = trabajos,
@@ -118,10 +120,21 @@ namespace ProyectoFinal_PPII_G6.Services
         }
 
         /// <summary>
-        /// Evalúa a los alumnos de una comisión con las asistencias y los contactos que ya se cargaron, y los ordena.
+        /// Evalúa a un alumno con los umbrales guardados en ese momento.
+        /// </summary>
+        private async Task<ResumenAlumno> EvaluarAsync(
+            Estudiante alumno, List<Clase> clases, List<TrabajoPractico> trabajos,
+            List<Asistencia> asistencias, List<Entrega> entregas, List<Contacto> contactos)
+        {
+            var umbrales = await _dataService.GetUmbralesAsync();
+            return _seguimiento.Evaluar(alumno, clases, trabajos, asistencias, entregas, DateTime.Today, contactos, umbrales);
+        }
+
+        /// <summary>
+        /// Evalúa a los alumnos de una comisión con las asistencias, los contactos y los umbrales que ya se cargaron, y los ordena.
         /// </summary>
         private async Task<IReadOnlyList<ResumenAlumno>> EvaluarComisionAsync(
-            int comisionId, List<Asistencia> asistencias, List<Contacto> contactos)
+            int comisionId, List<Asistencia> asistencias, List<Contacto> contactos, UmbralesRiesgo umbrales)
         {
             var alumnos = await _dataService.GetEstudiantesByComisionIdAsync(comisionId);
             var clases = await _dataService.GetClasesByComisionIdAsync(comisionId);
@@ -133,7 +146,7 @@ namespace ProyectoFinal_PPII_G6.Services
                 var entregas = await _dataService.GetEntregasPorEstudianteAsync(alumno.Id);
                 var asistenciasAlumno = asistencias.Where(a => a.EstudianteId == alumno.Id);
                 var contactosAlumno = contactos.Where(c => c.EstudianteId == alumno.Id);
-                resumenes.Add(_seguimiento.Evaluar(alumno, clases, trabajos, asistenciasAlumno, entregas, DateTime.Today, contactosAlumno));
+                resumenes.Add(_seguimiento.Evaluar(alumno, clases, trabajos, asistenciasAlumno, entregas, DateTime.Today, contactosAlumno, umbrales));
             }
 
             return _seguimiento.Ordenar(resumenes);

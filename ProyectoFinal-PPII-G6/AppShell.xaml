@@ -42,6 +42,13 @@
                 Route="AsistenciaFecha" />
         </Tab>
 
+        <Tab Title="Calendario">
+            <ShellContent
+                Title="Calendario de la comisión"
+                ContentTemplate="{DataTemplate views:CalendarioPage}"
+                Route="Calendario" />
+        </Tab>
+
         <Tab Title="Entregas">
             <ShellContent
                 Title="Entrega de trabajos"
@@ -54,6 +61,13 @@
                 Title="Registro de contactos"
                 ContentTemplate="{DataTemplate views:ContactosPage}"
                 Route="RegistroContactos" />
+        </Tab>
+
+        <Tab Title="Umbrales">
+            <ShellContent
+                Title="Umbrales de riesgo"
+                ContentTemplate="{DataTemplate views:UmbralesPage}"
+                Route="Umbrales" />
         </Tab>
 
         <Tab Title="Carga Masiva de Estudiantes">

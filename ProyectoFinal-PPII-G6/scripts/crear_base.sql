@@ -87,3 +87,21 @@ GO
 
 CREATE INDEX IX_Contactos_Estudiante_FechaHora ON Contactos (EstudianteId, FechaHora DESC);
 GO
+
+CREATE TABLE UmbralesRiesgo (
+                                Id INT NOT NULL PRIMARY KEY,
+                                AsistenciaRojo INT NOT NULL,
+                                EntregasRojo INT NOT NULL,
+                                AsistenciaAmarillo INT NOT NULL,
+                                EntregasAmarillo INT NOT NULL,
+                                CONSTRAINT CK_UmbralesRiesgo_UnaSolaFila CHECK (Id = 1),
+                                CONSTRAINT CK_UmbralesRiesgo_Porcentajes CHECK (
+                                    AsistenciaRojo BETWEEN 0 AND 100 AND EntregasRojo BETWEEN 0 AND 100
+                                        AND AsistenciaAmarillo BETWEEN 0 AND 100 AND EntregasAmarillo BETWEEN 0 AND 100),
+                                CONSTRAINT CK_UmbralesRiesgo_Orden CHECK (AsistenciaRojo < AsistenciaAmarillo AND EntregasRojo < EntregasAmarillo)
+);
+GO
+
+INSERT INTO UmbralesRiesgo (Id, AsistenciaRojo, EntregasRojo, AsistenciaAmarillo, EntregasAmarillo)
+VALUES (1, 75, 60, 85, 80);
+GO

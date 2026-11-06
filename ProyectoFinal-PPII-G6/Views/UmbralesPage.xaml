@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoFinal_PPII_G6.Views.UmbralesPage"
+             Title="Umbrales de riesgo">
+
+    <ScrollView Padding="15">
+        <VerticalStackLayout Spacing="14">
+
+            <Label Text="Un alumno está en ALTO RIESGO si su asistencia o sus entregas están por debajo del umbral de alto riesgo, y en RIESGO MODERADO si están por debajo del umbral de riesgo moderado. Los valores son porcentajes de 0 a 100."
+                   FontSize="13"
+                   TextColor="{AppThemeBinding Light=#444444, Dark=#CCCCCC}" />
+
+            <Border StrokeShape="RoundRectangle 10"
+                    Stroke="#E0E0E0"
+                    Padding="15"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Asistencia"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+
+                    <Label Text="Alto riesgo si está por debajo de (%):" FontSize="12" TextColor="Gray" />
+                    <Entry Text="{Binding AsistenciaRojo}"
+                           Keyboard="Numeric"
+                           MaxLength="3"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                    <Label Text="Riesgo moderado si está por debajo de (%):" FontSize="12" TextColor="Gray" />
+                    <Entry Text="{Binding AsistenciaAmarillo}"
+                           Keyboard="Numeric"
+                           MaxLength="3"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Border StrokeShape="RoundRectangle 10"
+                    Stroke="#E0E0E0"
+                    Padding="15"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Entregas de trabajos"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+
+                    <Label Text="Alto riesgo si está por debajo de (%):" FontSize="12" TextColor="Gray" />
+                    <Entry Text="{Binding EntregasRojo}"
+                           Keyboard="Numeric"
+                           MaxLength="3"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                    <Label Text="Riesgo moderado si está por debajo de (%):" FontSize="12" TextColor="Gray" />
+                    <Entry Text="{Binding EntregasAmarillo}"
+                           Keyboard="Numeric"
+                           MaxLength="3"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Button Text="Guardar umbrales"
+                    Command="{Binding GuardarCommand}"
+                    BackgroundColor="#512BD4"
+                    TextColor="White"
+                    HeightRequest="45"
+                    CornerRadius="8" />
+
+            <Button Text="Restablecer valores por defecto"
+                    Command="{Binding RestablecerCommand}"
+                    BackgroundColor="Transparent"
+                    TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}"
+                    BorderColor="#512BD4"
+                    BorderWidth="1"
+                    HeightRequest="45"
+                    CornerRadius="8" />
+
+            <Label Text="Alumnos por nivel con los umbrales guardados:"
+                   FontSize="13"
+                   FontAttributes="Bold" />
+            <Label Text="{Binding ResumenNiveles}"
+                   FontSize="13"
+                   TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+            <Label Text="{Binding Estado}" FontSize="12" TextColor="#D32F2F" />
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

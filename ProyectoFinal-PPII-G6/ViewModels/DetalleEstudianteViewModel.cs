@@ -426,7 +426,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             {
                 var asistencia = ficha.Asistencias.FirstOrDefault(a => a.ClaseId == clase.Id);
                 var cuenta = ficha.Resumen.IdsClasesContadas.Contains(clase.Id);
-                var (estado, color) = EstadoAsistencia(asistencia, cuenta);
+                var (estado, color) = EstadoAsistencia(asistencia, cuenta, clase.Fecha);
 
                 HistorialAsistencias.Add(new HistorialAsistenciaItem
                 {
@@ -489,13 +489,14 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         }
 
         /// <summary>
-        /// Estado y color de una clase para el alumno. Una clase que no cuenta es anterior al alta y no tiene registro.
+        /// Estado y color de una clase para el alumno. Una clase que no cuenta es futura o anterior al alta,
+        /// y no tiene registro.
         /// </summary>
-        private static (string Texto, string Color) EstadoAsistencia(Asistencia? asistencia, bool cuenta) =>
+        private static (string Texto, string Color) EstadoAsistencia(Asistencia? asistencia, bool cuenta, DateTime fecha) =>
             (asistencia, cuenta) switch
             {
+                (null, false) when fecha.Date > DateTime.Today => ("Próxima clase (aún no cuenta)", "#757575"),
                 (null, false) => ("Anterior al alta (no cuenta)", "#757575"),
-                (null, true) => ("Sin registro (cuenta como ausente)", "#F57C00"),
                 ({ Presente: true }, _) => ("Presente", "#388E3C"),
                 ({ Justificada: true }, _) => ("Ausente (justificada)", "#F57C00"),
                 _ => ("Ausente", "#D32F2F")

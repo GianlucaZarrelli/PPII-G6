@@ -121,6 +121,13 @@ FROM #Contactos k
 DROP TABLE #Contactos;
 DROP TABLE #Alumnos;
 
+-- 9. Umbrales de riesgo de siempre, para que los niveles de la demo salgan como en el guion
+--    (si la tabla todavía no existe, correr antes agregar_umbrales.sql)
+IF OBJECT_ID(N'dbo.UmbralesRiesgo', N'U') IS NOT NULL
+UPDATE UmbralesRiesgo
+SET AsistenciaRojo = 75, EntregasRojo = 60, AsistenciaAmarillo = 85, EntregasAmarillo = 80
+WHERE Id = 1;
+
 COMMIT TRANSACTION;
 
 -- Verificación

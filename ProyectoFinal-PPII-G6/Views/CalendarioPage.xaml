@@ -1,0 +1,93 @@
+<?xml version="1.0" encoding="utf-8" ?>
+<ContentPage xmlns="http://schemas.microsoft.com/dotnet/2021/maui"
+             xmlns:x="http://schemas.microsoft.com/winfx/2009/xaml"
+             x:Class="ProyectoFinal_PPII_G6.Views.CalendarioPage"
+             Title="Calendario de la comisión">
+
+    <ScrollView Padding="15">
+        <VerticalStackLayout Spacing="12">
+
+            <Label Text="Comisión:" FontAttributes="Bold" FontSize="14" />
+            <Picker ItemsSource="{Binding Comisiones}"
+                    ItemDisplayBinding="{Binding Nombre}"
+                    SelectedItem="{Binding ComisionSeleccionada}"
+                    Title="-- Seleccione una comisión --"
+                    TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+            <!-- Alta de una clase -->
+            <Border StrokeShape="RoundRectangle 10"
+                    Stroke="#E0E0E0"
+                    Padding="12"
+                    BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#2A2A2A}">
+                <VerticalStackLayout Spacing="8">
+                    <Label Text="Nueva clase"
+                           FontSize="16"
+                           FontAttributes="Bold"
+                           TextColor="{AppThemeBinding Light=#512BD4, Dark=#A88BFF}" />
+
+                    <Label Text="Fecha:" FontSize="12" TextColor="Gray" />
+                    <DatePicker Date="{Binding FechaClase}"
+                                Format="dd/MM/yyyy"
+                                TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+
+                    <Entry Placeholder="Descripción (opcional, ej: Introducción a MAUI)"
+                           Text="{Binding DescripcionClase}"
+                           MaxLength="{Binding LargoMaximoDescripcion}"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}"
+                           PlaceholderColor="{AppThemeBinding Light=#777777, Dark=#AAAAAA}"
+                           ClearButtonVisibility="WhileEditing" />
+
+                    <Button Text="Agregar clase"
+                            Command="{Binding AgregarClaseCommand}"
+                            BackgroundColor="#512BD4"
+                            TextColor="White"
+                            CornerRadius="8" />
+
+                    <Label Text="Los trabajos prácticos se cargan en la pestaña Entregas y aparecen acá con su fecha de entrega."
+                           FontSize="11"
+                           TextColor="Gray" />
+                </VerticalStackLayout>
+            </Border>
+
+            <Label Text="{Binding Estado}" FontSize="12" TextColor="Gray" />
+
+            <!-- Calendario: clases y entregas ordenadas por fecha -->
+            <VerticalStackLayout Spacing="6" BindableLayout.ItemsSource="{Binding Filas}">
+                <BindableLayout.EmptyView>
+                    <Label Text="No hay fechas para mostrar."
+                           HorizontalOptions="Center"
+                           TextColor="Gray"
+                           Margin="0,10" />
+                </BindableLayout.EmptyView>
+
+                <BindableLayout.ItemTemplate>
+                    <DataTemplate>
+                        <Border StrokeShape="RoundRectangle 6"
+                                Padding="10"
+                                BackgroundColor="{AppThemeBinding Light=#FFFFFF, Dark=#1E1E1E}">
+                            <Grid ColumnDefinitions="*, Auto">
+                                <VerticalStackLayout Grid.Column="0" Spacing="2">
+                                    <Label Text="{Binding Fecha}"
+                                           FontAttributes="Bold"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                    <Label Text="{Binding Tipo}"
+                                           FontSize="12"
+                                           TextColor="Gray" />
+                                    <Label Text="{Binding Titulo}"
+                                           FontSize="13"
+                                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                                </VerticalStackLayout>
+                                <Label Grid.Column="1"
+                                       Text="{Binding Etapa}"
+                                       VerticalOptions="Center"
+                                       FontAttributes="Bold"
+                                       TextColor="{Binding Color}" />
+                            </Grid>
+                        </Border>
+                    </DataTemplate>
+                </BindableLayout.ItemTemplate>
+            </VerticalStackLayout>
+
+        </VerticalStackLayout>
+    </ScrollView>
+</ContentPage>

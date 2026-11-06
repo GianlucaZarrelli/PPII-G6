@@ -54,34 +54,16 @@ namespace ProyectoFinal_PPII_G6.Services
         private const double ValorAusenciaJustificada = 0.5;
 
         /// <summary>
-        /// Por debajo de este porcentaje de asistencia, el riesgo es alto.
-        /// </summary>
-        private const double UmbralAsistenciaRojo = 75;
-
-        /// <summary>
-        /// Por debajo de este porcentaje de entregas, el riesgo es alto.
-        /// </summary>
-        private const double UmbralEntregasRojo = 60;
-
-        /// <summary>
-        /// Por debajo de este porcentaje de asistencia (y desde el umbral rojo), el riesgo es medio.
-        /// </summary>
-        private const double UmbralAsistenciaAmarillo = 85;
-
-        /// <summary>
-        /// Por debajo de este porcentaje de entregas (y desde el umbral rojo), el riesgo es medio.
-        /// </summary>
-        private const double UmbralEntregasAmarillo = 80;
-
-        /// <summary>
-        /// Calcula los porcentajes de asistencia y entregas y el nivel de riesgo: Rojo si la asistencia es menor a 75% o las entregas a 60%;
-        /// Amarillo si la asistencia es menor a 85% o las entregas a 80%; Verde en otro caso. Sin clases o TPs, el porcentaje es 100%.
+        /// Calcula los porcentajes de asistencia y entregas y el nivel de riesgo: Rojo si la asistencia o las entregas están
+        /// por debajo de su umbral de alto riesgo; Amarillo si están por debajo del de riesgo moderado; Verde en otro caso.
+        /// Sin clases o TPs, el porcentaje es 100%. Si no se indican umbrales, se usan los valores por defecto (75, 60, 85 y 80).
         /// </summary>
         public ResultadoRiesgo CalcularRiesgo(
             List<Asistencia> asistenciasEstudiante,
             int totalClasesComision,
             List<Entrega> entregasEstudiante,
-            int totalTpsComision)
+            int totalTpsComision,
+            UmbralesRiesgo? umbrales = null)
         {
             var asistencia = CalcularPorcentajeAsistencia(asistenciasEstudiante, totalClasesComision);
             var entregas = CalcularPorcentajeEntregas(entregasEstudiante, totalTpsComision);
@@ -90,7 +72,7 @@ namespace ProyectoFinal_PPII_G6.Services
             {
                 PorcentajeAsistencia = asistencia,
                 PorcentajeEntregas = entregas,
-                Nivel = ElegirNivel(asistencia, entregas)
+                Nivel = ElegirNivel(asistencia, entregas, umbrales ?? UmbralesRiesgo.PorDefecto())
             };
         }
 
@@ -124,12 +106,12 @@ namespace ProyectoFinal_PPII_G6.Services
         /// <summary>
         /// Rojo si cualquiera de los dos porcentajes cae bajo su umbral rojo; si no, amarillo si cae bajo el amarillo; si no, verde.
         /// </summary>
-        private static NivelRiesgoEnum ElegirNivel(double asistencia, double entregas)
+        private static NivelRiesgoEnum ElegirNivel(double asistencia, double entregas, UmbralesRiesgo umbrales)
         {
-            if (asistencia < UmbralAsistenciaRojo || entregas < UmbralEntregasRojo)
+            if (asistencia < umbrales.AsistenciaRojo || entregas < umbrales.EntregasRojo)
                 return NivelRiesgoEnum.Rojo;
 
-            if (asistencia < UmbralAsistenciaAmarillo || entregas < UmbralEntregasAmarillo)
+            if (asistencia < umbrales.AsistenciaAmarillo || entregas < umbrales.EntregasAmarillo)
                 return NivelRiesgoEnum.Amarillo;
 
             return NivelRiesgoEnum.Verde;
