@@ -122,6 +122,14 @@ function crearDatosDemo() {
     });
   }
 
+  // H7: umbrales por defecto. Se pueden cambiar desde la pantalla Umbrales.
+  const umbrales = {
+    asistenciaRojo: 75,
+    asistenciaAmarillo: 85,
+    entregasRojo: 60,
+    entregasAmarillo: 80,
+  };
+
   return {
     comisiones,
     estudiantes,
@@ -129,6 +137,7 @@ function crearDatosDemo() {
     trabajos,
     asistencias,
     entregas,
+    umbrales,
     siguienteId: 5000,
   };
 }

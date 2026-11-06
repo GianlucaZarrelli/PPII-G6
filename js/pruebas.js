@@ -114,6 +114,21 @@ const panelA = demo.estudiantes.filter((e) => e.comisionId === 1).map((alumno) =
 }).sort((a, b) => a.orden - b.orden || a.peor - b.peor);
 esperar("En A, Joaquín queda antes que Valentina", panelA[0].nombre === "Joaquín" && panelA[1].nombre === "Valentina");
 
+// H7: con umbrales más blandos, 70% de asistencia ya no es rojo (queda amarillo).
+const umbralesBlandos = { asistenciaRojo: 50, asistenciaAmarillo: 75, entregasRojo: 40, entregasAmarillo: 60 };
+const conUmbrales = calcularRiesgo({
+  presentes: 7, justificadas: 0, totalClases: 10, entregados: 1, totalTrabajos: 1, umbrales: umbralesBlandos,
+});
+esperar("H7: 70% con umbral rojo 50 queda amarillo", conUmbrales.nivel === "amarillo" && conUmbrales.asistencia === 70);
+
+const umbralesDuros = { asistenciaRojo: 90, asistenciaAmarillo: 95, entregasRojo: 90, entregasAmarillo: 95 };
+const conUmbralesDuros = calcularRiesgo({
+  presentes: 6, justificadas: 0, totalClases: 6, entregados: 3, totalTrabajos: 3, umbrales: umbralesDuros,
+});
+esperar("H7: 100% con umbrales duros sigue verde", conUmbralesDuros.nivel === "verde");
+
+esperar("H7: demo trae umbrales por defecto", demo.umbrales.asistenciaRojo === 75 && demo.umbrales.entregasAmarillo === 80);
+
 const fallos = casos.filter((c) => !c.ok);
 console.log(casos.length + " pruebas, " + fallos.length + " fallos");
 fallos.forEach((c) => console.log("FALLA: " + c.nombre));

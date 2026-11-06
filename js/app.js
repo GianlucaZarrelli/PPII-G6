@@ -38,11 +38,17 @@ let historialToken = 0;
 let filasCsv = [];
 
 // Lee la base guardada en el navegador. Si no hay nada, usa los 12 alumnos de la demo.
+// Si una base vieja no tiene umbrales (H7), los completa con los por defecto.
 function cargarDb() {
   const guardado = localStorage.getItem(CLAVE);
-  if (!guardado) return crearDatosDemo();
-  try { return JSON.parse(guardado); }
-  catch { return crearDatosDemo(); }
+  let datos;
+  if (!guardado) datos = crearDatosDemo();
+  else {
+    try { datos = JSON.parse(guardado); }
+    catch { datos = crearDatosDemo(); }
+  }
+  datos.umbrales = normalizarUmbrales(datos.umbrales);
+  return datos;
 }
 
 // Escribe db de nuevo en el navegador. Hay que llamarla después de cada alta o cambio.
@@ -108,13 +114,13 @@ function alumnosDe(comisionId) {
 }
 
 // Calcula el semáforo de un alumno usando las clases y trabajos de SU comisión.
-// Llama a resumirAlumno, que está en js/riesgo.js.
+// Pasa db.umbrales (H7) a resumirAlumno en js/riesgo.js.
 function riesgoDe(alumno) {
   const clases = clasesDe(alumno.comisionId);
   const trabajos = trabajosDe(alumno.comisionId);
   const asistencias = db.asistencias.filter((a) => a.estudianteId === alumno.id);
   const entregas = db.entregas.filter((e) => e.estudianteId === alumno.id);
-  return resumirAlumno(clases, asistencias, trabajos, entregas);
+  return resumirAlumno(clases, asistencias, trabajos, entregas, db.umbrales);
 }
 
 // Llena un <select> con Comisión A, B y C.
@@ -152,6 +158,7 @@ function mostrar(vista) {
   if (vista === "entregas") cargarEntregas();
   if (vista === "alumnos") cargarAlumnos();
   if (vista === "csv") evaluarCsv();
+  if (vista === "umbrales") cargarUmbrales();
 }
 
 // Pestaña Inicio. Cuenta alumnos y colores. El HTML vacío está en #metricas.
@@ -596,6 +603,48 @@ function restaurarDemo() {
   mostrar("inicio");
 }
 
+// H7: pestaña Umbrales. Muestra los cortes actuales en los inputs.
+function cargarUmbrales() {
+  const u = normalizarUmbrales(db.umbrales);
+  document.getElementById("umbral-asistencia-rojo").value = u.asistenciaRojo;
+  document.getElementById("umbral-asistencia-amarillo").value = u.asistenciaAmarillo;
+  document.getElementById("umbral-entregas-rojo").value = u.entregasRojo;
+  document.getElementById("umbral-entregas-amarillo").value = u.entregasAmarillo;
+}
+
+// H7: guarda los umbrales. El panel e inicio los usan al recalcular el color.
+function guardarUmbralesAsync() {
+  const asistenciaRojo = Number(document.getElementById("umbral-asistencia-rojo").value);
+  const asistenciaAmarillo = Number(document.getElementById("umbral-asistencia-amarillo").value);
+  const entregasRojo = Number(document.getElementById("umbral-entregas-rojo").value);
+  const entregasAmarillo = Number(document.getElementById("umbral-entregas-amarillo").value);
+  const valores = [asistenciaRojo, asistenciaAmarillo, entregasRojo, entregasAmarillo];
+
+  if (valores.some((n) => Number.isNaN(n) || n < 0 || n > 100)) {
+    mostrarAviso("umbrales-aviso", "Cada umbral tiene que ser un número entre 0 y 100.", true);
+    return;
+  }
+  if (asistenciaRojo > asistenciaAmarillo) {
+    mostrarAviso("umbrales-aviso", "El corte rojo de asistencia no puede ser mayor que el amarillo.", true);
+    return;
+  }
+  if (entregasRojo > entregasAmarillo) {
+    mostrarAviso("umbrales-aviso", "El corte rojo de entregas no puede ser mayor que el amarillo.", true);
+    return;
+  }
+
+  db.umbrales = { asistenciaRojo, asistenciaAmarillo, entregasRojo, entregasAmarillo };
+  guardarDb();
+  mostrarAviso("umbrales-aviso", "Umbrales guardados. El panel e inicio recalculan el color al abrirlos.", false);
+}
+
+function restaurarUmbralesAsync() {
+  db.umbrales = { ...UMBRALES_POR_DEFECTO };
+  guardarDb();
+  cargarUmbrales();
+  mostrarAviso("umbrales-aviso", "Volvieron los umbrales por defecto: 75 / 85 / 60 / 80.", false);
+}
+
 // CONEXIÓN DE BOTONES.
 // El botón vive en index.html. Acá se dice qué función corre al hacer click.
 // Pestaña nueva: no se agrega acá. El nav ya llama a mostrar() con data-vista.
@@ -653,6 +702,8 @@ document.getElementById("bajar-csv").addEventListener("click", () => {
   URL.revokeObjectURL(enlace.href);
 });
 document.getElementById("importar-csv").addEventListener("click", importarAsync);
+document.getElementById("guardar-umbrales").addEventListener("click", guardarUmbralesAsync);
+document.getElementById("restaurar-umbrales").addEventListener("click", restaurarUmbralesAsync);
 
 const vistaInicial = location.hash.replace("#", "");
 if (document.getElementById(vistaInicial)) mostrar(vistaInicial);

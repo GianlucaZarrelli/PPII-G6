@@ -1,12 +1,29 @@
 // Misma regla que Services/RiesgoService.cs → CalcularRiesgo.
-// La llama resumirAlumno, y a resumirAlumno la llama riesgoDe() en js/app.js.
-// El color no se guarda: se calcula cada vez que se abre una pantalla.
-//
-// Recibe números ya contados, no el alumno entero:
-// presentes, justificadas, totalClases, entregados, totalTrabajos.
-// Devuelve asistencia, entregas, nivel (rojo, amarillo o verde) y el texto del semáforo.
+// H7: los umbrales ya no están fijos en el código. Vienen de db.umbrales
+// (pantalla Umbrales). Si no se pasan, se usan estos valores por defecto.
 
-function calcularRiesgo({ presentes, justificadas, totalClases, entregados, totalTrabajos }) {
+const UMBRALES_POR_DEFECTO = {
+  asistenciaRojo: 75,
+  asistenciaAmarillo: 85,
+  entregasRojo: 60,
+  entregasAmarillo: 80,
+};
+
+function normalizarUmbrales(umbrales) {
+  const base = { ...UMBRALES_POR_DEFECTO, ...(umbrales || {}) };
+  return {
+    asistenciaRojo: Number(base.asistenciaRojo),
+    asistenciaAmarillo: Number(base.asistenciaAmarillo),
+    entregasRojo: Number(base.entregasRojo),
+    entregasAmarillo: Number(base.entregasAmarillo),
+  };
+}
+
+// Recibe números ya contados y, opcionalmente, umbrales.
+// Devuelve asistencia, entregas, nivel (rojo, amarillo o verde) y el texto del semáforo.
+function calcularRiesgo({ presentes, justificadas, totalClases, entregados, totalTrabajos, umbrales }) {
+  const u = normalizarUmbrales(umbrales);
+
   const asistencia = totalClases === 0
     ? 100
     : ((presentes + 0.5 * justificadas) / totalClases) * 100;
@@ -16,8 +33,8 @@ function calcularRiesgo({ presentes, justificadas, totalClases, entregados, tota
     : (entregados / totalTrabajos) * 100;
 
   let nivel = "verde";
-  if (asistencia < 75 || entregas < 60) nivel = "rojo";
-  else if (asistencia < 85 || entregas < 80) nivel = "amarillo";
+  if (asistencia < u.asistenciaRojo || entregas < u.entregasRojo) nivel = "rojo";
+  else if (asistencia < u.asistenciaAmarillo || entregas < u.entregasAmarillo) nivel = "amarillo";
 
   const textos = {
     rojo: "ALTO RIESGO",
@@ -35,6 +52,7 @@ function calcularRiesgo({ presentes, justificadas, totalClases, entregados, tota
     totalClases,
     entregados,
     totalTrabajos,
+    umbrales: u,
     peor: Math.min(asistencia, entregas),
     orden: nivel === "rojo" ? 0 : nivel === "amarillo" ? 1 : 2,
   };
@@ -42,10 +60,8 @@ function calcularRiesgo({ presentes, justificadas, totalClases, entregados, tota
 
 // La llama riesgoDe(alumno) en app.js.
 // Recibe las clases y trabajos de la comisión de ese alumno, más sus asistencias y entregas.
-// Arma los números de un alumno con las clases y trabajos de SU comisión.
-// Sin registro de asistencia = ausencia. Sin registro de entrega = no entregó.
-// Si está presente, una marca de justificada no suma de más.
-function resumirAlumno(clases, asistencias, trabajos, entregas) {
+// umbrales es opcional: si no viene, usa UMBRALES_POR_DEFECTO.
+function resumirAlumno(clases, asistencias, trabajos, entregas, umbrales) {
   let presentes = 0;
   let justificadas = 0;
 
@@ -68,15 +84,17 @@ function resumirAlumno(clases, asistencias, trabajos, entregas) {
     totalClases: clases.length,
     entregados,
     totalTrabajos: trabajos.length,
+    umbrales,
   });
 }
 
 function motivoRiesgo(riesgo) {
   if (riesgo.nivel === "verde") return "Asistencia y entregas en orden";
 
+  const u = normalizarUmbrales(riesgo.umbrales);
   const partes = [];
-  const topeAsistencia = riesgo.nivel === "rojo" ? 75 : 85;
-  const topeEntregas = riesgo.nivel === "rojo" ? 60 : 80;
+  const topeAsistencia = riesgo.nivel === "rojo" ? u.asistenciaRojo : u.asistenciaAmarillo;
+  const topeEntregas = riesgo.nivel === "rojo" ? u.entregasRojo : u.entregasAmarillo;
   if (riesgo.asistencia < topeAsistencia) partes.push("la asistencia");
   if (riesgo.entregas < topeEntregas) partes.push("las entregas");
   if (partes.length === 0) return riesgo.texto;
@@ -84,5 +102,5 @@ function motivoRiesgo(riesgo) {
 }
 
 if (typeof module !== "undefined" && module.exports) {
-  module.exports = { calcularRiesgo, resumirAlumno, motivoRiesgo };
+  module.exports = { calcularRiesgo, resumirAlumno, motivoRiesgo, UMBRALES_POR_DEFECTO, normalizarUmbrales };
 }

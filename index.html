@@ -29,6 +29,7 @@
     <button type="button" data-vista="entregas">Entregas</button>
     <button type="button" data-vista="alumnos">Alumnos</button>
     <button type="button" data-vista="csv">Carga CSV</button>
+    <button type="button" data-vista="umbrales">Umbrales</button>
   </nav>
 
   <main>
@@ -148,6 +149,31 @@
       </div>
       <p id="csv-resumen" class="aviso">Elegí la comisión A y el archivo de ejemplo. Tiene que decir 6 para importar, 1 ya existe (Lucía), 1 repetido y 1 con errores.</p>
       <div id="csv-lista"></div>
+    </section>
+
+    <!-- H7: configurar umbrales sin tocar el código. Los usa calcularRiesgo. -->
+    <section id="umbrales" class="vista">
+      <div class="tarjeta">
+        <h2>Umbrales del semáforo</h2>
+        <p class="ayuda">Rojo si la asistencia o las entregas quedan por debajo del primer corte. Amarillo si quedan por debajo del segundo. Verde en el resto. No hace falta cambiar el código.</p>
+        <div class="fila-form">
+          <label>Asistencia rojo (menor a)
+            <input id="umbral-asistencia-rojo" type="number" min="0" max="100" step="1">
+          </label>
+          <label>Asistencia amarillo (menor a)
+            <input id="umbral-asistencia-amarillo" type="number" min="0" max="100" step="1">
+          </label>
+          <label>Entregas rojo (menor a)
+            <input id="umbral-entregas-rojo" type="number" min="0" max="100" step="1">
+          </label>
+          <label>Entregas amarillo (menor a)
+            <input id="umbral-entregas-amarillo" type="number" min="0" max="100" step="1">
+          </label>
+          <button type="button" class="principal" id="guardar-umbrales">Guardar umbrales</button>
+          <button type="button" id="restaurar-umbrales">Volver a 75 / 85 / 60 / 80</button>
+        </div>
+        <p id="umbrales-aviso" class="aviso" hidden></p>
+      </div>
     </section>
   </main>
 
