@@ -12,3 +12,4 @@ Cada registro describe una decisión que el cliente no tomó y que tuvo que toma
 | [6](adr-006-umbrales-configurables.md) | Los umbrales de riesgo se configuran desde la aplicación | Aceptada |
 | [7](adr-007-calendario-por-adelantado.md) | Las clases se cargan por adelantado y las futuras no cuentan | Aceptada |
 | [8](adr-008-reporte-de-la-comision.md) | El reporte de la comisión cuenta lo que dice el panel y avisa cuando no hay datos | Aceptada |
+| [9](adr-009-restricciones-unicas-en-el-modelo.md) | Las restricciones únicas también se declaran en el modelo, para probarlas contra una base real | Aceptada |

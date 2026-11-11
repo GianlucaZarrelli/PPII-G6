@@ -8,6 +8,19 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
     /// </summary>
     public class AppDbContext : DbContext
     {
+        /// <summary>
+        /// Crea el contexto sin opciones: la cadena de conexión sale de <see cref="OnConfiguring"/>.
+        /// </summary>
+        public AppDbContext()
+        {
+        }
+
+        /// <summary>
+        /// Crea el contexto con las opciones indicadas, por ejemplo una base SQLite en memoria para las pruebas de integración.
+        /// </summary>
+        public AppDbContext(DbContextOptions<AppDbContext> opciones) : base(opciones)
+        {
+        }
 
         /// <summary>
         /// Tabla de comisiones.
@@ -89,7 +102,9 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.ToTable("Comisiones");
                 entity.HasKey(c => c.Id);
                 entity.Property(c => c.Nombre).IsRequired().HasMaxLength(100);
+                entity.HasIndex(c => c.Nombre).IsUnique();
             });
+            
         }
 
         /// <summary>
@@ -107,6 +122,7 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.Property(e => e.Email).HasMaxLength(100);
                 entity.Property(e => e.FechaAlta).IsRequired();
                 entity.Property(e => e.ComisionId).IsRequired();
+                entity.HasIndex(e => new { e.Dni, e.ComisionId }).IsUnique();
             });
         }
 
@@ -122,6 +138,7 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.Property(c => c.Fecha).IsRequired();
                 entity.Property(c => c.Descripcion).HasMaxLength(200);
                 entity.Property(c => c.ComisionId).IsRequired();
+                entity.HasIndex(c => new { c.ComisionId, c.Fecha }).IsUnique();
             });
         }
 
@@ -138,6 +155,7 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.Property(a => a.ClaseId).IsRequired();
                 entity.Property(a => a.Presente).IsRequired();
                 entity.Property(a => a.Justificada).IsRequired();
+                entity.HasIndex(a => new { a.EstudianteId, a.ClaseId }).IsUnique();
             });
         }
 
@@ -168,6 +186,7 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
                 entity.Property(e => e.EstudianteId).IsRequired();
                 entity.Property(e => e.TrabajoPracticoId).IsRequired();
                 entity.Property(e => e.Entregado).IsRequired();
+                entity.HasIndex(e => new { e.EstudianteId, e.TrabajoPracticoId }).IsUnique();
             });
         }
         

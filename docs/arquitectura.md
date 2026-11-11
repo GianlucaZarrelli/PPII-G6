@@ -79,16 +79,17 @@ Las flechas son la decisión de arquitectura más importante: **el dominio no co
 
 ## Base de datos
 
-Tablas: `Comisiones`, `Estudiantes`, `Clases`, `TrabajosPracticos`, `Asistencias`, `Entregas`, `Contactos` y `UmbralesRiesgo`, esta última con una sola fila. Los scripts están en `ProyectoFinal-PPII-G6/scripts/`. El nivel de riesgo no se guarda: se calcula cada vez, con los umbrales guardados en ese momento.
+Tablas: `Comisiones`, `Estudiantes`, `Clases`, `TrabajosPracticos`, `Asistencias`, `Entregas`, `Contactos` y `UmbralesRiesgo`, esta última con una sola fila. Los scripts están en `ProyectoFinal-PPII-G6/scripts/`. El nivel de riesgo no se guarda: se calcula cada vez, con los umbrales guardados en ese momento. Las restricciones únicas de los scripts (DNI por comisión, nombre de comisión, clase por fecha, asistencia por clase y entrega por trabajo) también están declaradas en el modelo de `AppDbContext`, para poder probarlas contra una base real (ver el ADR 9); los scripts siguen siendo la forma de crear la base.
 
 ## Pruebas
 
 - **Unitarias (xUnit):** reglas de negocio, validaciones, textos y flujo de los ViewModels, con servicios falsos: una base en memoria (`DatosEnMemoria`), avisos, navegación y tema falsos.
 - **De aceptación (`PruebasDeAceptacionTests`):** nueve escenarios con la forma *Given, When, Then* que traducen criterios de aceptación de las historias H1 (DNI repetido), H2, H7, H8, H10, H11 y H12 (los tres criterios). Los de la regla del DNI y del reporte entran por un servicio del dominio (`RegistrarEstudianteService` y `ConsultaSeguimiento`); los demás, por el ViewModel de cada pantalla, sin XAML. Se corren por separado con `dotnet test --filter "Categoria=Aceptacion"`.
-- **De integración:** pendientes (sprint 8).
+- **De integración (`SqlServerDataServiceIntegracionTests`):** ponen a prueba el adaptador `SqlServerDataService` contra una base SQLite real que vive en memoria (`BaseEnMemoria`), una nueva y vacía por cada prueba. Cubren lo que el doble no simula: que la base rechace un DNI repetido en una comisión, una clase repetida en una fecha o un lote de carga masiva con un DNI repetido (sin guardar ninguno del lote), que el medio de contacto quede guardado como texto, que los Id los asigne la base y que las listas salgan en el orden pedido. Se corren por separado con `dotnet test --filter "Categoria=Integracion"`.
 
 ## Limitaciones conocidas
 
+- Las pruebas de integración usan SQLite en memoria y no SQL Server: comprueban el adaptador y las restricciones únicas que declara el modelo, pero no las restricciones `CHECK` ni las claves foráneas de los scripts, que existen solo en la base real, ni las diferencias entre motores (por ejemplo, SQL Server ignora las mayúsculas al comparar nombres y SQLite no).
 - Es un único proyecto de MAUI: el dominio se separa por carpetas y por una prueba, no por referencias entre proyectos.
 - Las entregas se consultan alumno por alumno; para comisiones grandes convendría una sola consulta.
 - Si una consulta a la base falla, algunas pantallas, como el panel y Inicio, muestran la lista vacía y escriben el error en el registro de depuración, sin avisarle al usuario.
