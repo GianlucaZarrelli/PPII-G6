@@ -1,6 +1,6 @@
 # Arquitectura actual
 
-Describe el sistema **como está construido hoy** (última revisión: 6/11/2026). Si el código cambia, este documento se actualiza.
+Describe el sistema **como está construido hoy** (última revisión: 11/11/2026). Si el código cambia, este documento se actualiza.
 
 ## Contexto
 
@@ -25,7 +25,7 @@ Una sola persona opera el sistema y no hay integraciones con otros sistemas.
   ┌───────────────────────────────▼──────────────────────────────┐
   │  Dominio (carpetas Models y Services)                        │
   │  Entidades · Reglas: riesgo, seguimiento, calendario,        │
-  │  validaciones                                                │
+  │  reporte, alta de estudiantes, validaciones                  │
   │  Interfaces: IDataService, IDialogoService,                  │
   │              INavegacion, ITema                              │
   └───────────────────────────────▲──────────────────────────────┘
@@ -43,7 +43,7 @@ Las flechas son la decisión de arquitectura más importante: **el dominio no co
 | Carpeta | Contenido | Puede usar MAUI o Entity Framework |
 |---|---|---|
 | `Models` | Entidades: `Estudiante`, `Comision`, `Clase`, `Asistencia`, `TrabajoPractico`, `Entrega`, `Contacto`, `UmbralesRiesgo` | No |
-| `Services` | Reglas: `RiesgoService`, `SeguimientoService`, `ConsultaSeguimiento`, `CalendarioComision`, validaciones, lectura de CSV, e interfaces | No |
+| `Services` | Reglas: `RiesgoService`, `SeguimientoService`, `ConsultaSeguimiento`, `CalendarioComision`, `ReporteComision`, `RegistrarEstudianteService`, validaciones, lectura de CSV, e interfaces | No |
 | `Presentacion` | Textos y colores de cada nivel, medio y estado; `DialogoService`, `NavegacionShell`, `TemaApp` y las rutas | MAUI, sí |
 | `ViewModels` | Lógica de cada pantalla | MAUI (`BindableObject`), sí |
 | `Views` | Pantallas en XAML | MAUI, sí |
@@ -84,7 +84,8 @@ Tablas: `Comisiones`, `Estudiantes`, `Clases`, `TrabajosPracticos`, `Asistencias
 ## Pruebas
 
 - **Unitarias (xUnit):** reglas de negocio, validaciones, textos y flujo de los ViewModels, con servicios falsos: una base en memoria (`DatosEnMemoria`), avisos, navegación y tema falsos.
-- **De integración y de aceptación:** pendientes (sprint 8).
+- **De aceptación (`PruebasDeAceptacionTests`):** nueve escenarios con la forma *Given, When, Then* que traducen criterios de aceptación de las historias H1 (DNI repetido), H2, H7, H8, H10, H11 y H12 (los tres criterios). Los de la regla del DNI y del reporte entran por un servicio del dominio (`RegistrarEstudianteService` y `ConsultaSeguimiento`); los demás, por el ViewModel de cada pantalla, sin XAML. Se corren por separado con `dotnet test --filter "Categoria=Aceptacion"`.
+- **De integración:** pendientes (sprint 8).
 
 ## Limitaciones conocidas
 
@@ -93,3 +94,5 @@ Tablas: `Comisiones`, `Estudiantes`, `Clases`, `TrabajosPracticos`, `Asistencias
 - Si una consulta a la base falla, algunas pantallas, como el panel y Inicio, muestran la lista vacía y escriben el error en el registro de depuración, sin avisarle al usuario.
 - Los umbrales son únicos para todo el sistema: no se pueden definir distintos por comisión.
 - Una clase cargada en el calendario no se puede editar ni borrar desde la aplicación.
+- El panel muestra a todos los alumnos de la comisión en una sola lista, sin paginar: con comisiones de unos cientos de alumnos conviene paginarla y resolver las entregas con una sola consulta.
+- El cálculo de asistencia cuenta cuántas clases faltó un estudiante, pero no cuándo: tres faltas seguidas al final del cuatrimestre y tres faltas salteadas dan el mismo nivel. Para distinguirlas hay que cambiar el cálculo (`RiesgoService` y el armado de sus datos en `SeguimientoService`); las pantallas y el reporte no cambian, porque solo consumen el nivel ya calculado.

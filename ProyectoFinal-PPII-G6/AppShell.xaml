@@ -27,6 +27,13 @@
                 ContentTemplate="{DataTemplate views:EstudiantePage}"
                 Route="GestorEstudiantes" />
         </Tab>
+        
+        <Tab Title="Reporte">
+            <ShellContent
+                Title="Reporte de la comisión"
+                ContentTemplate="{DataTemplate views:ReportePage}"
+                Route="Reporte" />
+        </Tab>
 
         <Tab Title="Historial de asistencia">
             <ShellContent

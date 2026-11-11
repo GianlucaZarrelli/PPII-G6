@@ -69,6 +69,12 @@ namespace ProyectoFinal_PPII_G6.Tests
         /// Si es true, guardar un estudiante falla, como si la base estuviera caída.
         /// </summary>
         public bool FallarAlGuardarEstudiante { get; set; }
+        
+        
+        /// <summary>
+        /// Si es true, consultar los estudiantes de una comisión falla, como si la base estuviera caída.
+        /// </summary>
+        public bool FallarAlConsultar { get; set; }
 
         /// <summary>
         /// Agrega un alumno dado de alta antes de las clases, para que todas le cuenten.
@@ -125,8 +131,13 @@ namespace ProyectoFinal_PPII_G6.Tests
         public Task<List<Entrega>> GetEntregasPorEstudianteAsync(int estudianteId) =>
             Task.FromResult(Entregas.Where(e => e.EstudianteId == estudianteId).ToList());
 
-        public Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId) =>
-            Task.FromResult(Estudiantes.Where(e => e.ComisionId == comisionId).ToList());
+        public Task<List<Estudiante>> GetEstudiantesByComisionIdAsync(int comisionId)
+        {
+            if (FallarAlConsultar)
+                throw new InvalidOperationException("La base de datos no responde.");
+
+            return Task.FromResult(Estudiantes.Where(e => e.ComisionId == comisionId).ToList());
+        }
 
         public Task<int> SaveContactoAsync(Contacto contacto)
         {

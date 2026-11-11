@@ -85,7 +85,50 @@ namespace ProyectoFinal_PPII_G6.Tests
             await panel.CargarAsync();
             return panel;
         }
-        
+
+        /// <summary>
+        /// Arma una comisión nueva con 6 clases y 3 trabajos ya vencidos, y estos alumnos, en este orden: "alDia" (fueron a
+        /// las 6 clases y entregaron los 3 trabajos), "moderados" (fueron a 5 clases y entregaron los 3 trabajos) y "enRiesgo"
+        /// (fueron a 2 clases y entregaron 1 trabajo). Si "conRegistros" es false, tiene clases y trabajos pero nadie
+        /// registró asistencias ni entregas.
+        /// </summary>
+        private void ArmarComision(int comisionId, string nombre, int alDia, int moderados, int enRiesgo, bool conRegistros = true)
+        {
+            _datos.Comisiones.Add(new Comision(comisionId, nombre));
+
+            for (var i = 1; i <= 6; i++)
+            {
+                _datos.Clases.Add(new Clase(comisionId * 100 + i, new DateTime(2026, 9, 1).AddDays(i * 7), null, comisionId));
+            }
+
+            for (var i = 1; i <= 3; i++)
+            {
+                _datos.Trabajos.Add(new TrabajoPractico(comisionId * 100 + i, comisionId, $"TP{i}", new DateTime(2026, 9, 10).AddDays(i * 7)));
+            }
+
+            for (var k = 1; k <= alDia + moderados + enRiesgo; k++)
+            {
+                var alumno = _datos.AgregarAlumno(comisionId * 1000 + k, $"Alumno{k}", nombre, comisionId);
+                if (!conRegistros) continue;
+
+                var (presentes, entregados) = k <= alDia ? (6, 3) : k <= alDia + moderados ? (5, 3) : (2, 1);
+                CargarRegistros(alumno.Id, comisionId, presentes, entregados);
+            }
+        }
+
+        private void CargarRegistros(int alumnoId, int comisionId, int presentes, int entregados)
+        {
+            for (var c = 1; c <= 6; c++)
+            {
+                _datos.Asistencias.Add(new Asistencia(alumnoId * 10 + c, alumnoId, comisionId * 100 + c, c <= presentes, false));
+            }
+
+            for (var t = 1; t <= 3; t++)
+            {
+                _datos.Entregas.Add(new Entrega(alumnoId * 10 + t, alumnoId, comisionId * 100 + t, t <= entregados));
+            }
+        }
+
         // H1 · CA3 · Identificador repetido
         [Fact]
         public async Task Given_DniYaCargado_When_RegistrarOtroConElMismoDni_Then_SeRechazaYLaNominaNoCambia()
@@ -209,6 +252,73 @@ namespace ProyectoFinal_PPII_G6.Tests
             // Y ningún alumno cambia de nivel: las clases futuras todavía no cuentan
             var despues = (await AbrirPanelAsync()).Alumnos.ToDictionary(a => a.EstudianteId, a => a.Nivel);
             Assert.Equal(antes, despues);
+        }
+
+        // H12 · CA1 · El número
+        [Fact]
+        public async Task Given_ComisionConTreintaEstudiantesYSieteEnRiesgo_When_ElTutorAbreElReporte_Then_Ve7De30EnRiesgoDeAbandonar()
+        {
+            // Dado que 1°A tiene 30 estudiantes (18 al día, 5 en riesgo moderado) y el cálculo de riesgo da 7 en riesgo
+            ArmarComision(comisionId: 2, nombre: "1°A", alDia: 18, moderados: 5, enRiesgo: 7);
+
+            // Cuando el tutor abre el reporte de 1°A
+            var reporte = await _consulta.ObtenerReporteAsync(2);
+
+            // Entonces ve que 7 de 30 están en riesgo de abandonar (los de riesgo moderado se cuentan aparte)
+            Assert.Equal(EstadoReporte.ConDatos, reporte.Estado);
+            Assert.Equal(7, reporte.AltoRiesgo);
+            Assert.Equal(30, reporte.Total);
+            Assert.Equal(5, reporte.RiesgoModerado);
+        }
+
+        // H12 · CA2 · Coincide con el panel
+        [Fact]
+        public async Task Given_PanelConSieteEnRiesgo_When_ElTutorAbreElReporteEnElMismoMomento_Then_ElReporteTambienDice7()
+        {
+            // Dado que el panel de 1°A muestra 7 estudiantes en riesgo
+            ArmarComision(comisionId: 2, nombre: "1°A", alDia: 18, moderados: 5, enRiesgo: 7);
+            var panel = CrearPanel();
+            await panel.CargarAsync();
+            panel.ComisionSeleccionada = panel.Comisiones.Single(c => c.Nombre == "1°A");
+            var enRiesgoEnElPanel = panel.Alumnos.Count(a => a.Nivel == "ALTO RIESGO");
+
+            // Cuando el tutor abre el reporte en el mismo momento
+            var reporte = await _consulta.ObtenerReporteAsync(2);
+
+            // Entonces el reporte también dice 7: hay un solo cálculo de riesgo
+            Assert.Equal(7, enRiesgoEnElPanel);
+            Assert.Equal(enRiesgoEnElPanel, reporte.AltoRiesgo);
+        }
+
+        // H12 · CA3 · Comisión sin datos
+        [Fact]
+        public async Task Given_ComisionConEstudiantesYSinAsistenciasNiEntregas_When_ElTutorAbreElReporte_Then_InformaQueNoHayDatosEnVezDe0EnRiesgo()
+        {
+            // Dado que 1°B tiene estudiantes cargados, clases y trabajos, pero ninguna asistencia ni entrega registrada
+            ArmarComision(comisionId: 3, nombre: "1°B", alDia: 0, moderados: 0, enRiesgo: 10, conRegistros: false);
+
+            // Cuando el tutor abre el reporte de 1°B
+            var reporte = await _consulta.ObtenerReporteAsync(3);
+
+            // Entonces el sistema informa que todavía no hay datos, en lugar de decir que hay 0 en riesgo como si todo estuviera bien
+            Assert.Equal(EstadoReporte.SinDatos, reporte.Estado);
+        }
+
+        // H12 · CA3 · Comisión sin datos (recién importada: sin clases ni trabajos)
+        [Fact]
+        public async Task Given_ComisionRecienImportadaSinClasesNiTrabajos_When_ElTutorAbreElReporte_Then_InformaQueNoHayDatos()
+        {
+            // Dado que 1°C tiene estudiantes cargados pero todavía ninguna clase ni trabajo
+            _datos.Comisiones.Add(new Comision(4, "1°C"));
+            _datos.AgregarAlumno(4001, "Ana", "Gómez", 4);
+            _datos.AgregarAlumno(4002, "Luis", "Paz", 4);
+
+            // Cuando el tutor abre el reporte de 1°C
+            var reporte = await _consulta.ObtenerReporteAsync(4);
+
+            // Entonces el sistema informa que todavía no hay datos
+            Assert.Equal(EstadoReporte.SinDatos, reporte.Estado);
+            Assert.Equal(2, reporte.Total);
         }
     }
 }
