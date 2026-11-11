@@ -85,6 +85,24 @@ namespace ProyectoFinal_PPII_G6.Tests
             await panel.CargarAsync();
             return panel;
         }
+        
+        // H1 · CA3 · Identificador repetido
+        [Fact]
+        public async Task Given_DniYaCargado_When_RegistrarOtroConElMismoDni_Then_SeRechazaYLaNominaNoCambia()
+        {
+            // Dado que en la comisión ya está cargado el DNI 12345678 (Pérez, Juan)
+            var registrar = new RegistrarEstudianteService(_datos);
+            await registrar.RegistrarAsync(new Estudiante(0, "12.345.678", "Juan", "Pérez", "juan@mail.com", 1));
+            var nominaAntes = (await _datos.GetEstudiantesByComisionIdAsync(1)).Count;
+
+            // Cuando el tutor intenta cargar otro estudiante con el mismo DNI
+            var otro = new Estudiante(0, "12345678", "Ana", "Gómez", "ana@mail.com", 1);
+            var rechazo = await registrar.RegistrarAsync(otro);
+
+            // Entonces el alta se rechaza, el sistema informa a qué estudiante corresponde ese DNI y la nómina no cambia
+            Assert.Equal("El DNI 12345678 ya está cargado para Pérez, Juan.", rechazo);
+            Assert.Equal(nominaAntes, (await _datos.GetEstudiantesByComisionIdAsync(1)).Count);
+        }
 
         // H8 · Criterios 1 a 4: lista de la comisión ordenada por riesgo, con indicador y dato que lo justifica
         [Fact]

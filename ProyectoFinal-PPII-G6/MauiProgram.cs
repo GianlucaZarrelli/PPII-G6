@@ -43,6 +43,7 @@ namespace ProyectoFinal_PPII_G6
         private static void RegistrarServicios(IServiceCollection services)
         {
             services.AddSingleton<IDataService, SqlServerDataService>();
+            services.AddTransient<RegistrarEstudianteService>();
             services.AddSingleton<CsvImporterService>();
             services.AddSingleton<RiesgoService>();
             services.AddSingleton<SeleccionAlumnoService>();
