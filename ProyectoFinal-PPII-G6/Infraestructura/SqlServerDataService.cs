@@ -12,10 +12,27 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
     /// </summary>
     public class SqlServerDataService : IDataService
     {
+        private readonly IDbContextFactory<AppDbContext>? _fabrica;
+
+        /// <summary>
+        /// Crea el servicio de la aplicación: cada operación abre su propio contexto, con la cadena de conexión de AppDbContext.
+        /// </summary>
+        public SqlServerDataService()
+        {
+        }
+
+        /// <summary>
+        /// Crea el servicio con una fábrica de contextos propia. Lo usan las pruebas de integración, con una base SQLite en memoria.
+        /// </summary>
+        public SqlServerDataService(IDbContextFactory<AppDbContext> fabrica)
+        {
+            _fabrica = fabrica;
+        }
+
         /// <summary>
         /// Crea un contexto de base de datos nuevo para cada operación.
         /// </summary>
-        private AppDbContext CreateContext() => new AppDbContext();
+        private AppDbContext CreateContext() => _fabrica?.CreateDbContext() ?? new AppDbContext();
 
         /// <summary>
         /// Obtiene todos los estudiantes.

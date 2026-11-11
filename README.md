@@ -66,7 +66,7 @@ Se combinan dos señales, siempre contra las clases y los trabajos **de la comis
     ├── ViewModels/                   Lógica de cada pantalla (MVVM)
     ├── Views/                        Pantallas en XAML, sin lógica: el código de cada una solo la crea y avisa que apareció
     └── scripts/                      Scripts de la base de datos (ver scripts/README.md)
-    ProyectoFinal-PPII-G6.Tests/      Pruebas unitarias xUnit
+    ProyectoFinal-PPII-G6.Tests/      Pruebas unitarias, de aceptación y de integración (xUnit)
     docs/                             Arquitectura, requerimientos no funcionales y registro de decisiones
     .github/workflows/pruebas.yml     Compila la aplicación y corre las pruebas en cada cambio
 
@@ -91,7 +91,7 @@ Se combinan dos señales, siempre contra las clases y los trabajos **de la comis
 
 La conexión se toma de la variable de entorno `PPII_DB`. Si no existe, se usa `Server=.\SQLEXPRESS` con autenticación de Windows.
 
-Para correr las pruebas: *Test Explorer* en Visual Studio, o `dotnet test ProyectoFinal-PPII-G6.Tests` desde la raíz del repositorio.
+Para correr las pruebas: *Test Explorer* en Visual Studio, o `dotnet test ProyectoFinal-PPII-G6.Tests` desde la raíz del repositorio. Para correr un solo tipo: `--filter "Categoria=Aceptacion"` o `--filter "Categoria=Integracion"`.
 
 ## Cómo trabajamos
 
