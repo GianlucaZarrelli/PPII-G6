@@ -12,6 +12,7 @@ Aplicación **.NET MAUI** (patrón **MVVM**) para el seguimiento de la cursada y
 - **Calendario:** se cargan por adelantado las fechas de las clases de una comisión (con una descripción opcional) y se consulta el calendario completo, con las clases y las entregas de los trabajos ordenadas por fecha y cuánto falta o cuánto pasó de cada una.
 - **Entregas:** se crean los trabajos prácticos de una comisión (con un título de hasta 150 caracteres y una fecha de entrega dentro del año en curso) y se marca quién entregó cada uno.
 - **Panel de riesgo:** los alumnos de una comisión ordenados de mayor a menor riesgo, con el dato que lo justifica (por ejemplo, "Asistencia 4/6 (67 %)  |  Entregas 1/3 (33 %)") y si ya se lo contactó: la fecha y hora del último contacto o "Sin contactar". Al tocar un alumno se abre su ficha.
+- **Reporte:** se elige una comisión y se ve cuántos de sus estudiantes están en riesgo de abandonar ("7 de 30 estudiantes en alto riesgo de abandonar"), con una barra por nivel. Usa el mismo cálculo que el panel, así que los números coinciden. Si la comisión no tiene estudiantes, o todavía no hay ninguna asistencia ni entrega registrada, lo dice en lugar de mostrar "0 en riesgo".
 - **Contactos:** se registra un contacto con un alumno (fecha y hora, medio —llamada, mail, presencial o mensaje— y resultado) y se ve el historial de contactos de ese alumno.
 - **Umbrales:** el tutor cambia los porcentajes con los que se decide el nivel de riesgo (alto riesgo y riesgo moderado, para la asistencia y para las entregas) y ve cuántos alumnos quedan en cada nivel. Los niveles se recalculan de inmediato en todas las pantallas, y se puede volver a los valores por defecto.
 - **Historial del alumno:** ficha con su nivel, el detalle de asistencia clase por clase (las clases futuras figuran como "Próxima clase"), el estado de cada trabajo y sus contactos.
@@ -35,7 +36,7 @@ Se combinan dos señales, siempre contra las clases y los trabajos **de la comis
 - Contactar a un alumno **no cambia su nivel**: el contacto se muestra aparte.
 - Los cuatro umbrales (por defecto 75, 60, 85 y 80) se cambian desde la pantalla **Umbrales** y se guardan en la base de datos.
 
-## Alcance: las once historias
+## Alcance: las once historias y la H12
 
 | Historia | Qué incluye |
 |---|---|
@@ -49,6 +50,7 @@ Se combinan dos señales, siempre contra las clases y los trabajos **de la comis
 | H9 Ficha del alumno | Historial de asistencia, entregas y contactos |
 | H10 Registro de contactos | Registro con fecha y hora, medio y resultado, e historial por alumno |
 | H11 Contactos en el panel | El panel y la ficha muestran el último contacto o "Sin contactar" |
+| H12 Reporte de la comisión | Cuántos estudiantes están en riesgo de abandonar, con el mismo cálculo del panel y una barra por nivel; avisa cuando todavía no hay datos |
 
 ## Estructura
 

@@ -64,7 +64,7 @@ namespace ProyectoFinal_PPII_G6.Tests
 
             // Assert
             Assert.Equal("El DNI 12345678 ya está cargado para Pérez, Juan.", vm.ErrorDni);
-            Assert.Equal(1, vm.Estudiantes.Count);
+            Assert.Single(vm.Estudiantes);
             Assert.Empty(_dialogo.Avisos);
             Assert.Equal("Ana", vm.Nombre);
         }
@@ -83,7 +83,7 @@ namespace ProyectoFinal_PPII_G6.Tests
             Assert.Equal("Ingresá un nombre.", vm.ErrorNombre);
             Assert.Equal("Ingresá un apellido.", vm.ErrorApellido);
             Assert.Equal("Ingresá un email.", vm.ErrorEmail);
-            Assert.Equal(1, _datos.Estudiantes.Count);
+            Assert.Single(_datos.Estudiantes);
         }
 
         [Fact]
@@ -100,7 +100,7 @@ namespace ProyectoFinal_PPII_G6.Tests
             // Assert
             Assert.Equal(new[] { "Error: No se pudo guardar el estudiante. Revisá la conexión con la base de datos." }, _dialogo.Avisos);
             Assert.Equal("Ana", vm.Nombre);
-            Assert.Equal(1, _datos.Estudiantes.Count);
+            Assert.Single(_datos.Estudiantes);
         }
     }
 }

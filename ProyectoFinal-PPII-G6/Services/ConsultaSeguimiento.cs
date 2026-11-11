@@ -75,6 +75,12 @@ namespace ProyectoFinal_PPII_G6.Services
             var umbrales = await _dataService.GetUmbralesAsync();
             return await EvaluarComisionAsync(comisionId, asistencias, contactos, umbrales);
         }
+        
+        /// <summary>
+        /// Arma el reporte de una comisión (H12) con la misma evaluación que usa el panel: no hay un segundo cálculo de riesgo.
+        /// </summary>
+        public async Task<ReporteComision> ObtenerReporteAsync(int comisionId) =>
+            ReporteComision.Armar(await ObtenerComisionAsync(comisionId));
 
         /// <summary>
         /// Evalúa a todos los alumnos de todas las comisiones (lo usa el resumen de Inicio).
