@@ -1,4 +1,5 @@
 using ProyectoFinal_PPII_G6.Models;
+using ProyectoFinal_PPII_G6.Services;
 using ProyectoFinal_PPII_G6.ViewModels;
 using Xunit;
 
@@ -19,14 +20,14 @@ namespace ProyectoFinal_PPII_G6.Tests
         {
             _datos.Comisiones.Add(new Comision(1, "A"));
             _datos.Comisiones.Add(new Comision(2, "B"));
-            return new EstudianteViewModel(_datos, _dialogo);
+            return new EstudianteViewModel(_datos, _dialogo, new RegistrarEstudianteService(_datos));
         }
 
         [Fact]
         public void SinComisiones_InvitaACrearLaPrimera()
         {
             // Act
-            var vm = new EstudianteViewModel(_datos, _dialogo);
+            var vm = new EstudianteViewModel(_datos, _dialogo, new RegistrarEstudianteService(_datos));
 
             // Assert
             Assert.Equal("Todavía no hay comisiones. Creá la primera con el campo de abajo.", vm.AvisoComisiones);
@@ -68,7 +69,7 @@ namespace ProyectoFinal_PPII_G6.Tests
         public async Task CrearLaPrimeraComision_QuitaElAvisoDeQueNoHay()
         {
             // Arrange
-            var vm = new EstudianteViewModel(_datos, _dialogo);
+            var vm = new EstudianteViewModel(_datos, _dialogo, new RegistrarEstudianteService(_datos));
             vm.NombreComision = "A";
 
             // Act

@@ -63,6 +63,12 @@ namespace ProyectoFinal_PPII_G6.Tests
         /// Si es true, guardar los umbrales falla, como si la base estuviera caída.
         /// </summary>
         public bool FallarAlGuardarUmbrales { get; set; }
+        
+        
+        /// <summary>
+        /// Si es true, guardar un estudiante falla, como si la base estuviera caída.
+        /// </summary>
+        public bool FallarAlGuardarEstudiante { get; set; }
 
         /// <summary>
         /// Agrega un alumno dado de alta antes de las clases, para que todas le cuenten.
@@ -151,10 +157,19 @@ namespace ProyectoFinal_PPII_G6.Tests
             Umbrales = umbrales;
             return Task.CompletedTask;
         }
+        
+        public Task<int> SaveEstudianteAsync(Estudiante estudiante)
+        {
+            if (FallarAlGuardarEstudiante)
+                throw new InvalidOperationException("La base de datos no responde.");
+
+            estudiante.Id = Estudiantes.Count == 0 ? 1 : Estudiantes.Max(e => e.Id) + 1;
+            Estudiantes.Add(estudiante);
+            return Task.FromResult(estudiante.Id);
+        }
 
         // Lo que sigue no se usa en estas pruebas.
         public Task<List<Estudiante>> GetEstudiantesAsync() => throw new NotImplementedException();
-        public Task<int> SaveEstudianteAsync(Estudiante estudiante) => throw new NotImplementedException();
         public Task SaveEstudiantesMassiveAsync(List<Estudiante> estudiantes) => throw new NotImplementedException();
         public Task<List<Clase>> GetClasesAsync() => throw new NotImplementedException();
         public Task<int> SaveAsistenciasAsync(List<Asistencia> asistencias) => throw new NotImplementedException();

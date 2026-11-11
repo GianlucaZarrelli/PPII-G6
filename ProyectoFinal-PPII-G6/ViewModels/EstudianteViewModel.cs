@@ -21,6 +21,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
 
         private readonly IDataService _dataService;
         private readonly IDialogoService _dialogo;
+        private readonly RegistrarEstudianteService _registrar;
 
         /// <summary>
         /// Mientras es true, el setter de la comisión no dispara cargas (se usa al repoblar el selector).
@@ -246,10 +247,11 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// <summary>
         /// Crea el ViewModel, inicializa los comandos y carga las comisiones.
         /// </summary>
-        public EstudianteViewModel(IDataService dataService, IDialogoService dialogo)
+        public EstudianteViewModel(IDataService dataService, IDialogoService dialogo, RegistrarEstudianteService registrar)
         {
             _dataService = dataService;
             _dialogo = dialogo;
+            _registrar = registrar;
 
             GuardarEstudianteCommand = new Command(async () => await GuardarEstudianteAsync());
             CargarEstudianteCommand = new Command(async () => await CargarEstudianteAsync());
@@ -455,13 +457,6 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             else if (!ValidacionEmail.EsValido(datos.Email))
                 ErrorEmail = "El email no es válido. Tiene que tener el formato nombre@dominio.com.";
 
-            if (string.IsNullOrEmpty(ErrorDni)
-                && datos.Comision != null
-                && Estudiantes.Any(e => ValidacionDni.Normalizar(e.Dni) == datos.Dni))
-            {
-                ErrorDni = $"Ya existe un estudiante con ese DNI en la comisión {datos.Comision.Nombre}.";
-            }
-
             return string.IsNullOrEmpty(ErrorComision)
                 && string.IsNullOrEmpty(ErrorDni)
                 && string.IsNullOrEmpty(ErrorNombre)
@@ -489,8 +484,12 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             try
             {
                 var nuevo = new Estudiante(0, datos.Dni, datos.Nombre, datos.Apellido, datos.Email, datos.Comision!.Id);
-                await _dataService.SaveEstudianteAsync(nuevo);
-                return true;
+                var rechazo = await _registrar.RegistrarAsync(nuevo);
+
+                if (rechazo != null)
+                    ErrorDni = rechazo;
+
+                return rechazo == null;
             }
             catch (Exception ex)
             {
