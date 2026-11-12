@@ -17,4 +17,3 @@ Cada requerimiento sigue la forma *en [situación], cuando [estímulo], el siste
 ## Limitaciones conocidas de esta especificación
 
 - La aplicación no tiene autenticación: se instala en el equipo del tutor y el acceso a los datos se limita con el usuario de la base. Es una limitación del alcance, no una decisión de que el control de acceso no importe.
-- Los requerimientos RNF-3 y RNF-4 están formulados pero todavía no medidos. Cuando se midan, se registra el resultado en la columna de estado.
