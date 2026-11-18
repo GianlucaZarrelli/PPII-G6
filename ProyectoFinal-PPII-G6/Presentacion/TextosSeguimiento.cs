@@ -50,5 +50,17 @@ namespace ProyectoFinal_PPII_G6.Presentacion
 
             return $"Entregas: {r.Entregados} de {r.TrabajosContados} trabajos vencidos ({r.PorcentajeEntregas:F0} %)";
         }
+
+        /// <summary>
+        /// Texto de la racha para el panel. Vacío si no hay ausencias seguidas vigentes.
+        /// </summary>
+        public static string RachaCorta(ResumenAlumno r) => r.Racha.Estado switch
+        {
+            EstadoRacha.SinDatos => "sin datos de asistencia",
+            EstadoRacha.ConRacha => r.Racha.Cantidad == 1
+                ? "1 ausencia seguida"
+                : $"{r.Racha.Cantidad} ausencias seguidas",
+            _ => string.Empty
+        };
     }
 }

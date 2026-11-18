@@ -88,6 +88,11 @@ namespace ProyectoFinal_PPII_G6.Services
         public int CantidadContactos { get; init; }
 
         /// <summary>
+        /// Ausencias seguidas hasta la última clase con asistencia tomada.
+        /// </summary>
+        public ResultadoRacha Racha { get; init; } = ResultadoRacha.SinDatos();
+
+        /// <summary>
         /// El menor de los dos porcentajes: desempata dentro de un mismo nivel.
         /// </summary>
         public double PeorPorcentaje => Math.Min(PorcentajeAsistencia, PorcentajeEntregas);
@@ -119,6 +124,7 @@ namespace ProyectoFinal_PPII_G6.Services
         /// como parámetro para poder probar qué pasa con los trabajos vencidos y los que no.
         /// Los contactos son los del alumno: se suman al resumen, pero no cambian su nivel.
         /// Si no se indican umbrales, se usan los valores por defecto.
+        /// Las asistencias de la comisión sirven para saber en qué clases se tomó lista (racha).
         /// </summary>
         public ResumenAlumno Evaluar(
             Estudiante alumno,
@@ -128,10 +134,12 @@ namespace ProyectoFinal_PPII_G6.Services
             IEnumerable<Entrega> entregasAlumno,
             DateTime hoy,
             IEnumerable<Contacto>? contactosAlumno = null,
-            UmbralesRiesgo? umbrales = null)
+            UmbralesRiesgo? umbrales = null,
+            IEnumerable<Asistencia>? asistenciasComision = null)
         {
+            var clasesLista = clasesComision.ToList();
             var asistenciasTodas = asistenciasAlumno.ToList();
-            var clases = SeleccionarClasesDelAlumno(alumno, clasesComision, asistenciasTodas, hoy);
+            var clases = SeleccionarClasesDelAlumno(alumno, clasesLista, asistenciasTodas, hoy);
             var trabajos = SeleccionarTrabajosVencidos(trabajosComision, hoy);
 
             var asistencias = FiltrarAsistencias(asistenciasTodas, clases);
@@ -139,7 +147,12 @@ namespace ProyectoFinal_PPII_G6.Services
 
             var resultado = _riesgoService.CalcularRiesgo(asistencias, clases.Count, entregas, trabajos.Count, umbrales);
             var contactos = (contactosAlumno ?? Array.Empty<Contacto>()).ToList();
-            return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado, contactos);
+            var racha = RachaAusencias.Calcular(
+                clasesLista,
+                asistenciasComision ?? asistenciasTodas,
+                asistenciasTodas,
+                hoy);
+            return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado, contactos, racha);
         }
 
         /// <summary>
@@ -205,7 +218,7 @@ namespace ProyectoFinal_PPII_G6.Services
         private static ResumenAlumno ArmarResumen(
             Estudiante alumno, List<Clase> clases, List<TrabajoPractico> trabajos,
             List<Asistencia> asistencias, List<Entrega> entregas, ResultadoRiesgo resultado,
-            List<Contacto> contactos)
+            List<Contacto> contactos, ResultadoRacha racha)
         {
             return new ResumenAlumno
             {
@@ -221,7 +234,8 @@ namespace ProyectoFinal_PPII_G6.Services
                 IdsClasesContadas = clases.Select(c => c.Id).ToHashSet(),
                 IdsTrabajosContados = trabajos.Select(t => t.Id).ToHashSet(),
                 UltimoContacto = contactos.Count == 0 ? null : contactos.Max(c => c.FechaHora),
-                CantidadContactos = contactos.Count
+                CantidadContactos = contactos.Count,
+                Racha = racha
             };
         }
 

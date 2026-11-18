@@ -133,7 +133,12 @@ namespace ProyectoFinal_PPII_G6.Services
             List<Asistencia> asistencias, List<Entrega> entregas, List<Contacto> contactos)
         {
             var umbrales = await _dataService.GetUmbralesAsync();
-            return _seguimiento.Evaluar(alumno, clases, trabajos, asistencias, entregas, DateTime.Today, contactos, umbrales);
+            var idsClases = clases.Select(c => c.Id).ToHashSet();
+            var todas = await _dataService.GetTodasLasAsistenciasAsync();
+            var asistenciasComision = todas.Where(a => idsClases.Contains(a.ClaseId));
+            return _seguimiento.Evaluar(
+                alumno, clases, trabajos, asistencias, entregas, DateTime.Today,
+                contactos, umbrales, asistenciasComision);
         }
 
         /// <summary>
@@ -145,6 +150,8 @@ namespace ProyectoFinal_PPII_G6.Services
             var alumnos = await _dataService.GetEstudiantesByComisionIdAsync(comisionId);
             var clases = await _dataService.GetClasesByComisionIdAsync(comisionId);
             var trabajos = await _dataService.GetTrabajosPracticosByComisionIdAsync(comisionId);
+            var idsClases = clases.Select(c => c.Id).ToHashSet();
+            var asistenciasComision = asistencias.Where(a => idsClases.Contains(a.ClaseId)).ToList();
 
             var resumenes = new List<ResumenAlumno>();
             foreach (var alumno in alumnos)
@@ -152,7 +159,9 @@ namespace ProyectoFinal_PPII_G6.Services
                 var entregas = await _dataService.GetEntregasPorEstudianteAsync(alumno.Id);
                 var asistenciasAlumno = asistencias.Where(a => a.EstudianteId == alumno.Id);
                 var contactosAlumno = contactos.Where(c => c.EstudianteId == alumno.Id);
-                resumenes.Add(_seguimiento.Evaluar(alumno, clases, trabajos, asistenciasAlumno, entregas, DateTime.Today, contactosAlumno, umbrales));
+                resumenes.Add(_seguimiento.Evaluar(
+                    alumno, clases, trabajos, asistenciasAlumno, entregas, DateTime.Today,
+                    contactosAlumno, umbrales, asistenciasComision));
             }
 
             return _seguimiento.Ordenar(resumenes);
