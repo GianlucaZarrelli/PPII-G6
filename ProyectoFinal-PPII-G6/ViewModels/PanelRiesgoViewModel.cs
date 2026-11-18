@@ -191,10 +191,21 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             NombreCompleto = resumen.Estudiante.NombreCompleto,
             Nivel = PresentacionNivel.Texto(resumen.Nivel),
             ColorNivel = PresentacionNivel.Color(resumen.Nivel),
-            Detalle = $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}",
+            Detalle = ArmarDetalle(resumen),
             ContactoTexto = PresentacionContacto.Texto(resumen),
             ContactoColor = PresentacionContacto.Color(resumen),
             AbrirFichaCommand = new Command(async () => await AbrirFichaAsync(resumen.Estudiante.Id))
         };
+
+        /// <summary>
+        /// Junta el dato del riesgo con la racha de ausencias cuando corresponde mostrarla.
+        /// </summary>
+        private static string ArmarDetalle(ResumenAlumno resumen)
+        {
+            var baseDetalle =
+                $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}";
+            var racha = TextosSeguimiento.RachaCorta(resumen);
+            return string.IsNullOrEmpty(racha) ? baseDetalle : $"{baseDetalle}  |  {racha}";
+        }
     }
 }
