@@ -18,19 +18,19 @@ Vamos a resolver los tres casos así:
 
 1. Si no hay clases que contar, el porcentaje de asistencia es 100 %; si no hay trabajos que contar, el de entregas es 100 %. Esa señal no penaliza.
 2. Si no hay **ni clases ni trabajos** que contar, el nivel es **"Sin datos"** y no verde.
-3. A cada alumno le cuentan solo las clases desde su **fecha de alta** (`Estudiante.FechaAlta`) y las anteriores en las que ya tiene un registro de asistencia.
+3. A cada alumno le cuentan solo las clases (y trabajos) desde su **fecha de incorporación** (`Estudiante.FechaAlta`), si la tiene, y las clases anteriores en las que ya tiene un registro de asistencia. Sin fecha, le cuenta toda la historia de la comisión. Ver también el [ADR 10](adr-010-racha-e-incorporacion.md).
 
 ## Consecuencias
 
 **Positivas**
 
-- Un alumno recién cargado no arranca en rojo.
+- Un alumno recién incorporado (con fecha de hoy) no arranca en rojo.
 - "Sin datos" distingue "no hay nada que evaluar" de "está al día".
 - Los tres casos tienen pruebas automáticas, junto con el caso de un alumno justo en el umbral.
 
 **Negativas**
 
-- La fecha de alta es el día en que se carga al alumno, y la aplicación no permite editarla. Si se carga tarde por un olvido y no por una incorporación real, las clases anteriores no le cuentan y figura como "Sin datos" hasta que haya clases o trabajos desde su alta.
+- Si se deja la fecha vacía al cargar a alguien que en realidad se incorporó tarde, le cuentan clases y trabajos previos y puede figurar en riesgo sin haber faltado.
 
 **Neutras**
 

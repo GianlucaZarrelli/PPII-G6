@@ -52,7 +52,7 @@ namespace ProyectoFinal_PPII_G6.Tests
         public async Task Ficha_MuestraElHistorialDeContactosDelMasRecienteAlMasAntiguo()
         {
             // Arrange
-            var vm = new DetalleEstudianteViewModel(_datos, _consulta, new SeleccionAlumnoService());
+            var vm = new DetalleEstudianteViewModel(_datos, _consulta, new SeleccionAlumnoService(), new DialogoFalso());
             await vm.CargarListaEstudiantesAsync();
 
             // Act
@@ -68,7 +68,7 @@ namespace ProyectoFinal_PPII_G6.Tests
         public async Task Ficha_DeUnAlumnoSinContactos_LoDiceYNoMuestraHistorial()
         {
             // Arrange
-            var vm = new DetalleEstudianteViewModel(_datos, _consulta, new SeleccionAlumnoService());
+            var vm = new DetalleEstudianteViewModel(_datos, _consulta, new SeleccionAlumnoService(), new DialogoFalso());
             await vm.CargarListaEstudiantesAsync();
 
             // Act
@@ -84,7 +84,7 @@ namespace ProyectoFinal_PPII_G6.Tests
         public async Task Ficha_AlCambiarDeAlumno_NoArrastraLosContactosDelAnterior()
         {
             // Arrange
-            var vm = new DetalleEstudianteViewModel(_datos, _consulta, new SeleccionAlumnoService());
+            var vm = new DetalleEstudianteViewModel(_datos, _consulta, new SeleccionAlumnoService(), new DialogoFalso());
             await vm.CargarListaEstudiantesAsync();
             vm.EstudianteSeleccionado = vm.ListaEstudiantes.Single(e => e.Id == 1);
 

@@ -36,9 +36,39 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         public string ColorNivel { get; set; } = "#757575";
 
         /// <summary>
-        /// Los números que justifican el nivel, por ejemplo "Asistencia 4/6 (67 %)".
+        /// Fondo suave del chip de nivel.
+        /// </summary>
+        public string ColorFondoNivel { get; set; } = "#F5F5F5";
+
+        /// <summary>
+        /// Los números que justifican el nivel, en una sola línea (compatibilidad con pruebas).
         /// </summary>
         public string Detalle { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Inasistencias en formato corto para la grilla.
+        /// </summary>
+        public string AsistenciaTexto { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Entregas en formato corto para la grilla.
+        /// </summary>
+        public string EntregasTexto { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Racha de ausencias para la grilla.
+        /// </summary>
+        public string RachaTexto { get; set; } = string.Empty;
+
+        /// <summary>
+        /// Color del texto de la racha.
+        /// </summary>
+        public string ColorRacha { get; set; } = "#757575";
+
+        /// <summary>
+        /// Fondo del chip de racha.
+        /// </summary>
+        public string ColorFondoRacha { get; set; } = "#F5F5F5";
 
         /// <summary>
         /// Resumen del contacto con el alumno: la fecha y hora del último, o "Sin contactar".
@@ -90,6 +120,39 @@ namespace ProyectoFinal_PPII_G6.ViewModels
                 OnPropertyChanged();
                 _ = CargarAlumnosAsync();
             }
+        }
+
+        private int _cantAlto;
+        private int _cantModerado;
+        private int _cantAlDia;
+        private int _cantSinDatos;
+
+        /// <summary>Cantidad de alumnos en alto riesgo.</summary>
+        public int CantAlto
+        {
+            get => _cantAlto;
+            private set { _cantAlto = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Cantidad de alumnos en riesgo moderado.</summary>
+        public int CantModerado
+        {
+            get => _cantModerado;
+            private set { _cantModerado = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Cantidad de alumnos al día.</summary>
+        public int CantAlDia
+        {
+            get => _cantAlDia;
+            private set { _cantAlDia = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Cantidad de alumnos sin datos.</summary>
+        public int CantSinDatos
+        {
+            get => _cantSinDatos;
+            private set { _cantSinDatos = value; OnPropertyChanged(); }
         }
 
         /// <summary>
@@ -144,6 +207,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         {
             var comision = ComisionSeleccionada;
             Alumnos.Clear();
+            ActualizarContadores(Array.Empty<ResumenAlumno>());
             if (comision == null) return;
 
             try
@@ -166,11 +230,22 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// </summary>
         private void MostrarAlumnos(IEnumerable<ResumenAlumno> resumenes)
         {
+            var lista = resumenes.ToList();
             Alumnos.Clear();
-            foreach (var resumen in resumenes)
+            foreach (var resumen in lista)
             {
                 Alumnos.Add(CrearItem(resumen));
             }
+
+            ActualizarContadores(lista);
+        }
+
+        private void ActualizarContadores(IReadOnlyList<ResumenAlumno> resumenes)
+        {
+            CantAlto = resumenes.Count(r => r.Nivel == NivelSeguimiento.Rojo);
+            CantModerado = resumenes.Count(r => r.Nivel == NivelSeguimiento.Amarillo);
+            CantAlDia = resumenes.Count(r => r.Nivel == NivelSeguimiento.Verde);
+            CantSinDatos = resumenes.Count(r => r.Nivel == NivelSeguimiento.SinDatos);
         }
 
         /// <summary>
@@ -185,16 +260,54 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// <summary>
         /// Traduce un resumen a la fila que muestra el panel.
         /// </summary>
-        private AlumnoRiesgoItem CrearItem(ResumenAlumno resumen) => new()
+        private AlumnoRiesgoItem CrearItem(ResumenAlumno resumen)
         {
-            EstudianteId = resumen.Estudiante.Id,
-            NombreCompleto = resumen.Estudiante.NombreCompleto,
-            Nivel = PresentacionNivel.Texto(resumen.Nivel),
-            ColorNivel = PresentacionNivel.Color(resumen.Nivel),
-            Detalle = $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}",
-            ContactoTexto = PresentacionContacto.Texto(resumen),
-            ContactoColor = PresentacionContacto.Color(resumen),
-            AbrirFichaCommand = new Command(async () => await AbrirFichaAsync(resumen.Estudiante.Id))
+            var (rachaTexto, colorRacha, fondoRacha) = PresentarRacha(resumen.Racha);
+
+            return new AlumnoRiesgoItem
+            {
+                EstudianteId = resumen.Estudiante.Id,
+                NombreCompleto = resumen.Estudiante.NombreCompleto,
+                Nivel = PresentacionNivel.Texto(resumen.Nivel),
+                ColorNivel = PresentacionNivel.Color(resumen.Nivel),
+                ColorFondoNivel = FondoNivel(resumen.Nivel),
+                AsistenciaTexto = TextosSeguimiento.AsistenciaGrilla(resumen),
+                EntregasTexto = TextosSeguimiento.EntregasGrilla(resumen),
+                RachaTexto = rachaTexto,
+                ColorRacha = colorRacha,
+                ColorFondoRacha = fondoRacha,
+                Detalle = ArmarDetalle(resumen),
+                ContactoTexto = PresentacionContacto.Texto(resumen),
+                ContactoColor = PresentacionContacto.Color(resumen),
+                AbrirFichaCommand = new Command(async () => await AbrirFichaAsync(resumen.Estudiante.Id))
+            };
+        }
+
+        /// <summary>
+        /// Junta el dato que justifica el riesgo con la racha de ausencias seguidas.
+        /// </summary>
+        private static string ArmarDetalle(ResumenAlumno resumen) =>
+            $"{TextosSeguimiento.AsistenciaCorta(resumen)}  |  {TextosSeguimiento.EntregasCorta(resumen)}  |  {TextosSeguimiento.RachaCorta(resumen)}";
+
+        private static string FondoNivel(NivelSeguimiento nivel) => nivel switch
+        {
+            NivelSeguimiento.Rojo => "#FFEBEE",
+            NivelSeguimiento.Amarillo => "#FFF3E0",
+            NivelSeguimiento.Verde => "#E8F5E9",
+            _ => "#ECEFF1"
+        };
+
+        /// <summary>
+        /// Textos cortos y parejos para el chip de racha del panel.
+        /// </summary>
+        private static (string Texto, string Color, string Fondo) PresentarRacha(ResultadoRacha racha) => racha.Estado switch
+        {
+            EstadoRacha.ConRacha => (
+                racha.Cantidad == 1 ? "1 seguida" : $"{racha.Cantidad} seguidas",
+                "#B71C1C",
+                "#FFCDD2"),
+            EstadoRacha.SinRacha => ("Sin racha", "#2E7D32", "#C8E6C9"),
+            _ => ("Sin datos", "#546E7A", "#CFD8DC")
         };
     }
 }

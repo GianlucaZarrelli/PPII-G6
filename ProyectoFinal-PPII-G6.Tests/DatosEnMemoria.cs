@@ -174,8 +174,20 @@ namespace ProyectoFinal_PPII_G6.Tests
             if (FallarAlGuardarEstudiante)
                 throw new InvalidOperationException("La base de datos no responde.");
 
-            estudiante.Id = Estudiantes.Count == 0 ? 1 : Estudiantes.Max(e => e.Id) + 1;
-            Estudiantes.Add(estudiante);
+            if (estudiante.Id == 0)
+            {
+                estudiante.Id = Estudiantes.Count == 0 ? 1 : Estudiantes.Max(e => e.Id) + 1;
+                Estudiantes.Add(estudiante);
+            }
+            else
+            {
+                var idx = Estudiantes.FindIndex(e => e.Id == estudiante.Id);
+                if (idx >= 0)
+                    Estudiantes[idx] = estudiante;
+                else
+                    Estudiantes.Add(estudiante);
+            }
+
             return Task.FromResult(estudiante.Id);
         }
 

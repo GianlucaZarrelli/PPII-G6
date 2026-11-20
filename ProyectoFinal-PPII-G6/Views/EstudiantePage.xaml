@@ -91,6 +91,24 @@
                            FontSize="12"
                            TextColor="#D32F2F" />
 
+                    <Label Text="Fecha de incorporación (opcional, solo si se incorporó tarde):"
+                           FontSize="13"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox IsChecked="{Binding TieneFechaIncorporacion, Mode=TwoWay}" VerticalOptions="Center" />
+                        <Label Text="Cursa desde"
+                               FontSize="13"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                        <DatePicker Date="{Binding FechaIncorporacion, Mode=TwoWay}"
+                                    IsEnabled="{Binding TieneFechaIncorporacion}"
+                                    Format="dd/MM/yyyy"
+                                    VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding ErrorFechaIncorporacion}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
+
                     <Button Text="Guardar Estudiante"
                             Command="{Binding GuardarEstudianteCommand}"
                             BackgroundColor="#512BD4"

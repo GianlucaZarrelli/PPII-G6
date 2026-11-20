@@ -70,6 +70,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private readonly IDataService _dataService;
         private readonly ConsultaSeguimiento _consulta;
         private readonly SeleccionAlumnoService _seleccion;
+        private readonly IDialogoService _dialogo;
 
         /// <summary>
         /// Mientras es true, los setters de las selecciones no disparan cargas (se usa al repoblar las listas).
@@ -218,17 +219,80 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             set { _detalleEntregas = value; OnPropertyChanged(); }
         }
 
+        private string _detalleRacha = string.Empty;
+
         /// <summary>
-        /// Crea el ViewModel con el acceso a datos, la consulta de seguimiento y el servicio que recuerda qué alumno abrir.
+        /// Explicación de la racha de ausencias seguidas.
+        /// </summary>
+        public string DetalleRacha
+        {
+            get => _detalleRacha;
+            set { _detalleRacha = value; OnPropertyChanged(); }
+        }
+
+        private bool _tieneFechaIncorporacion;
+
+        /// <summary>
+        /// Si es true, el alumno tiene fecha de incorporación y el DatePicker aplica.
+        /// </summary>
+        public bool TieneFechaIncorporacion
+        {
+            get => _tieneFechaIncorporacion;
+            set
+            {
+                _tieneFechaIncorporacion = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorFechaIncorporacion)) ErrorFechaIncorporacion = string.Empty;
+            }
+        }
+
+        private DateTime _fechaIncorporacion = DateTime.Today;
+
+        /// <summary>
+        /// Fecha de incorporación editable en la ficha (solo aplica si TieneFechaIncorporacion).
+        /// </summary>
+        public DateTime FechaIncorporacion
+        {
+            get => _fechaIncorporacion;
+            set
+            {
+                _fechaIncorporacion = value.Date;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorFechaIncorporacion)) ErrorFechaIncorporacion = string.Empty;
+            }
+        }
+
+        private string _errorFechaIncorporacion = string.Empty;
+
+        /// <summary>
+        /// Texto rojo debajo de la fecha de incorporación.
+        /// </summary>
+        public string ErrorFechaIncorporacion
+        {
+            get => _errorFechaIncorporacion;
+            set { _errorFechaIncorporacion = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Guarda la fecha de incorporación del alumno elegido (o la limpia).
+        /// </summary>
+        public Command GuardarIncorporacionCommand { get; }
+
+        /// <summary>
+        /// Crea el ViewModel con el acceso a datos, la consulta de seguimiento, el servicio que recuerda qué alumno abrir
+        /// y los avisos al usuario.
         /// </summary>
         public DetalleEstudianteViewModel(
             IDataService dataService,
             ConsultaSeguimiento consulta,
-            SeleccionAlumnoService seleccion)
+            SeleccionAlumnoService seleccion,
+            IDialogoService dialogo)
         {
             _dataService = dataService;
             _consulta = consulta;
             _seleccion = seleccion;
+            _dialogo = dialogo;
+            GuardarIncorporacionCommand = new Command(async () => await GuardarIncorporacionAsync());
         }
 
         /// <summary>
@@ -386,6 +450,10 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             ComisionNombre = string.Empty;
             DetalleAsistencia = string.Empty;
             DetalleEntregas = string.Empty;
+            DetalleRacha = string.Empty;
+            TieneFechaIncorporacion = false;
+            FechaIncorporacion = DateTime.Today;
+            ErrorFechaIncorporacion = string.Empty;
             NivelRiesgoTexto = "Seleccione un alumno";
             ColorRiesgo = "#757575";
         }
@@ -486,17 +554,57 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             ColorRiesgo = PresentacionNivel.Color(resumen.Nivel);
             DetalleAsistencia = TextosSeguimiento.AsistenciaLarga(resumen);
             DetalleEntregas = TextosSeguimiento.EntregasLarga(resumen);
+            DetalleRacha = TextosSeguimiento.RachaLarga(resumen);
+            TieneFechaIncorporacion = resumen.Estudiante.FechaAlta.HasValue;
+            FechaIncorporacion = resumen.Estudiante.FechaAlta?.Date ?? DateTime.Today;
+            ErrorFechaIncorporacion = string.Empty;
         }
 
         /// <summary>
-        /// Estado y color de una clase para el alumno. Una clase que no cuenta es futura o anterior al alta,
-        /// y no tiene registro.
+        /// Valida y guarda la fecha de incorporación del alumno elegido, y recalcula su ficha.
+        /// </summary>
+        private async Task GuardarIncorporacionAsync()
+        {
+            var alumno = EstudianteSeleccionado;
+            if (alumno == null) return;
+
+            DateTime? fecha = TieneFechaIncorporacion ? FechaIncorporacion.Date : null;
+            var error = ValidacionIncorporacion.ObtenerError(fecha, DateTime.Today);
+            if (error != null)
+            {
+                ErrorFechaIncorporacion = error;
+                await _dialogo.AvisarAsync("Atención", error);
+                return;
+            }
+
+            try
+            {
+                alumno.FechaAlta = fecha;
+                await _dataService.SaveEstudianteAsync(alumno);
+                await CargarDetalleAsync(alumno);
+
+                var mensaje = fecha.HasValue
+                    ? $"Quedó registrado que cursa desde el {fecha.Value:dd/MM/yyyy}. El riesgo ahora cuenta solo clases y trabajos desde esa fecha."
+                    : "Se quitó la fecha de incorporación. El riesgo vuelve a contar toda la historia de la comisión.";
+                await _dialogo.AvisarAsync("Fecha guardada", mensaje);
+            }
+            catch (Exception ex)
+            {
+                System.Diagnostics.Debug.WriteLine(ex.InnerException?.Message ?? ex.Message);
+                ErrorFechaIncorporacion = "No se pudo guardar la fecha de incorporación.";
+                await _dialogo.AvisarAsync("Error", "No se pudo guardar la fecha de incorporación. Revisá la conexión con la base.");
+            }
+        }
+
+        /// <summary>
+        /// Estado y color de una clase para el alumno. Una clase que no cuenta es futura o anterior a la
+        /// incorporación, y no tiene registro.
         /// </summary>
         private static (string Texto, string Color) EstadoAsistencia(Asistencia? asistencia, bool cuenta, DateTime fecha) =>
             (asistencia, cuenta) switch
             {
                 (null, false) when fecha.Date > DateTime.Today => ("Próxima clase (aún no cuenta)", "#757575"),
-                (null, false) => ("Anterior al alta (no cuenta)", "#757575"),
+                (null, false) => ("Anterior a la incorporación (no cuenta)", "#757575"),
                 ({ Presente: true }, _) => ("Presente", "#388E3C"),
                 ({ Justificada: true }, _) => ("Ausente (justificada)", "#F57C00"),
                 _ => ("Ausente", "#D32F2F")

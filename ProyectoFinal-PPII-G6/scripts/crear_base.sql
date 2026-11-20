@@ -26,7 +26,7 @@ CREATE TABLE Estudiantes (
                              Apellido VARCHAR(100) NOT NULL,
                              Email VARCHAR(100) NULL,
                              ComisionId INT NOT NULL,
-                             FechaAlta DATE NOT NULL CONSTRAINT DF_Estudiantes_FechaAlta DEFAULT (CAST(GETDATE() AS DATE)),
+                             FechaAlta DATE NULL,
                              CONSTRAINT UQ_Estudiantes_DNI_Comision UNIQUE (DNI, ComisionId),
                              CONSTRAINT FK_Estudiantes_Comisiones FOREIGN KEY (ComisionId) REFERENCES Comisiones(Id)
 );

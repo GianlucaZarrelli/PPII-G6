@@ -46,6 +46,37 @@
                            FontSize="14"
                            TextColor="Gray" />
 
+                    <!-- Fecha de incorporación (opcional, editable) -->
+                    <Label Text="Fecha de incorporación (opcional):"
+                           FontSize="13"
+                           FontAttributes="Bold"
+                           Margin="0,8,0,0"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                    <Label Text="Desde cuándo cursa. Si la fecha es vieja, puede seguir contando las mismas clases: probá una fecha reciente para ver el cambio."
+                           FontSize="11"
+                           TextColor="Gray" />
+                    <HorizontalStackLayout Spacing="10">
+                        <CheckBox IsChecked="{Binding TieneFechaIncorporacion, Mode=TwoWay}" VerticalOptions="Center" />
+                        <Label Text="Cursa desde"
+                               FontSize="13"
+                               VerticalOptions="Center"
+                               TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                        <DatePicker Date="{Binding FechaIncorporacion, Mode=TwoWay}"
+                                    IsEnabled="{Binding TieneFechaIncorporacion}"
+                                    Format="dd/MM/yyyy"
+                                    VerticalOptions="Center" />
+                        <Button Text="Guardar fecha"
+                                Command="{Binding GuardarIncorporacionCommand}"
+                                BackgroundColor="#512BD4"
+                                TextColor="White"
+                                CornerRadius="6"
+                                Padding="12,6"
+                                VerticalOptions="Center" />
+                    </HorizontalStackLayout>
+                    <Label Text="{Binding ErrorFechaIncorporacion}"
+                           FontSize="12"
+                           TextColor="#D32F2F" />
+
                     <!-- Badge de riesgo -->
                     <Border StrokeShape="RoundRectangle 6"
                             BackgroundColor="{Binding ColorRiesgo}"
@@ -62,6 +93,8 @@
                     <Label Text="{Binding DetalleAsistencia}" FontSize="13"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
                     <Label Text="{Binding DetalleEntregas}" FontSize="13"
+                           TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
+                    <Label Text="{Binding DetalleRacha}" FontSize="13"
                            TextColor="{AppThemeBinding Light=#222222, Dark=#FFFFFF}" />
                     <!-- Si ya lo contactaron y cuándo -->
                     <Label Text="{Binding ContactoTexto}" FontSize="13" FontAttributes="Bold"

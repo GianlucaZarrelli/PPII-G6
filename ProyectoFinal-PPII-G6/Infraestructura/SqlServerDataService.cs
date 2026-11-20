@@ -60,9 +60,22 @@ namespace ProyectoFinal_PPII_G6.Infraestructura
             using var context = CreateContext();
 
             if (estudiante.Id == 0)
+            {
                 await context.Estudiantes.AddAsync(estudiante);
+            }
             else
-                context.Estudiantes.Update(estudiante);
+            {
+                // Carga el registro y copia los campos: así FechaAlta (nullable) se persiste bien al corregirla.
+                var existente = await context.Estudiantes.FindAsync(estudiante.Id)
+                    ?? throw new InvalidOperationException($"No existe el estudiante {estudiante.Id}.");
+
+                existente.Dni = estudiante.Dni;
+                existente.Nombre = estudiante.Nombre;
+                existente.Apellido = estudiante.Apellido;
+                existente.Email = estudiante.Email;
+                existente.ComisionId = estudiante.ComisionId;
+                existente.FechaAlta = estudiante.FechaAlta;
+            }
 
             await context.SaveChangesAsync();
             return estudiante.Id; // EF Core completa el Id autogenerado por SQL Server tras SaveChanges

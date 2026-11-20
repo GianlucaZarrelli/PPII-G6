@@ -159,9 +159,13 @@ namespace ProyectoFinal_PPII_G6.Tests
             Assert.Equal(new[] { "Joaquín Pérez", "Mateo Gómez", "Lucía Fernández" }, panel.Alumnos.Select(a => a.NombreCompleto));
             Assert.Equal(new[] { "ALTO RIESGO", "RIESGO MODERADO", "AL DÍA" }, panel.Alumnos.Select(a => a.Nivel));
 
-            // Y cada fila muestra los números que justifican su nivel
-            Assert.Equal("Asistencia 2/6 (33 %)  |  Entregas 1/3 (33 %)", panel.Alumnos[0].Detalle);
-            Assert.Equal("Asistencia 5/6 (83 %)  |  Entregas 2/3 (67 %)", panel.Alumnos[1].Detalle);
+            // Y cada fila muestra los números que justifican su nivel (base + racha)
+            Assert.Equal(
+                "Inasistencias 4 de 6 clases (67 %)  |  No entregados 2 de 3 (67 %)  |  4 ausencias seguidas",
+                panel.Alumnos[0].Detalle);
+            Assert.Equal(
+                "Inasistencias 1 de 6 clases (17 %)  |  No entregados 1 de 3 (33 %)  |  1 ausencia seguida",
+                panel.Alumnos[1].Detalle);
         }
 
         // H10 · Criterio 3 (se guarda vinculado al alumno) y H11 · Criterios 1 y 2 (indicador y último contacto en el panel)

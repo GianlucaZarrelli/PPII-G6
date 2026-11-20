@@ -17,7 +17,8 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         /// <summary>
         /// Lo que se escribió en el formulario de alta, ya limpio (sin espacios de más y con el DNI normalizado).
         /// </summary>
-        private sealed record DatosAlta(string Dni, string Nombre, string Apellido, string Email, Comision? Comision);
+        private sealed record DatosAlta(
+            string Dni, string Nombre, string Apellido, string Email, Comision? Comision, DateTime? FechaIncorporacion);
 
         private readonly IDataService _dataService;
         private readonly IDialogoService _dialogo;
@@ -97,7 +98,40 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         private string _errorNombre = string.Empty;
         private string _errorApellido = string.Empty;
         private string _errorEmail = string.Empty;
+        private string _errorFechaIncorporacion = string.Empty;
         private string _errorNombreComision = string.Empty;
+
+        private bool _tieneFechaIncorporacion;
+
+        /// <summary>
+        /// Si es true, el alta incluye una fecha de incorporación.
+        /// </summary>
+        public bool TieneFechaIncorporacion
+        {
+            get => _tieneFechaIncorporacion;
+            set
+            {
+                _tieneFechaIncorporacion = value;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorFechaIncorporacion)) ErrorFechaIncorporacion = string.Empty;
+            }
+        }
+
+        private DateTime _fechaIncorporacion = DateTime.Today;
+
+        /// <summary>
+        /// Fecha de incorporación opcional del alta.
+        /// </summary>
+        public DateTime FechaIncorporacion
+        {
+            get => _fechaIncorporacion;
+            set
+            {
+                _fechaIncorporacion = value.Date;
+                OnPropertyChanged();
+                if (!string.IsNullOrEmpty(ErrorFechaIncorporacion)) ErrorFechaIncorporacion = string.Empty;
+            }
+        }
 
         /// <summary>Texto rojo debajo del selector de comisión.</summary>
         public string ErrorComision
@@ -132,6 +166,13 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         {
             get => _errorEmail;
             set { _errorEmail = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>Texto rojo debajo de la fecha de incorporación.</summary>
+        public string ErrorFechaIncorporacion
+        {
+            get => _errorFechaIncorporacion;
+            set { _errorFechaIncorporacion = value; OnPropertyChanged(); }
         }
 
         /// <summary>Texto rojo debajo del nombre de la comisión nueva.</summary>
@@ -427,7 +468,8 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             (Nombre ?? string.Empty).Trim(),
             (Apellido ?? string.Empty).Trim(),
             (Email ?? string.Empty).Trim(),
-            ComisionSeleccionada);
+            ComisionSeleccionada,
+            TieneFechaIncorporacion ? FechaIncorporacion.Date : null);
 
         /// <summary>
         /// Completa los textos rojos de cada campo. Devuelve true si el formulario está bien.
@@ -457,11 +499,14 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             else if (!ValidacionEmail.EsValido(datos.Email))
                 ErrorEmail = "El email no es válido. Tiene que tener el formato nombre@dominio.com.";
 
+            ErrorFechaIncorporacion = ValidacionIncorporacion.ObtenerError(datos.FechaIncorporacion, DateTime.Today) ?? string.Empty;
+
             return string.IsNullOrEmpty(ErrorComision)
                 && string.IsNullOrEmpty(ErrorDni)
                 && string.IsNullOrEmpty(ErrorNombre)
                 && string.IsNullOrEmpty(ErrorApellido)
-                && string.IsNullOrEmpty(ErrorEmail);
+                && string.IsNullOrEmpty(ErrorEmail)
+                && string.IsNullOrEmpty(ErrorFechaIncorporacion);
         }
 
         /// <summary>
@@ -474,6 +519,7 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             ErrorNombre = string.Empty;
             ErrorApellido = string.Empty;
             ErrorEmail = string.Empty;
+            ErrorFechaIncorporacion = string.Empty;
         }
 
         /// <summary>
@@ -483,7 +529,10 @@ namespace ProyectoFinal_PPII_G6.ViewModels
         {
             try
             {
-                var nuevo = new Estudiante(0, datos.Dni, datos.Nombre, datos.Apellido, datos.Email, datos.Comision!.Id);
+                var nuevo = new Estudiante(0, datos.Dni, datos.Nombre, datos.Apellido, datos.Email, datos.Comision!.Id)
+                {
+                    FechaAlta = datos.FechaIncorporacion
+                };
                 var rechazo = await _registrar.RegistrarAsync(nuevo);
 
                 if (rechazo != null)
@@ -508,6 +557,8 @@ namespace ProyectoFinal_PPII_G6.ViewModels
             Nombre = string.Empty;
             Apellido = string.Empty;
             Email = string.Empty;
+            TieneFechaIncorporacion = false;
+            FechaIncorporacion = DateTime.Today;
             LimpiarErroresAlta();
         }
     }

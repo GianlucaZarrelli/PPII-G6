@@ -58,9 +58,11 @@ namespace ProyectoFinal_PPII_G6.Models
         public int ComisionId { get; set; }
 
         /// <summary>
-        /// Fecha desde la que el estudiante forma parte de la comisión. Las clases anteriores no se le cuentan.
+        /// Fecha desde la que el estudiante forma parte de la comisión (incorporación tardía).
+        /// Es opcional: si es null, le cuentan todas las clases y trabajos de la comisión.
+        /// Si tiene valor, solo le cuentan los posteriores o iguales a esa fecha.
         /// </summary>
-        public DateTime FechaAlta { get; set; } = DateTime.Today;
+        public DateTime? FechaAlta { get; set; }
 
         /// <summary>
         /// Nombre y apellido juntos, para mostrar en pantalla.

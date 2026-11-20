@@ -88,6 +88,11 @@ namespace ProyectoFinal_PPII_G6.Services
         public int CantidadContactos { get; init; }
 
         /// <summary>
+        /// Ausencias seguidas hasta la última clase con asistencia tomada.
+        /// </summary>
+        public ResultadoRacha Racha { get; init; } = ResultadoRacha.SinDatos();
+
+        /// <summary>
         /// El menor de los dos porcentajes: desempata dentro de un mismo nivel.
         /// </summary>
         public double PeorPorcentaje => Math.Min(PorcentajeAsistencia, PorcentajeEntregas);
@@ -119,6 +124,7 @@ namespace ProyectoFinal_PPII_G6.Services
         /// como parámetro para poder probar qué pasa con los trabajos vencidos y los que no.
         /// Los contactos son los del alumno: se suman al resumen, pero no cambian su nivel.
         /// Si no se indican umbrales, se usan los valores por defecto.
+        /// Las asistencias de la comisión sirven para saber en qué clases se tomó lista (racha).
         /// </summary>
         public ResumenAlumno Evaluar(
             Estudiante alumno,
@@ -128,18 +134,26 @@ namespace ProyectoFinal_PPII_G6.Services
             IEnumerable<Entrega> entregasAlumno,
             DateTime hoy,
             IEnumerable<Contacto>? contactosAlumno = null,
-            UmbralesRiesgo? umbrales = null)
+            UmbralesRiesgo? umbrales = null,
+            IEnumerable<Asistencia>? asistenciasComision = null)
         {
+            var clasesLista = clasesComision.ToList();
             var asistenciasTodas = asistenciasAlumno.ToList();
-            var clases = SeleccionarClasesDelAlumno(alumno, clasesComision, asistenciasTodas, hoy);
-            var trabajos = SeleccionarTrabajosVencidos(trabajosComision, hoy);
+            var clases = SeleccionarClasesDelAlumno(alumno, clasesLista, asistenciasTodas, hoy);
+            var trabajos = SeleccionarTrabajosVencidos(alumno, trabajosComision, hoy);
 
             var asistencias = FiltrarAsistencias(asistenciasTodas, clases);
             var entregas = FiltrarEntregas(entregasAlumno, trabajos);
 
             var resultado = _riesgoService.CalcularRiesgo(asistencias, clases.Count, entregas, trabajos.Count, umbrales);
             var contactos = (contactosAlumno ?? Array.Empty<Contacto>()).ToList();
-            return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado, contactos);
+            var racha = RachaAusencias.Calcular(
+                alumno,
+                clasesLista,
+                asistenciasComision ?? asistenciasTodas,
+                asistenciasTodas,
+                hoy);
+            return ArmarResumen(alumno, clases, trabajos, asistencias, entregas, resultado, contactos, racha);
         }
 
         /// <summary>
@@ -156,8 +170,8 @@ namespace ProyectoFinal_PPII_G6.Services
         }
 
         /// <summary>
-        /// Cuentan las clases desde el alta del alumno hasta hoy, y también las anteriores en las que ya hay un registro
-        /// (por ejemplo, si se cargó a mano la asistencia de una clase previa a su incorporación).
+        /// Cuentan las clases desde la incorporación del alumno hasta hoy (si tiene fecha), y también las anteriores
+        /// en las que ya hay un registro. Sin fecha de incorporación, cuentan todas las clases hasta hoy.
         /// Una clase futura todavía no cuenta: el calendario se puede cargar por adelantado y no tiene que
         /// marcar ausentes a todos los alumnos.
         /// </summary>
@@ -168,17 +182,23 @@ namespace ProyectoFinal_PPII_G6.Services
 
             return clasesComision
                 .Where(c => c.Fecha.Date <= hoy.Date)
-                .Where(c => c.Fecha.Date >= alumno.FechaAlta.Date || conRegistro.Contains(c.Id))
+                .Where(c => !alumno.FechaAlta.HasValue
+                            || c.Fecha.Date >= alumno.FechaAlta.Value.Date
+                            || conRegistro.Contains(c.Id))
                 .ToList();
         }
 
         /// <summary>
         /// Un trabajo cuenta recién desde el día siguiente a su vencimiento: antes de eso todavía se puede entregar.
+        /// Si el alumno tiene fecha de incorporación, solo cuentan los trabajos con vencimiento desde esa fecha.
         /// </summary>
         private static List<TrabajoPractico> SeleccionarTrabajosVencidos(
-            IEnumerable<TrabajoPractico> trabajosComision, DateTime hoy)
+            Estudiante alumno, IEnumerable<TrabajoPractico> trabajosComision, DateTime hoy)
         {
-            return trabajosComision.Where(t => t.FechaEntrega.Date < hoy.Date).ToList();
+            return trabajosComision
+                .Where(t => t.FechaEntrega.Date < hoy.Date)
+                .Where(t => !alumno.FechaAlta.HasValue || t.FechaEntrega.Date >= alumno.FechaAlta.Value.Date)
+                .ToList();
         }
 
         /// <summary>
@@ -205,7 +225,7 @@ namespace ProyectoFinal_PPII_G6.Services
         private static ResumenAlumno ArmarResumen(
             Estudiante alumno, List<Clase> clases, List<TrabajoPractico> trabajos,
             List<Asistencia> asistencias, List<Entrega> entregas, ResultadoRiesgo resultado,
-            List<Contacto> contactos)
+            List<Contacto> contactos, ResultadoRacha racha)
         {
             return new ResumenAlumno
             {
@@ -221,7 +241,8 @@ namespace ProyectoFinal_PPII_G6.Services
                 IdsClasesContadas = clases.Select(c => c.Id).ToHashSet(),
                 IdsTrabajosContados = trabajos.Select(t => t.Id).ToHashSet(),
                 UltimoContacto = contactos.Count == 0 ? null : contactos.Max(c => c.FechaHora),
-                CantidadContactos = contactos.Count
+                CantidadContactos = contactos.Count,
+                Racha = racha
             };
         }
 
